@@ -9,8 +9,8 @@ var UrView = (function(my, $) {
         my.p1Pieces = new my.Pieces(UrUtils.PLAYER1, '#p1Start', '#p1Finish');
         my.p2Pieces = new my.Pieces(UrUtils.PLAYER2, '#p2Start', '#p2Finish');
         my.dice = new my.Dice();
-        loadPieces(my.p1Pieces);
-        loadPieces(my.p2Pieces);
+        loadPieces(my.p1Pieces, handlers);
+        loadPieces(my.p2Pieces, handlers);
         $('#diceArea input[type="button"]#roller').click(e => handlers.roll(e));
         $('#diceArea input[type="button"]#passer').click(e => handlers.passTurn(e));
     }
@@ -106,24 +106,23 @@ var UrView = (function(my, $) {
         }
     }
 
-    function loadPieces(pieces) {
-        console.log("Loading player ",pieces.owner," pieces to ", pieces.startPileId);
+    function loadPieces(pieces, handlers) {
+        console.debug("Loading player ",pieces.owner," pieces to ", pieces.startPileId);
         for (let i = 0; i < pieces.pieces.length; i++) {
             let id = "p"+pieces.owner+"p"+i;
-            $(pieces.startPileId).append($("<div id=\""+id+"\" class=\"pieceHolder\">").load(my.Piece.svgPath, function() {
-                console.log("Piece loaded into #"+id);
-            }));
-            $('.startingArea > div').draggable({
-                revert: "invalid",
-                revertDuration: 250
-            });
-            $('.space, .startingArea, .finishArea').droppable({
-                drop: function(event,ui) {
-                    var id = $(ui.draggable).attr('id');
-                    var target = $(this).attr('id')
-                    console.log(id, " dropped in ", target);
+            $(pieces.startPileId).append($("<div id=\""+id+"\" class=\"pieceHolder\">").load(my.Piece.svgPath, function(response, status, xhr) {
+                if (status == "error") {
+                    console.error("Error loading",my.Piece.svgPath,"into #"+id);
                 }
-            });
+                console.debug("Loaded piece into #"+id);
+                $('.startingArea > div').draggable({
+                    revert: "invalid",
+                    revertDuration: 250
+                });
+                $('.space, .startingArea, .finishArea').droppable({
+                    drop: (e,u) => handlers.pieceMoved(e,u)
+                });
+            }));
         }
     }
 
