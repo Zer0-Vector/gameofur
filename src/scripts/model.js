@@ -1,31 +1,49 @@
 "use strict";
-var UrModel = (function (model) {
-    model.initialize = function() {
-        
+var UrModel = (function (my) {
+    my.board = null;
+    my.player1 = null;
+    my.player2 = null;
+    my.dice = null;
+    my.turn = null;
+    my.initialize = function() {
+        my.board = new my.Board();
+        my.player1 = new my.Player("Player1", UrUtils.PLAYER1);
+        my.player2 = new my.Player("Player2", UrUtils.PLAYER2);
+        my.dice = new my.Dice();
+        my.turn = UrUtils.PLAYER1;
     }
-    model.Die = class {
+
+    my.Dice = class {
         constructor() {
-            this.currentValue = -1;
+            this.values = [-1, -1, -1, -1];
+            this.total = -1;
         }
+
         roll() {
-            // 0 or 1
-            this.currentValue = Math.floor(Math.random() * 2)
-            return this.currentValue;
+            this.total = 0;
+            for (var i = 0; i<4; i++) {
+                var n = Math.floor(Math.random() * 2);
+                this.total += n;
+                this.values[i] = n;
+            }
+            return this.total;
         }
+
         reset() {
-            this.currentValue = -1;
+            this.values = [-1, -1, -1, -1];
+            this.total = -1;
         }
     }
 
-    model.Space = class {
+    my.Space = class {
         constructor(id,type) {
             this.id = id;
-            UrUtils.isValid(type);
+            UrUtils.isValidSpace(type);
             this.type = type;
         }
     }
 
-    model.Piece = class {
+    my.Piece = class {
         constructor(id, owner, position) {
             this.id = id;
             if (!UrUtils.isPlayer(owner)) {
@@ -36,7 +54,7 @@ var UrModel = (function (model) {
         }
     }
 
-    model.Board = class {
+    my.Board = class {
         constructor() {
             this.spaces = [];
             this.addMiddleLane();
@@ -49,7 +67,7 @@ var UrModel = (function (model) {
                 if (i === 3) {
                     type |= UrUtils.ROSETTE;
                 }
-                this.spaces.push(new model.Space(i, type));
+                this.spaces.push(new my.Space(i, type));
             }
         }
         buildTrack(player) {
@@ -59,24 +77,24 @@ var UrModel = (function (model) {
                 if (i === 3) {
                     type |= UrUtils.ROSETTE;
                 }
-                let space = new model.Space(this.spaces.length, type); 
+                let space = new my.Space(this.spaces.length, type); 
                 track.push(space);
                 this.spaces.push(space);
             }
             for (let i = 0; i < 8; i++) {
                 track.push(this.spaces[i]);
             }
-            let penultimate = new model.Space(this.spaces.length, UrUtils.OFFRAMP | player);
+            let penultimate = new my.Space(this.spaces.length, UrUtils.OFFRAMP | player);
             track.push(penultimate);
             this.spaces.push(penultimate);
-            let lastOne = new model.Space(this.spaces.length, UrUtils.OFFRAMP | UrUtils.ROSETTE | player);
+            let lastOne = new my.Space(this.spaces.length, UrUtils.OFFRAMP | UrUtils.ROSETTE | player);
             track.push(lastOne);
             this.spaces.push(lastOne);
             return track;
         }
     }
 
-    model.Player = class {
+    my.Player = class {
         constructor(name, mask) {
             this.name = name;
             if (!UrUtils.isPlayer(mask)) {
@@ -88,23 +106,11 @@ var UrModel = (function (model) {
         buildPieces() {
             let pcs = [];
             for (let i = 0; i < 7; i++) {
-                pcs.push(new model.Piece(i << 2 | this.mask, this.mask, -1));
+                pcs.push(new my.Piece(i << 2 | this.mask, this.mask, -1));
             }
             return pcs;
         }
     }
 
-    model.Game = class {
-        constructor() {
-            console.log("Initializing game...");
-            this.board = new model.Board();
-            this.p1 = new model.Player("Player1", UrUtils.PLAYER1);
-            this.p2 = new model.Player("Player2", UrUtils.PLAYER2);
-            this.dice = [new model.Die(), new model.Die(), new model.Die(), new model.Die()];
-            console.log("Game initialized: ", this);
-        }
-        // turn sequence: roll, move, resolve events
-    }
-
-    return model;
+    return my;
 })(UrModel || {});

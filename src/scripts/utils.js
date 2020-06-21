@@ -1,12 +1,12 @@
 "use strict";
-var UrUtils = (function(utils) {
-    utils.PLAYER1 = 0x01;
-    utils.PLAYER2 = 0x02;
-    utils.ROSETTE = 0x04;
-    utils.ONRAMP  = 0x08;
-    utils.OFFRAMP = 0x10;
-    utils.MIDDLE  = 0x20;
-    utils.isValidSpace = function(t) {
+var UrUtils = (function(my) {
+    my.PLAYER1 = 0x01;
+    my.PLAYER2 = 0x02;
+    my.ROSETTE = 0x04;
+    my.ONRAMP  = 0x08;
+    my.OFFRAMP = 0x10;
+    my.MIDDLE  = 0x20;
+    my.isValidSpace = function(t) {
         const PLAYER_MASK = 0x03;
         const LOCATION_MASK = 0x38;
         var player = t & PLAYER_MASK;
@@ -23,9 +23,9 @@ var UrUtils = (function(utils) {
                 throw "Space can only be one of ONRAMP, OFFRAMP or MIDDLE";
         }
     };
-    utils.isPlayer = function(t) {
+    my.isPlayer = function(t) {
         return t === this.PLAYER1 || t === this.PLAYER2;
     }
-    
-    return utils;
+
+    return my;
 })(UrUtils || {});
