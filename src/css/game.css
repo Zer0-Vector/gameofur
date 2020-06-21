@@ -62,6 +62,19 @@ body {
 h1 {
     text-align: center;
 }
+
+#turnIndiator.p1 {
+    color: var(--color-p1-dark);
+}
+
+#turnIndiator.p2 {
+    color: var(--color-p2-dark);
+}
+
+#turnIndiator {
+    text-align: center;
+}
+
 #board {
     width: 350px;
     height: 850px;
