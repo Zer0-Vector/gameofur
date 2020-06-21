@@ -1,0 +1,177 @@
+:root {
+    --color-p1: #2E51A2;	/* Main Primary color */
+    --color-p1-lighter: #708BC8;
+    --color-p1-light: #4968AF;
+    --color-p1-dark: #173A8B;
+    --color-p1-darker: #0C2A6E;
+
+    --color-rosette: #E22D4E;	/* Main Secondary color (1) */
+    --color-rosette-lighter: #F57C91;
+    --color-rosette-light: #F0536F;
+    --color-rosette-dark: #C30D2D;
+    --color-rosette-darker: #9A011C;
+
+    --color-other: #5BD02A;	/* Main Secondary color (2) */
+    --color-other-lighter: #98E875;
+    --color-other-light: #78DD4C;
+    --color-other-dark: #3EB30C;
+    --color-other-darker: #2B8D01;
+
+    --color-p2: #F1B130;	/* Main Complement color */
+    --color-p2-lighter: #FFD581;
+    --color-p2-light: #FFC758;
+    --color-p2-dark: #D08F0E;
+    --color-p2-darker: #A46E01;
+
+    --color-mid-lane: rgb(127,127,127);
+    --color-border: rgb(0,0,0);
+
+    --pos-space-left-p1: 25;
+}
+
+.p1 .piece {
+    fill: var(--color-p1-darker);
+    stroke-width: 1;
+    stroke: black;
+}
+.p2 .piece {
+    fill: var(--color-p2-darker);
+    stroke-width: 1;
+    stroke: black;
+}
+.piece .pip {
+    fill: white;
+}
+.die .pip {
+    fill: white;
+    stroke: none;
+}
+.die .sides {
+    stroke: darkgray;
+    fill: black;
+    stroke-width: 0.5;
+}
+
+html {
+    background-color: whitesmoke;
+}
+body {
+    background-color: lightgray;
+    margin: 25px;
+}
+h1 {
+    text-align: center;
+}
+#board {
+    width: 350px;
+    height: 850px;
+    padding:50px;
+    /* background: url("/images/board.png") no-repeat center; */
+    position: relative;
+}
+
+#board div.space {
+    width: 93px;
+    height: 93px;
+    border: 7px var(--color-border) solid;
+    background-color: var(--color-mid-lane);
+    position: absolute;
+}
+
+#board div.space.r1 {
+    top: 71px;
+}
+#board div.space.r2 {
+    top: 171px;
+}
+#board div.space.r3 {
+    top: 271px;
+}
+#board div.space.r4 {
+    top: 371px;
+}
+#board div.space.r5 {
+    top: 471px;
+}
+#board div.space.r6 {
+    top: 571px;
+}
+#board div.space.r7 {
+    top: 671px;
+}
+#board div.space.r8 {
+    top: 771px;
+}
+
+#board div.space.p1 {
+    background-color: var(--color-p1-lighter);
+    left: 71px;
+}
+#board div.space.middle {
+    left: 171px
+}
+#board div.space.p2 {
+    background-color: var(--color-p2-lighter);
+    left: 271px;
+}
+
+#board div.space.rosette {
+    background-image: url('/images/rosette.png');
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#gameArea {
+    text-align: center;
+    position: relative;
+}
+
+#gameArea > div {
+    display: inline-block;
+}
+
+.playerArea > div {
+    position: relative;
+}
+
+.startingArea {
+    width: 190px;
+    height: 190px;
+    border: 5px groove;
+}
+.startingArea.p1 {
+    border-color: var(--color-p1);
+}
+.startingArea.p2 {
+    border-color: var(--color-p2);
+}
+.finishArea {
+    width: 180px;
+    height: 180px;
+    border: 10px inset;
+}
+.finishArea.p1 {
+    border-color: var(--color-p1-lighter);
+}
+.finishArea.p2 {
+    border-color: var(--color-p2-lighter);
+}
+/* Pieces divs */
+.startingArea > div {
+    position: absolute;
+}
+
+.pieceHolder {
+    z-index: 100;
+}
+
+#diceArea {
+    text-align: center;
+    margin: 100px;
+}
+#diceArea > div {
+    padding: 10px;
+}
+#diceCup > div {
+    display: inline-block;
+}
