@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="css/game.css" />
+    </head>
+    <body>
+        <script src="scripts/jquery.js"></script>
+        <script src="scripts/jquery-ui.js"></script>
+        <script src="scripts/gameofur.js"></script>
+        <h1>Royal Game of Ur</h1>
+        <div id="gameArea">
+            <div id="p1Area" class="playerArea">
+                <div id="p1Start" class="startingArea p1"></div>
+                <div id="p1Finish" class="finishArea p1"></div>
+            </div>
+            <div id="board">
+                <!-- p1 on-ramp -->
+                <div class="space onramp p1 rosette r1" id="s4p1"></div>
+                <div class="space onramp p1 r2" id="s3p1"></div>
+                <div class="space onramp p1 r3" id="s2p1"></div>
+                <div class="space onramp p1 r4" id="s1p1"></div>
+                
+                <!-- p1 off-ramp -->
+                <div class="space offramp p1 rosette r7"></div>
+                <div class="space offramp p1 r8"></div>
+                
+                <!-- middle lane -->
+                <div class="space middle r1" id="s5"></div>
+                <div class="space middle r2" id="s6"></div>
+                <div class="space middle r3" id="s7"></div>
+                <div class="space middle rosette r4" id="s8"></div>
+                <div class="space middle r5" id="s9"></div>
+                <div class="space middle r6" id="s10"></div>
+                <div class="space middle r7" id="s11"></div>
+                <div class="space middle r8" id="s12"></div>
+                
+                <!-- p2 on-ramp -->
+                <div class="space onramp p2 rosette r1" id="s4p2"></div>
+                <div class="space onramp p2 r2" id="s3p2"></div>
+                <div class="space onramp p2 r3" id="s2p2"></div>
+                <div class="space onramp p2 r4" id="s1p2"></div>
+                
+                <!-- p1 off-ramp -->
+                <div class="space offramp p2 rosette r7" id="s14p2"></div>
+                <div class="space offramp p2 r8" id="s13p2"></div>
+            </div>
+            <div id="p2Area" class="playerArea">
+                <div id="p2Start" class="startingArea p2"></div>
+                <div id="p2Finish" class="finishArea p2"></div>
+            </div>
+        </div>
+        <div id="diceArea">
+            <div id="diceTarget">
+                <input type="button" value="Roll"/>
+            </div>
+            <div id="diceCup"></div>
+        </div>
+    </body>
+</html>

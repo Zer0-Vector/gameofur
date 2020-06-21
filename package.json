@@ -1,0 +1,20 @@
+{
+  "name": "gameofur",
+  "version": "1.0.0",
+  "description": "Royal Game of Ur",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Arthur Little",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "jquery": "^3.5.1",
+    "jquery-ui-dist": "^1.12.1"
+  },
+  "devDependencies": {
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "gulp-decomment": "^0.2.0",
+    "map-stream": "0.0.7"
+  }
+}
