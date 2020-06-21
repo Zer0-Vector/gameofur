@@ -1,5 +1,8 @@
 "use strict";
 var UrModel = (function (model) {
+    model.initialize = function() {
+        
+    }
     model.Die = class {
         constructor() {
             this.currentValue = -1;
