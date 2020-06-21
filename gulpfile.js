@@ -70,7 +70,7 @@ function watch() {
     gulp.watch(SRC_HTML, html);
     gulp.watch(SRC_JS, js);
     gulp.watch(SRC_CSS, css);
-    gulp.watch(SRC_CSS, images);
+    gulp.watch(SRC_SVG, images);
     gulp.watch(SRC_PNG, images);
 }
 
