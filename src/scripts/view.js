@@ -1,6 +1,6 @@
 "use strict";
 var UrView = (function(view, $) {
-    view.initialize() = function() {
+    view.initialize = function() {
         let p1Pieces = new view.Pieces(UrUtils.PLAYER1, '#p1Start', '#p1Finish');
         let p2Pieces = new view.Pieces(UrUtils.PLAYER2, '#p2Start', '#p2Finish');
         let dice = new view.Dice();
@@ -27,9 +27,9 @@ var UrView = (function(view, $) {
         getSvg() {
             switch (this.currentView) {
                 case 0:
-                    return DieView.svgPath0;
+                    return view.Die.svgPath0;
                 case 1:
-                    return DieView.svgPath1;
+                    return view.Die.svgPath1;
             }
         }
     }

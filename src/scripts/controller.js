@@ -3,12 +3,12 @@ var UrController = (function(con) {
     const MODEL = UrModel;
     const VIEW = UrView;
 
-    con.initialize() = function() {
+    con.initialize = function() {
         VIEW.initialize();
         MODEL.initialize();
     }
 
-    con.startGame() = function() {
+    con.startGame = function() {
     }
 
     return con;
