@@ -28,6 +28,13 @@ var UrController = (function(my) {
             }
             VIEW.updateTurnDisplay(MODEL.turn);
         }
+
+        h.pieceMoved  = function(event, ui) {
+            console.log();
+            var tid = $(event.target).attr('id');
+            var id = $(ui.draggable).attr('id');
+            console.info(id, " dropped in ",tid);
+        };
         return h;
     })(my.handlers || {});
 

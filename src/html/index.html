@@ -14,6 +14,7 @@
             "use strict";
             $(document).ready(function() {
                 UrController.initialize();
+                console.info("Game initialized");
             });
         </script>
     </head>
@@ -26,34 +27,34 @@
             </div>
             <div id="board">
                 <!-- p1 on-ramp -->
-                <div class="space onramp p1 rosette r1" id="s4p1"></div>
-                <div class="space onramp p1 r2" id="s3p1"></div>
-                <div class="space onramp p1 r3" id="s2p1"></div>
-                <div class="space onramp p1 r4" id="s1p1"></div>
+                <div class="space onramp p1 rosette r1" id="s-a1"></div>
+                <div class="space onramp p1 r2" id="s-a2"></div>
+                <div class="space onramp p1 r3" id="s-a3"></div>
+                <div class="space onramp p1 r4" id="s-a4"></div>
                 
                 <!-- p1 off-ramp -->
-                <div class="space offramp p1 rosette r7"></div>
-                <div class="space offramp p1 r8"></div>
+                <div class="space offramp p1 rosette r7" id="s-a7"></div>
+                <div class="space offramp p1 r8" id="s-a8"></div>
                 
                 <!-- middle lane -->
-                <div class="space middle r1" id="s5"></div>
-                <div class="space middle r2" id="s6"></div>
-                <div class="space middle r3" id="s7"></div>
-                <div class="space middle rosette r4" id="s8"></div>
-                <div class="space middle r5" id="s9"></div>
-                <div class="space middle r6" id="s10"></div>
-                <div class="space middle r7" id="s11"></div>
-                <div class="space middle r8" id="s12"></div>
+                <div class="space middle r1" id="s-m1"></div>
+                <div class="space middle r2" id="s-m2"></div>
+                <div class="space middle r3" id="s-m3"></div>
+                <div class="space middle rosette r4" id="s-m4"></div>
+                <div class="space middle r5" id="s-m5"></div>
+                <div class="space middle r6" id="s-m6"></div>
+                <div class="space middle r7" id="s-m7"></div>
+                <div class="space middle r8" id="s-m8"></div>
                 
                 <!-- p2 on-ramp -->
-                <div class="space onramp p2 rosette r1" id="s4p2"></div>
-                <div class="space onramp p2 r2" id="s3p2"></div>
-                <div class="space onramp p2 r3" id="s2p2"></div>
-                <div class="space onramp p2 r4" id="s1p2"></div>
+                <div class="space onramp p2 rosette r1" id="s-b1"></div>
+                <div class="space onramp p2 r2" id="s-b2"></div>
+                <div class="space onramp p2 r3" id="s-b3"></div>
+                <div class="space onramp p2 r4" id="s-b4"></div>
                 
                 <!-- p1 off-ramp -->
-                <div class="space offramp p2 rosette r7" id="s14p2"></div>
-                <div class="space offramp p2 r8" id="s13p2"></div>
+                <div class="space offramp p2 rosette r7" id="s-b7"></div>
+                <div class="space offramp p2 r8" id="s-b8"></div>
             </div>
             <div id="p2Area" class="playerArea">
                 <div id="p2Start" class="startingArea p2"></div>
