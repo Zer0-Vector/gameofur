@@ -51,6 +51,12 @@
     fill: black;
     stroke-width: 0.5;
 }
+.dieHolder .r120 {
+    transform: rotate(120deg);
+}
+.dieHolder .r240 {
+    transform: rotate(240deg);
+}
 
 html {
     background-color: whitesmoke;
@@ -78,7 +84,9 @@ h1 {
 #board {
     width: 350px;
     height: 850px;
-    padding:50px;
+    padding-left:50px;
+    padding-right:50px;
+    padding-bottom: 15px;
     /* background: url("/images/board.png") no-repeat center; */
     position: relative;
 }
@@ -180,7 +188,7 @@ h1 {
 
 #diceArea {
     text-align: center;
-    margin: 100px;
+    margin: 10px;
 }
 #diceArea > div {
     padding: 10px;
