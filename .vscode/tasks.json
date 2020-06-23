@@ -20,8 +20,26 @@
             "type": "gulp",
             "task": "watch",
             "group": "test",
-            "problemMatcher": [],
-            "label": "gulp: watch"
+            "label": "gulp: watch",
+            "dependsOn": "gulp: build",
+            "isBackground": true,
+            // "problemMatcher": [
+            //     {
+            //         "pattern": [
+            //             {
+            //                 "regexp": ".",
+            //                 "file": 1,
+            //                 "location": 2,
+            //                 "message": 3
+            //             }
+            //         ],
+            //         "background": {
+            //             "activeOnStart": true,
+            //             "beginsPattern": ".",
+            //             "endsPattern": "."
+            //         }
+            //     }
+            // ]
         },
         {
             "type": "npm",
