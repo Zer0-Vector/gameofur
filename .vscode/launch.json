@@ -1,0 +1,40 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "http://localhost:${config:ur.server.port}",
+            "webRoot": "${workspaceFolder}/${config:ur.build.www}",
+            "runtimeArgs": ["--auto-open-devtools-for-tabs", "--start-maximized"],
+            "internalConsoleOptions": "openOnSessionStart",
+            "presentation": {
+                "hidden": true
+            }
+        },
+        {
+            "name": "Launch node app",
+            "program": "${workspaceFolder}/${config:ur.build.root}",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node",
+            "presentation": {
+                "hidden": true
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Start debug session",
+            "configurations": ["Launch node app", "Launch Chrome against localhost"],
+            "preLaunchTask": "gulp: build",
+            "stopAll": true
+        }
+    ]
+}
