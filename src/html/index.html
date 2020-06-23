@@ -5,17 +5,15 @@
         <script src="scripts/jquery.js"></script>
         <script src="scripts/jquery-ui.js"></script>
 
-        <script src="scripts/utils.js"></script>
-        <script src="scripts/model.js"></script>
-        <script src="scripts/view.js"></script>
-        <script src="scripts/controller.js"></script>
-
         <script>
-            "use strict";
-            $(document).ready(function() {
-                UrController.initialize();
-                console.info("Game initialized");
-            });
+            var exports = {}; // hack to fix Uncaught ReferenceError
+        </script>
+        <script src="scripts/utils.js" type="module"></script>
+        <script src="scripts/model.js" type="module"></script>
+        <script src="scripts/view.js" type="module"></script>
+        <script src="scripts/controller.js" type="module"></script>
+
+        <script type="module" src="scripts/gameofur.js">
         </script>
     </head>
     <body>
