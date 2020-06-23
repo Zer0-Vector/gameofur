@@ -6,17 +6,49 @@ var UrView = (function(my, $) {
     my.board = null;
 
     my.initialize = function(handlers) {
-        my.p1Pieces = new my.Pieces(UrUtils.PLAYER1, '#p1Start', '#p1Finish');
-        my.p2Pieces = new my.Pieces(UrUtils.PLAYER2, '#p2Start', '#p2Finish');
         my.dice = new my.Dice();
-        loadPieces(my.p1Pieces, handlers);
-        loadPieces(my.p2Pieces, handlers);
+
+        console.debug("Configuring roll/passTurn buttons.");
         $('#diceArea input[type="button"]#roller').click(e => handlers.roll(e));
         $('#diceArea input[type="button"]#passer').click(e => handlers.passTurn(e));
+
+        console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
+        $(document).keypress(e => {
+            switch (e.which) {
+                case 13: // Enter,NumpadEnter
+                case 82: // KeyR
+                    handlers.roll(e);
+                    break;
+                case 32: // Space
+                case 80: // KeyP
+                    handlers.passTurn(e);
+                    break;
+            }
+        });
+        
+        // spaces and piecces are disabled first
+        console.debug("Configuring drag/drop for pieces.");
+        $('.startingArea > div').draggable({
+            disabled: true, 
+            revert: "invalid",
+            revertDuration: 250
+        });
+        
+        console.debug("Configuring drag/drop for spaces.");
+        $('.space, .startingArea, .finishArea').droppable({
+            disabled: true,
+            drop: (e,u) => handlers.pieceDropped(e,u)
+        });
+        
     }
 
-    my.updateTurnDisplay = function(p) {
-        var message = "Player "+p+"'s Turn";
+    my.initializePieces = function(player, list) {
+        console.debug("initializePieces",player, list);
+        return new my.Pieces(player.mask, '#'+player.id+'Start', '#'+player.id+'Finish', list);
+    }
+
+    my.updateTurnDisplay = function(p,name) {
+        var message = name+"'s Turn";
         var c = (p === UrUtils.PLAYER1) ? "p1" : "p2";
         $('#turnIndiator').attr("class", c).html(message);
         my.dice.clear();
@@ -40,8 +72,11 @@ var UrView = (function(my, $) {
             let thiz = this;
             let orientation = Math.floor(Math.random() * 3) * 120;
             let targetElement = '#'+this.id+' > div';
-            $(targetElement).load(this.getSvg(), function() {
-                console.log("Loaded view",thiz.currentView,"into",targetElement);
+            $(targetElement).load(this.getSvg(), function(resonse,status,xhr) {
+                if (status == "error") {
+                    console.error("Error loading",this.getSvg(),"into #"+targetElement);
+                }
+                console.debug("Loaded view",thiz.currentView,"into",targetElement);
             });
         }
         clear() {
@@ -91,38 +126,35 @@ var UrView = (function(my, $) {
 
     my.Piece = class {
         static svgPath = 'images/piece.svg';
-        constructor(owner) {
+        constructor(id,owner) {
+            this.id = id;
+            this.owner = owner;
+        }
+        render(selector) {
+            $(selector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(my.Piece.svgPath, function(response, status, xhr) {
+                if (status == "error") {
+                    console.error("Error loading",my.Piece.svgPath,"into #"+this.id);
+                }
+                console.debug("Loaded piece into #"+this.id);
+            }));
         }
     }
     my.Pieces = class {
-        constructor(owner,startPileId,endPileId) {
+        constructor(owner,startPileId,endPileId,pieces) {
             if (!UrUtils.isPlayer(owner)) {
                 throw "Invalid player id: "+owner;
             }
             this.owner = owner;
-            this.pieces = new Array(7).fill(new my.Piece(owner), 0, 6);
+            this.pieces = pieces;
             this.startPileId = startPileId;
             this.endPileId = endPileId;
+            this.render();
         }
-    }
-
-    function loadPieces(pieces, handlers) {
-        console.debug("Loading player ",pieces.owner," pieces to ", pieces.startPileId);
-        for (let i = 0; i < pieces.pieces.length; i++) {
-            let id = "p"+pieces.owner+"p"+i;
-            $(pieces.startPileId).append($("<div id=\""+id+"\" class=\"pieceHolder\">").load(my.Piece.svgPath, function(response, status, xhr) {
-                if (status == "error") {
-                    console.error("Error loading",my.Piece.svgPath,"into #"+id);
-                }
-                console.debug("Loaded piece into #"+id);
-                $('.startingArea > div').draggable({
-                    revert: "invalid",
-                    revertDuration: 250
-                });
-                $('.space, .startingArea, .finishArea').droppable({
-                    drop: (e,u) => handlers.pieceMoved(e,u)
-                });
-            }));
+        render() {
+            console.debug("Loading player ",this.owner," pieces to ", this.startPileId);
+            for (var i = 0; i < this.pieces.length; i++) {
+                this.pieces[i].render(this.startPileId);
+            }
         }
     }
 

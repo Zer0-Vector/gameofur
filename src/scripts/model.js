@@ -1,16 +1,53 @@
 "use strict";
 var UrModel = (function (my) {
     my.board = null;
+    my.players = {};
     my.player1 = null;
     my.player2 = null;
     my.dice = null;
     my.turn = null;
+    my.history = []; // TODO
     my.initialize = function() {
+        my.player1 = new my.Player("Player 1", UrUtils.PLAYER1, "a");
+        my.player2 = new my.Player("Player 2", UrUtils.PLAYER2, "b");
+        my.players[UrUtils.PLAYER1] = my.player1;
+        my.players[UrUtils.PLAYER2] = my.player2;
         my.board = new my.Board();
-        my.player1 = new my.Player("Player1", UrUtils.PLAYER1);
-        my.player2 = new my.Player("Player2", UrUtils.PLAYER2);
         my.dice = new my.Dice();
-        my.turn = UrUtils.PLAYER1;
+        my.turn = new my.TurnData();
+        my.phase = UrUtils.TurnPhase.ROLL;
+    }
+
+    my.TurnData = class {
+        constructor() {
+            this.phase = UrUtils.TurnPhase.ROLL;
+            this.rollValue = -1;
+            this.player = UrUtils.PLAYER1;
+            this.rosette = false;
+            this.startSpace = null;
+            this.endSpace = null;
+        }
+    }
+
+    my.TurnTaken = class { // TODO for tracking history
+        constructor(player) {
+            this.player = player;
+            this.roll = -1;
+            this.knockoff = false;
+            this.rosette = false;
+            this.startSpace = null;
+            this.endSpace = null;
+        }
+        validate() {
+            console.assert(this.roll >= 0 && this.roll <= 4, "Invalid roll value: ",this.roll);
+            // roll is zero iff start & end spaces are both null
+            console.assert((this.roll == 0) === ((this.startSpace == null) === (this.endSpace == null)), "Invalid start/end space given roll value: roll=",roll,", start=",startSpace,", end=",endSpace);
+            var rosettes = ["a1", "b1", "m4", "a7", "b7"];
+            console.assert(rosette === (rosettes.includes(this.endSpace)), "Invalid endSpace given rosette==true: ",endSpace);
+            console.assert(knockoff === (!this.startSpace.endsWith('Start')), "Invalid startSpace given knockoff==true: ", startSpace);
+            // TODO validate impossible knockoffs near off ramp
+            // TODO validate impossible knockoffs near on ramp
+        }
     }
 
     my.Dice = class {
@@ -44,13 +81,37 @@ var UrModel = (function (my) {
     }
 
     my.Piece = class {
-        constructor(id, owner, position) {
+        constructor(id, owner, location) {
             this.id = id;
             if (!UrUtils.isPlayer(owner)) {
                 throw "Invalid player id: "+owner;
             }
             this.owner = owner;
-            this.position = position;
+            this.location = location;
+        }
+    }
+
+    my.Player = class {
+        constructor(name, mask, id) {
+            this.name = name;
+            if (!UrUtils.isPlayer(mask)) {
+                throw "Invalid player mask: "+mask;
+            }
+            this.mask = mask;
+            this.id = id;
+            this.pieces = this.buildPieces();
+            for (var i = 0; i < this.pieces.length; i++) {
+                var p = this.pieces[i];
+                this.map[p.id] = p;
+            }
+        }
+        buildPieces() {
+            let pcs = new Map();
+            for (let i = 0; i < 7; i++) {
+                var pcid = UrUtils.PIECE_ID_PREFIX+this.id+i;
+                pcs.set(pcid, new my.Piece(pcid, this.mask, this.id+"Start"));
+            }
+            return pcs;
         }
     }
 
@@ -77,7 +138,7 @@ var UrModel = (function (my) {
                 if (i === 3) {
                     type |= UrUtils.ROSETTE;
                 }
-                let space = new my.Space(this.spaces.length, type); 
+                let space = new my.Space(this.spaces.length, type);
                 track.push(space);
                 this.spaces.push(space);
             }
@@ -91,24 +152,6 @@ var UrModel = (function (my) {
             track.push(lastOne);
             this.spaces.push(lastOne);
             return track;
-        }
-    }
-
-    my.Player = class {
-        constructor(name, mask) {
-            this.name = name;
-            if (!UrUtils.isPlayer(mask)) {
-                throw "Invalid player mask: "+mask;
-            }
-            this.mask = mask;
-            this.pieces = this.buildPieces();
-        }
-        buildPieces() {
-            let pcs = [];
-            for (let i = 0; i < 7; i++) {
-                pcs.push(new my.Piece(i << 2 | this.mask, this.mask, -1));
-            }
-            return pcs;
         }
     }
 
