@@ -1,7 +1,8 @@
 const gulp = require('gulp');
 const del = require('del');
 const decomment = require('gulp-decomment');
-const map =  require('map-stream');
+const map = require('map-stream');
+const gtsc = require('gulp-typescript');
 
 const SRC_DIR = './src';
 const SRC_NODE = SRC_DIR+'/*.js';
@@ -22,6 +23,14 @@ function copyFiles(srcPattern, destDir) {
         .pipe(gulp.dest(destDir));
 }
 
+var tsProject = gtsc.createProject('tsconfig.json');
+async function info() {
+    console.log("Sources");
+    console.log("-----------------------")
+    console.log("node: ",SRC_NODE);
+    console.log("ts:   ",tsProject.config.include)
+}
+
 function node() {
     return copyFiles(SRC_NODE, OUTPUT_DIR);
 }
@@ -32,6 +41,12 @@ function html() {
 
 function js() {
     return copyFiles(SRC_JS, WWW_JS);
+}
+
+
+function ts() {
+    var tsResult = tsProject.src().pipe(tsProject());
+    return tsResult.js.pipe(gulp.dest(WWW_JS));
 }
 
 async function jsdeps() {
@@ -68,17 +83,18 @@ async function clean() {
 
 function watch() {
     gulp.watch(SRC_HTML, html);
-    gulp.watch(SRC_JS, js);
     gulp.watch(SRC_CSS, css);
     gulp.watch(SRC_SVG, images);
     gulp.watch(SRC_PNG, images);
+    gulp.watch(tsProject.config.include, ts);
 }
 
 exports.clean = clean;
 exports.watch = watch;
-exports.build = gulp.series(html, jsdeps, js, css, images, node);
+exports.build = gulp.series(html, jsdeps, ts, css, images, node);
 exports.html = html;
-exports.js = gulp.series(jsdeps, js);
 exports.css = css;
 exports.images = images;
 exports.node = node;
+exports.ts = gulp.series(jsdeps, ts);
+exports.info = info;
