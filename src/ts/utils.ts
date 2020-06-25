@@ -1,23 +1,90 @@
 "use strict";
-export const enum EntityMask {
+export enum EntityId {
     PLAYER1 = 0x1,
     PLAYER2 = 0x2,
     ROSETTE = 0x4,
     ONRAMP = 0x8,
     OFFRAMP = 0x10,
-    MIDDLE = 0x20
+    MIDDLE = 0x20,
+    START = 0x40,
+    FINISH = 0x80
 }
 
-export type PlayerMask = EntityMask.PLAYER1 | EntityMask.PLAYER2;
+export type PlayerEntity = EntityId.PLAYER1 | EntityId.PLAYER2;
+export type OnboardSpaceEntity = EntityId.ONRAMP | EntityId.OFFRAMP | EntityId.MIDDLE;
+export type BucketEntity = EntityId.START | EntityId.FINISH;
+export type SpaceEntity = BucketEntity | OnboardSpaceEntity;
 
-export const enum TurnPhase {
-    ROLL,MOVE,ACTION
+export const PLAYER_MASK = EntityId.PLAYER1 + EntityId.PLAYER2;
+export const BUCKET_MASK = EntityId.START + EntityId.FINISH;
+export const ONBOARD_MASK = EntityId.ONRAMP + EntityId.OFFRAMP + EntityId.MIDDLE;
+export const SPACE_MASK = ONBOARD_MASK + BUCKET_MASK;
+
+export enum GameState {
+    Initial,
+    PreGame,
+    StartTurn,
+    Rolled,
+    Moved,
+    EndTurn,
+    GameOver,
+    PreMove,
+    PostMove,
+    CheckScore,
+    SetupGame
+}
+
+export enum GameAction {
+    /**
+     * Triggers on document.ready().
+     *  - Enable Pregame UI: set name, start game button
+     */
+    Initialized,
+
+    /**
+     * Triggers on button#startGame.click()
+     *  - Show scores
+     *  - Setup game model: turn=player 1
+     */
+    StartGame,
+
+    /**
+     * - Update turn indicator
+     * - Enable dice button
+     */
+    StartTurn,
+
+    /**
+     * Triggers on button#RollDice.click()
+     * - Simulate dice roll
+     * - Update model/view based on die roll
+     */
+    ThrowDice,
+
+    /**
+     * Triggers on PREMOVE.enter
+     * -
+     */
+    EnableLegalMoves,
+    AnalyzeMove,
+    RosetteBonus,
+    KnockoutOpponent,
+    PieceScored,
+    CheckWinCondition,
+    PassTurn,
+    EndGame,
+    NewGame,
+    MovePiece,
+    AllFinished,
+    PiecesRemain,
+    GameSetup,
+    RolledZero,
+    MoveFinished
 }
 
 export interface UrHandlers {
     roll(): void;
     passTurn(): void;
-    pieceMoved(event: any, ui: any): void; // TODO types
     pieceDropped(event: any, ui: any): void; // TODO types
 }
 
@@ -25,37 +92,39 @@ export namespace UrUtils {
     export const SPACE_ID_PREFIX: string = "s-";
     export const PIECE_ID_PREFIX: string = "pc-";
 
-    export function isValidSpace(t: EntityMask) {
-        const PLAYER_MASK: number = EntityMask.PLAYER1 + EntityMask.PLAYER2;
-        const LOCATION_MASK: number = EntityMask.ONRAMP + EntityMask.OFFRAMP + EntityMask.MIDDLE;
+    export function isValidSpace(t: EntityId) {
+        const PLAYER_MASK: number = EntityId.PLAYER1 + EntityId.PLAYER2;
+        const LOCATION_MASK: number = EntityId.ONRAMP + EntityId.OFFRAMP + EntityId.MIDDLE + EntityId.START + EntityId.FINISH;
         let player: number = t & PLAYER_MASK;
         let location: number = t & LOCATION_MASK;
         if (player > 2) {
             throw "Space cannot belong in both players' zones.";
         }
         switch(location) {
-            case EntityMask.ONRAMP:
-                if (player === 0) {
-                    throw "ONRAMP must specify a player.";
+            case EntityId.START:
+            case EntityId.FINISH:
+                if ((t & EntityId.ROSETTE) === EntityId.ROSETTE) {
+                    throw location+" cannot have a rosette."
                 }
-                break;
-            case EntityMask.OFFRAMP:
+                // fall through, next check also applies to start/finish
+            case EntityId.ONRAMP:
+            case EntityId.OFFRAMP:
                 if (player === 0) {
-                    throw "OFFRAMP must specify a player.";
-                }
-                break;
-            case EntityMask.MIDDLE:
-                if (player !== 0) {
-                    throw "MIDDLE must not specify a player";
+                    throw location+" must specify a player.";
                 }
                 break; // valid
+            case EntityId.MIDDLE:
+                if (player !== 0) {
+                    throw "MIDDLE must not specify a player.";
+                }
+                break;
             default:
-                throw "Space can only be one of ONRAMP, OFFRAMP or MIDDLE";
+                throw "Space can only be one of ONRAMP, OFFRAMP, MIDDLE, START, FINISH: "+location;
         }
     }
 
-    export function isPlayer(t: EntityMask) {
-        return t === EntityMask.PLAYER1 || t === EntityMask.PLAYER2;
+    export function isPlayer(t: EntityId) {
+        return t === EntityId.PLAYER1 || t === EntityId.PLAYER2;
     }
 }
 
