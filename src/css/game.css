@@ -186,11 +186,11 @@ h1 {
     z-index: 100;
 }
 
-#diceArea {
+#userArea {
     text-align: center;
     margin: 10px;
 }
-#diceArea > div {
+#userArea > div {
     padding: 10px;
 }
 #diceCup > div {

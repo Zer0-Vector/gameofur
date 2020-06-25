@@ -1,31 +1,35 @@
-import {EntityMask, TurnPhase, UrUtils, PlayerMask} from './utils.js';
-
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, ONBOARD_MASK} from './utils.js';
 
 export class TurnData {
-    phase: TurnPhase;
-    rollValue: number;
-    player: PlayerMask;
-    rosette: boolean;
-    startSpace?: string;
-    endSpace?: string;
+    rollValue: number = -1;
+    player: PlayerEntity;
+    rosette: boolean = false;
+    knockout: boolean = false;
+    startSpace?: string = undefined;
+    endSpace?: string = undefined;
 
-    protected constructor(player: PlayerMask) {
-        this.phase = TurnPhase.ROLL;
-        this.rollValue = -1;
+    protected constructor(player: PlayerEntity) {
         this.player = player;
-        this.rosette = false;
-        this.startSpace = undefined;
-        this.endSpace = undefined;
     }
 
-    static create(player:PlayerMask = EntityMask.PLAYER1): TurnData {
+    static create(player:PlayerEntity = EntityId.PLAYER1): TurnData {
         return new TurnData(player);
     }
 }
 
-export class TurnTaken extends TurnData { // TODO for tracking history
+// TODO add states for initialization and starting the game
+// TODO add states for starting a new game after completing one
+/*
+                                                                                             /----[ALL_FINISHED]-----> GAME_OVER
+                                                                  /--[TO_FINISH]---> CHECK_SCORE ---[PIECES_REMAIN]---\
+                                                                  |--[TO_ROSETTE]---> ROSETTE ---[NEXT_PLAYER_SET]--\ |
+ Start ---> PREROLL ---[ROLL]---> PREMOVE ---[MOVE]---> POSTMOVE -|--[TO_EMPTY]--------------------------------------------> CLEANUP --[NEXT_TURN]--\
+             ^                                                    \--[TO_OCCUPIED]--> KNOCKOUT ---[KNOCK_PIECE]---------/                           |
+             |--------------------------------------------------------------------------------------------------------------------------------------/
+*/
+class TurnTaken extends TurnData { // TODO for tracking history
     public knockoff: boolean;
-    constructor(player: PlayerMask) {
+    constructor(player: PlayerEntity) {
         super(player);
         this.knockoff = false;
     }
@@ -40,6 +44,7 @@ export class TurnTaken extends TurnData { // TODO for tracking history
         // TODO validate impossible knockoffs near on ramp
     }
 }
+
 type DieValue =  0 | 1;
 type DiceValue = 0 | 1 | 2 | 3 | 4;
 type DiceList = [DieValue, DieValue, DieValue, DieValue];
@@ -77,110 +82,191 @@ export class Dice {
 }
 
 export class Space {
-    id: number;
-    type: EntityMask;
-    constructor(id: number, type: EntityMask) {
+    id: number; // index into Board.spaces
+    type: EntityId;
+    trackId: number; // index into player track, Board.tracks[this.type & 0x3]
+    private _occupant?: Piece = undefined;
+    constructor(id: number, type: EntityId, trackId: number) {
         this.id = id;
         UrUtils.isValidSpace(type);
         this.type = type;
+        this.trackId = trackId;
+    }
+    get occupant() {
+        return this._occupant;
+    }
+    set occupant(piece: Piece | undefined) {
+        this._occupant = piece;
+    }
+    get name(): string {
+        const player: PlayerEntity = this.type & PLAYER_MASK;
+        const space: SpaceEntity = this.type & SPACE_MASK;
+        const rosette: EntityId = this.type & EntityId.ROSETTE;
+        let name = "";
+        if (player > 0) {
+            name += EntityId[player] + " ";
+        }
+        name += EntityId[space];
+        if (space === EntityId.MIDDLE) {
+            name += "-"+this.id;
+        } else if ((space & ONBOARD_MASK) > 0) {
+            name += "-"+this.trackId;
+        }
+        if (rosette > 0) {
+            name += " "+EntityId[rosette];
+        }
+        return name;
+    }
+}
+
+export class Bucket extends Space {
+    occupants: Piece[] = [];
+    constructor(id: number, type: EntityId, trackId: number) {
+        super(id, (() => {
+            let m = type & (EntityId.START + EntityId.FINISH)
+            if (m === EntityId.START || m === EntityId.FINISH) {
+                return type;
+            }
+            throw "Invalid space type for bucket: "+type+"("+m+"), id="+id+", trackId="+trackId;
+        })(), trackId);
+    }
+    get occupant() {
+        throw "Bucket has multiple occupants. Use occupants instead.";
+    }
+    set occupant(p: Piece | undefined) {
+        throw "Bucket has multiple occupants. Use occupants instead."
     }
 }
 
 export class Piece {
     id: string;
-    owner: PlayerMask;
-    location: string;
-    constructor(id: string, owner: PlayerMask, location: string) {
+    owner: PlayerEntity;
+    private _location?: Space; // optional to handle initialization chicken/egg problem
+    constructor(id: string, owner: PlayerEntity, location?: Space) {
         this.id = id;
         if (!UrUtils.isPlayer(owner)) {
             throw "Invalid player id: "+owner;
         }
         this.owner = owner;
-        this.location = location;
+        this._location = location;
     }
+    get location() {
+        if (this._location === undefined) {
+            throw "Something went wrong. location===undefined";
+        }
+        return this._location;
+    }
+    set location(location: Space) {
+        this._location = location;
+    }
+}
+
+export interface Move {
+    piece: Piece;
+    space: Space;
 }
 
 export class Player {
     name: string;
-    mask: PlayerMask;
+    mask: PlayerEntity;
     id: string;
-    private _pieces: Map<string, Piece>;
-    constructor(name: string, mask: PlayerMask, id:string) {
+    private _pieces: Piece[];
+    constructor(name: string, mask: PlayerEntity, id:string, pieces: Piece[]) {
         this.name = name;
         if (!UrUtils.isPlayer(mask)) {
             throw "Invalid player mask: "+mask;
         }
         this.mask = mask;
         this.id = id;
-        this._pieces = this.buildPieces();
+        this._pieces = pieces;
     }
-    get pieces() {
-        return this._pieces.values();
-    }
-    buildPieces() {
-        let pcs = new Map<string, Piece>();
-        for (let i = 0; i < 7; i++) {
-            var pcid = UrUtils.PIECE_ID_PREFIX+this.id+i;
-            pcs.set(pcid, new Piece(pcid, this.mask, this.id+"Start"));
-        }
-        return pcs;
+    get pieces(): Piece[] {
+        return this._pieces;
     }
 }
 
 export class Board {
-    spaces: Space[];
-    p1track: Space[];
-    p2track: Space[];
+    spaces: Space[] = this.buildMiddleLane();
+    tracks = {
+        [EntityId.PLAYER1]: this.buildTrack(EntityId.PLAYER1),
+        [EntityId.PLAYER2]: this.buildTrack(EntityId.PLAYER2)
+    };
     constructor() {
-        this.spaces = [];
-        this.addMiddleLane();
-        this.p1track = this.buildTrack(EntityMask.PLAYER1);
-        this.p2track = this.buildTrack(EntityMask.PLAYER2);
     }
-    addMiddleLane() {
+    private buildMiddleLane() {
+        const TrackIdOffset = 5;
+        let rval: Space[] = [];
         for (let i = 0; i < 8; i++) {
-            let type = EntityMask.MIDDLE;
+            let type = EntityId.MIDDLE;
             if (i === 3) {
-                type |= EntityMask.ROSETTE;
+                type |= EntityId.ROSETTE;
             }
-            this.spaces.push(new Space(i, type));
+            rval.push(new Space(i, type, i + TrackIdOffset)); 
         }
+        return rval;
     }
-    buildTrack(player: PlayerMask) {
-        let track = [];
-        for (let i = 0; i < 4; i++) {
-            let type = player | EntityMask.ONRAMP;
-            if (i === 3) {
-                type |= EntityMask.ROSETTE;
+    private buildTrack(player: PlayerEntity) {
+        let track: Space[] = [];
+
+        let addToBoth = (s:Space) => {
+            track.push(s);
+            this.spaces.push(s);
+        };
+
+        let makePlayerSpace = (type: SpaceEntity, rosette: boolean = false) => {
+            let t = type | player;
+            if (rosette) {
+                t |= EntityId.ROSETTE;
             }
-            let space = new Space(this.spaces.length, type);
-            track.push(space);
-            this.spaces.push(space);
+            console.debug("Creating space for type="+type+" ("+t+")");
+            if (type === EntityId.START || type === EntityId.FINISH) {
+                addToBoth(new Bucket(this.spaces.length, t, track.length));
+            } else {
+                addToBoth(new Space(this.spaces.length, t, track.length));
+            }
+        }
+        
+        console.debug("Creating track for player "+player);
+        makePlayerSpace(EntityId.START);
+        for (let i = 0; i < 4; i++) {
+            makePlayerSpace(EntityId.ONRAMP, i===3);
         }
         for (let i = 0; i < 8; i++) {
             track.push(this.spaces[i]);
         }
-        let penultimate = new Space(this.spaces.length, EntityMask.OFFRAMP | player);
-        track.push(penultimate);
-        this.spaces.push(penultimate);
-        let lastOne = new Space(this.spaces.length, EntityMask.OFFRAMP | EntityMask.ROSETTE | player);
-        track.push(lastOne);
-        this.spaces.push(lastOne);
+        makePlayerSpace(EntityId.OFFRAMP);
+        makePlayerSpace(EntityId.OFFRAMP, true);
+        makePlayerSpace(EntityId.FINISH);
+
+        console.debug("Player "+player+" track created:", track);
+
         return track;
     }
 }
 
-namespace UrModel {
-    export const board = new Board();
-    export const player1 =  new Player("Player 1", EntityMask.PLAYER1, "a");
-    export const player2 = new Player("Player 2", EntityMask.PLAYER2, "b");
-    export const players = {
-        [EntityMask.PLAYER1]: player1,
-        [EntityMask.PLAYER2]: player2
-    };
-    export const dice = new Dice();
-    export let turn = TurnData.create();
-    export let history: TurnTaken[] = []; // TODO
+export interface StateOwner {
+    state: GameState;
 }
 
-export let MODEL = UrModel;
+export class UrModel implements StateOwner {
+    public readonly board: Board;
+    public readonly players: { [EntityId.PLAYER1]: Player, [EntityId.PLAYER2]: Player }; 
+    public readonly dice: Dice = new Dice();
+    public turn = TurnData.create();
+    public nextTurn = TurnData.create(EntityId.PLAYER2);
+    public state: GameState = GameState.Initial;
+    
+    public readonly history: TurnTaken[] = []; // TODO
+    
+    private constructor(player1: Player, player2: Player) {
+        this.players = {
+            [EntityId.PLAYER1]: player1,
+            [EntityId.PLAYER2]: player2
+        };
+        this.board = new Board();
+    }
+
+    static create(player1: Player, player2: Player) {
+        return new UrModel(player1, player2);
+    }
+}

@@ -1,4 +1,4 @@
-import { PlayerMask, UrUtils, EntityMask, UrHandlers } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers } from "./utils.js";
 
 type DieView = 0 | 1;
 
@@ -49,8 +49,9 @@ class Dice {
         ];
     }
     updateValues(values: [DieView,DieView,DieView,DieView]) {
+        // TODO die rotations
         var total = 0;
-        $('#diceTarget > p').html("Rolling...");
+        $('#inputArea > p').html("Rolling...");
         this.clear();
         
         let dice = this.dice;
@@ -59,7 +60,7 @@ class Dice {
                 total += val;
                 dice[i].setView(val);
             });
-            $('#diceTarget > p').html("You rolled: <em class=\"rollValue\">"+total+"</em>")
+            $('#inputArea > p').html("You rolled: <em class=\"rollValue\">"+total+"</em>")
         }, 250);
     }
     clear() {
@@ -72,9 +73,9 @@ class Dice {
 export class Piece {
     static readonly svgPath = 'images/piece.svg';
     readonly id: string;
-    readonly owner: PlayerMask;
+    readonly owner: PlayerEntity;
 
-    constructor(id: string, owner: PlayerMask) {
+    constructor(id: string, owner: PlayerEntity) {
         this.id = id;
         this.owner = owner;
     }
@@ -88,12 +89,12 @@ export class Piece {
     }
 }
 class Pieces {
-    readonly owner: PlayerMask;
+    readonly owner: PlayerEntity;
     readonly pieces: Piece[];
     readonly startPileId: string;
     readonly endPileId: string;
 
-    constructor(owner: PlayerMask, startPileId: string, endPileId: string, pieces: Piece[]) {
+    constructor(owner: PlayerEntity, startPileId: string, endPileId: string, pieces: Piece[]) {
         if (!UrUtils.isPlayer(owner)) {
             throw "Invalid player id: "+owner;
         }
@@ -122,10 +123,12 @@ class UiElementImpl implements UiElement {
         this.id = id;
     }
     enable(): void {
-        $(this.id).attr("disabled","false");
+        console.debug("Enabling "+this.id);
+        $(this.id).removeProp("disabled");
     }
     disable(): void {
-        $(this.id).attr("disabled", "true");
+        console.debug("Disabling "+this.id);
+        $(this.id).prop("disabled", true);
     }
 
 }
@@ -136,10 +139,9 @@ namespace UrView {
     export let dice: Dice = new Dice();
     export let board = null;
 
-    // TODO rename '#diceArea' since it's not just for dice.
     const _buttons = {
-        "roll": new UiElementImpl('#diceArea input[type="button"]#roller'),
-        "passTurn": new UiElementImpl('#diceArea input[type="button"]#passer')
+        "roller": new UiElementImpl('input[type="button"]#roller'),
+        "passer": new UiElementImpl('input[type="button"]#passer')
     };
 
     export const buttons = _buttons as {[name:string]: UiElement};
@@ -147,10 +149,10 @@ namespace UrView {
     export function initialize(handlers: UrHandlers) { // TODO fix type
         console.debug("Configuring roll/passTurn buttons.");
         
-        $(_buttons.roll.id)
+        $(_buttons.roller.id)
             .on('click', handlers.roll);
         
-        $(_buttons.passTurn.id)
+        $(_buttons.passer.id)
             .on('click', handlers.passTurn);
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
@@ -167,7 +169,7 @@ namespace UrView {
             }
         });
         
-        // spaces and piecces are disabled first
+        // dnd spaces and piecces are disabled first
         console.debug("Configuring drag/drop for pieces.");
         $('.startingArea > div').draggable({
             disabled: true, 
@@ -182,17 +184,17 @@ namespace UrView {
         });
     }
 
-    export function initializePieces(mask: PlayerMask, id: string, list: Piece[]) {
+    export function initializePieces(mask: PlayerEntity, id: string, list: Piece[]) {
         console.debug("initializePieces",mask, id, list);
         return new Pieces(mask, '#'+id+'Start', '#'+id+'Finish', list);
     }
 
-    export function updateTurnDisplay(p: PlayerMask, name: string) {
+    export function updateTurnDisplay(p: PlayerEntity, name: string) {
         var message = name+"'s Turn";
-        var c = (p === EntityMask.PLAYER1) ? "p1" : "p2";
+        var c = (p === EntityId.PLAYER1) ? "p1" : "p2";
         $('#turnIndiator').attr("class", c).html(message);
         dice.clear();
-        $('#diceTarget > p').html("Roll the dice");
+        $('#inputArea > p').html("Roll the dice");
     }
 
 }
