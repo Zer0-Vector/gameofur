@@ -1,0 +1,62 @@
+@startuml UrUserStates
+' The game states as percieved by the user
+[*] --> Loaded : LoadSite
+' Loaded : show / player name UI, start button
+' Loaded : disable / player pieces, roll button, pass button
+Loaded --> p1 : Click start button
+
+state p2 as "Player 2 Turn" {
+    state "Start Turn" as start2
+    state roll2 <<choice>>
+    state "Rolled" as rolled2
+    state "Moved" as moved2
+    state check2 <<choice>>
+    
+    [*] --> start2
+    start2 --> roll2 : Click roll button
+    
+    roll2 --> [*] : Roll=0
+    roll2 --> rolled2 : Roll>0
+    
+    rolled2 --> moved2 : Move piece
+    
+    moved2 --> check2
+        
+    check2 --> start2 : Rosette
+    check2 --> [*] : (regular move)
+}
+state "Player 1 Turn" as p1 {
+    state "Start Turn" as start1
+    state roll1 <<choice>>
+    state "Rolled" as rolled1
+    state "Moved" as moved1
+    state check1 <<choice>>
+
+    [*] --> start1 
+    start1 --> roll1 : Click roll button
+    roll1 --> rolled1 : Roll>0
+    roll1 --> [*] : Roll=0
+    rolled1 --> moved1 : Move piece
+    moved1 --> check1
+    check1 --> [*] : (regular move)
+    check1 --> start1 : Rosette
+
+    ' st1 : hide / player name UI, start button
+    ' st1 : enable / roll button
+    
+    ' bm1 : enable / pieces & spaces with legal moves
+    ' bm1 : disable / roll button
+    
+    ' am1: enable / pass button
+    ' am1 : disable / pieces & spaces
+}
+state win1 as "Player 1 wins!"
+state win2 as "Player 2 wins!"
+check1 --> win1 : All pieces finished
+check2 --> win2 : All pieces finished
+
+win1 --> [*]
+win2 --> [*]
+
+
+@enduml
