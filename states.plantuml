@@ -1,0 +1,34 @@
+@startuml GameOfUrStates
+scale 2
+
+
+[*] --> PreGame : GameInitialized
+state PreGame : Player names can be updated.
+PreGame --> InGame : StartGame
+state InGame {
+    
+    [*] --> StartTurn : StartGame
+    StartTurn --> DiceRolling : ThrowDice\n(button clicked)
+    DiceRolling --> ComputeMoves : DiceRolled(diceValue)
+    state ComputeMoves as "ComputeMoves(diceValue, player.pieces)" : Determine valid moves
+    ComputeMoves --> PreMove : SpacesEnabled(spaces)
+    PreMove --> PostMove : MovedPiece(space)
+    state PostMove as "PostMove(space)"
+    PostMove : Analyze space
+    state c <<choice>>
+    PostMove --> c : AnalyzedSpace
+    state TurnCleanup
+    c --> CheckScore : FinishSpace
+    c --> Rosette : RosetteSpace
+    c --> Knockout : OccupiedSpace(piece)
+    c --> TurnCleanup : EmptySpace
+    Rosette --> TurnCleanup : NextPlayerUpdated
+    Knockout --> TurnCleanup : PieceKnockedOut
+    CheckScore --> TurnCleanup : PiecesRemain
+    TurnCleanup --> StartTurn : ReadyForNextTurn
+}
+
+CheckScore --> GameOver : AllFinished
+GameOver --> StartTurn : NewGame
+GameOver --> [*]
+@enduml
