@@ -8,9 +8,13 @@ let MODEL: UrModel;
 function toViewPieces(modelPieces: Piece[]) {
     var result:View.Piece[] = [];
     for (let p of modelPieces) {
-        result.push(new View.Piece(p.id, p.owner));
+        result.push(toViewPiece(p));
     }
     return result;
+}
+
+function toViewPiece(modelPiece: Piece) {
+    return new View.Piece(modelPiece.id, modelPiece.owner);
 }
 
 class GameActionImpl {
@@ -71,7 +75,6 @@ interface ATempState extends AGameState {
 //#region States
 
 type ConditionalAction = (()=>GameAction);
-type DerivedOrConstantAction = ConditionalAction|GameAction;
 type InnerTransitionMethod = ((action:GameAction)=>GameState|undefined);
 
 let STATES: StateRepository = (()=>{
@@ -147,9 +150,15 @@ let STATES: StateRepository = (()=>{
             [GameAction.TurnEnding]: GameState.EndTurn,
             [GameAction.EnableLegalMoves]: GameState.PreMove
         });
-    buildSimpleState(GameState.PreMove, GameAction.MovePiece, GameState.Moved);
-    buildSimpleState(GameState.Moved, GameAction.AnalyzeMove, GameState.PostMove, true);
-    buildForkState(GameState.PostMove, 
+    buildForkState(GameState.PreMove, 
+        ()=>{ return MODEL.turn.noLegalMoves ? GameAction.TurnEnding : GameAction.MovesAvailable},
+        {
+            [GameAction.TurnEnding]: GameState.EndTurn,
+            [GameAction.MovesAvailable]: GameState.ReadyToMove,
+        });
+    buildSimpleState(GameState.ReadyToMove, GameAction.MovePiece, GameState.PieceDropped);
+    buildSimpleState(GameState.PieceDropped, GameAction.FreezeBoard, GameState.Moved, true);
+    buildForkState(GameState.Moved, 
         ()=> {
             if (MODEL.turn.rosette) return GameAction.RosetteBonus;
             if (MODEL.turn.knockout) return GameAction.KnockoutOpponent;
@@ -157,11 +166,12 @@ let STATES: StateRepository = (()=>{
             return GameAction.MoveFinished;
         },
         {
-            [GameAction.RosetteBonus]: GameState.EndTurn,
-            [GameAction.KnockoutOpponent]: GameState.EndTurn,
-            [GameAction.MoveFinished]: GameState.EndTurn,
+            [GameAction.RosetteBonus]: GameState.PostMove,
+            [GameAction.KnockoutOpponent]: GameState.PostMove,
+            [GameAction.MoveFinished]: GameState.PostMove,
             [GameAction.PieceScored]: GameState.CheckScore,
         });
+    buildSimpleState(GameState.PostMove, GameAction.TurnEnding, GameState.EndTurn, true);
     buildForkState(GameState.CheckScore,
         () => {
             let playerPieces = MODEL.currentPlayer.pieces;
@@ -237,27 +247,86 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.EnableLegalMoves, () => {
             // TODO extract this to class MoveComputer
             let legal = new MoveComputer(MODEL.turn.player, MODEL.currentPlayer.pieces, MODEL.currentTrack).compute(MODEL.turn.rollValue as DiceValue);
-            for (let p of legal) {
-                // TODO
+            for (let move of legal) {
+                let vp = toViewPiece(move.piece);
+                VIEW.dragControl(vp, true, move.id);
+                VIEW.dropControl(move.space, true, move.id);
             }
-            notImplemented(GameAction.EnableLegalMoves)();
+            if (legal.length === 0) {
+                MODEL.turn.noLegalMoves = true;
+            }
         });
-        actionMaker(GameAction.MoveFinished, notImplemented(GameAction.MoveFinished));
-        actionMaker(GameAction.AnalyzeMove, notImplemented(GameAction.AnalyzeMove));
-        actionMaker(GameAction.RosetteBonus, notImplemented(GameAction.RosetteBonus));
-        actionMaker(GameAction.PieceScored, notImplemented(GameAction.PieceScored));
+        actionMaker(GameAction.MovePiece, () => {
+            console.debug("Updating model with new location");
+            let piece:Piece = <Piece>MODEL.turn.piece;
+            let start:Space = <Space>MODEL.turn.startSpace;
+            let end:Space = <Space>MODEL.turn.endSpace;
+            let limbo:Piece|undefined = undefined;
+
+            piece.location = end;
+            
+            if (end instanceof Bucket) {
+                let endBucket: Bucket = end as Bucket;
+                endBucket.occupants.add(piece);
+                MODEL.turn.scored = true;
+            } else {
+                if (end.occupant !== undefined) {
+                    // remove current occupant
+                    console.assert(end.occupant.owner !== MODEL.turn.player);
+                    limbo = end.occupant;
+                    MODEL.turn.knockout = true;
+                }
+                end.occupant = piece;
+            }
+            MODEL.turn.rosette = end.isRosette();
+
+            if (start instanceof Bucket) {
+                let startBucket:Bucket = start as Bucket;
+                startBucket.occupants.delete(piece);
+            } else {
+                start.occupant = undefined;
+            }
+
+            if (limbo !== undefined) {
+                MODEL.turn.knockedPiece = limbo;
+                MODEL.opponentStartBucket.occupants.add(limbo);
+                limbo.location = MODEL.opponentStartBucket;
+            }
+        });
+        actionMaker(GameAction.FreezeBoard, ()=> {
+            VIEW.disableDnD();
+        });
+        actionMaker(GameAction.RosetteBonus, () => {
+            console.debug("Updated next player due to rosette space");
+            MODEL.nextTurn.player = MODEL.turn.player;
+        });
+        actionMaker(GameAction.KnockoutOpponent, () => {
+            console.debug("Returning opponent piece to start.");
+            console.assert(MODEL.turn.knockedPiece !== undefined);
+            console.assert(MODEL.turn.knockedPiece?.owner === UrUtils.getOpponent(MODEL.turn.player));
+            VIEW.returnPieceToStart(MODEL.turn.knockedPiece?.id as string);
+        })
+        actionMaker(GameAction.PieceScored, ()=>{
+            MODEL.score[MODEL.turn.player]++;
+        });
+
         actionMaker(GameAction.PassTurn, ()=>{
             MODEL.turn = MODEL.nextTurn;
             MODEL.nextTurn = TurnData.create(opponent(MODEL.turn.player));
             VIEW.updateTurnDisplay(MODEL.currentPlayer.mask, MODEL.currentPlayer.name);
         });
-        actionMaker(GameAction.EndGame, notImplemented(GameAction.EndGame));
-        actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
-        actionMaker(GameAction.AllFinished, notImplemented(GameAction.AllFinished));
-        actionMaker(GameAction.MovePiece, notImplemented(GameAction.MovePiece));
+        actionMaker(GameAction.MoveFinished, ()=>{
+            console.debug("Just a normal move: NOP");
+        });
+        actionMaker(GameAction.MovesAvailable, ()=>{
+            console.debug("We're ready to move something...");
+        });
         actionMaker(GameAction.TurnEnding, () => {
             VIEW.buttons.passer.enable();
         });
+        actionMaker(GameAction.EndGame, notImplemented(GameAction.EndGame));
+        actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
+        actionMaker(GameAction.AllFinished, notImplemented(GameAction.AllFinished));
         return rval as ActionRepository;
     })();
 //#endregion
@@ -284,7 +353,9 @@ class MoveComputer {
                 continue; // rolled too high to finish
             }
             let candidate = this.track[index];
-            if (candidate.occupant !== undefined) {
+            if (candidate instanceof Bucket) {
+                console.assert(index === 15);
+            } else if (candidate.occupant !== undefined) {
                 if (candidate.occupant.owner === this.player) {
                     continue; // can't move atop a piece you own
                 } else if (candidate.isRosette()) { // NOTE: for the standard board, we could just check that specific index.
@@ -295,7 +366,8 @@ class MoveComputer {
             console.debug("Found legal move: "+p.id+": "+p.location.name+" to "+candidate.name);
             legal.push({
                 piece: p,
-                space: candidate
+                space: candidate,
+                id: p.id+"_"+candidate.trackId,
             });
         }
         return legal;
@@ -370,6 +442,9 @@ class GameEngine {
 namespace UrController {
     let ENGINE: GameEngine;
     class UrHandlersImpl implements UrHandlers {
+        newGame(): void {
+            console.warn("newGame() NOT IMPLEMENTED");
+        }
         roll() {
             ENGINE.do(GameAction.ThrowDice);
         }
@@ -382,13 +457,34 @@ namespace UrController {
             ENGINE.do(GameAction.StartGame);
         }
     
-        pieceDropped(event: any, ui: any) {
-            var tid = $(event.target).attr('id');
-            MODEL.turn.endSpace = tid;
-            var pscid = $(ui.draggable).attr('id');
-            console.info(pscid, " dropped in ",tid," from ",MODEL.turn.startSpace);
-            console.debug(event);
-            console.debug(ui);
+        pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) {
+
+            // snap to center
+            
+            ui.draggable.position({
+                my: "center",
+                at: "center",
+                of: $(event.target),
+            });
+            
+            let tid: string = $(event.target).attr('id') as string;
+            var pscid: string = $(ui.draggable).attr('id') as string;
+            console.info(pscid, " dropped in ",tid);
+
+            let index = parseInt(tid.substring(3));
+            MODEL.turn.endSpace = MODEL.currentTrack[index];
+            console.debug("Set end space: ", MODEL.turn.endSpace, " @ ", index, MODEL.currentTrack);
+            for (let piece of MODEL.currentPlayer.pieces) {
+                if (pscid === piece.id) {
+                    MODEL.turn.piece = piece;
+                    console.debug("Set piece moved: ", piece);
+                    
+                    MODEL.turn.startSpace = piece.location;
+                    console.debug("Set start space: ", MODEL.turn.startSpace);
+                    break;
+                }
+            }
+            ENGINE.do(GameAction.MovePiece);
         }
     }
 
@@ -429,7 +525,7 @@ namespace UrController {
         let loadPieces = (p:PlayerEntity) => {
             let bucket = <Bucket>MODEL.board.tracks[p][0];
             MODEL.players[p].pieces.forEach(pc => {
-                bucket.occupants.push(pc);
+                bucket.occupants.add(pc);
                 pc.location = bucket;
             });
         };

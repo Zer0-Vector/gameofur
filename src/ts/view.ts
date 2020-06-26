@@ -1,4 +1,5 @@
 import { PlayerEntity, UrUtils, EntityId, UrHandlers } from "./utils.js";
+import { Space } from "./model.js";
 
 type DieView = 0 | 1;
 
@@ -112,7 +113,7 @@ class Pieces {
     }
 }
 
-export interface UiElement {
+interface UiElement {
     enable(): void;
     disable(): void;
 }
@@ -140,9 +141,10 @@ namespace UrView {
     export let board = null;
 
     export const buttons = {
-        roller: new UiElementImpl('input[type="button"]#roller'),
-        passer: new UiElementImpl('input[type="button"]#passer'),
-        starter: new UiElementImpl('input[type="button"]#starter'),
+        roller: new UiElementImpl('button#roller'),
+        passer: new UiElementImpl('button#passer'),
+        starter: new UiElementImpl('button#starter'),
+        newgame: new UiElementImpl('button#newgame'),
     }
 
     export function initialize(handlers: UrHandlers) { // TODO fix type
@@ -151,18 +153,35 @@ namespace UrView {
         $(buttons.roller.id).on('click', handlers.roll);
         $(buttons.passer.id).on('click', handlers.passTurn);
         $(buttons.starter.id).on('click', handlers.startGame);
+        $(buttons.newgame.id).on('click', handlers.newGame);
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
-        $(document).keypress(e => {
+        $(document).on('keypress', e => {
             switch (e.which) {
                 case 13: // Enter,NumpadEnter
-                case 82: // KeyR
+                case 82: // R
+                case 114: // r
+                    console.debug("Kepress (Roll)", e);
                     handlers.roll();
                     break;
                 case 32: // Space
-                case 80: // KeyP
+                case 80: // P
+                case 112: // p
+                    console.debug("Keypress (PassTurn):", e);
                     handlers.passTurn();
                     break;
+                case 115: // S
+                case 83: // s
+                    console.debug("Keypress (Start Game):", e);
+                    handlers.startGame();
+                    break;
+                case 110:
+                case 78:
+                    console.debug("Keypress (New Game):", e);
+                    handlers.newGame();
+                    break;
+                default:
+                    console.debug("Ignoring keypress: ", e);
             }
         });
         
@@ -171,7 +190,7 @@ namespace UrView {
         $('.startingArea > div').draggable({
             disabled: true, 
             revert: "invalid",
-            revertDuration: 250
+            revertDuration: 250,
         });
         
         console.debug("Configuring drag/drop for spaces.");
@@ -179,11 +198,58 @@ namespace UrView {
             disabled: true,
             drop: (e,u) => handlers.pieceDropped(e,u)
         });
+        $('.space, .startingArea, .finishArea').droppable("option", "classes.ui-droppable-hover", "ur-piece-hover");
+
+    }
+
+    function spaceCssId(space:Space): string {
+        let rval = "#"+UrUtils.SPACE_ID_PREFIX;
+        if (UrUtils.hasEntityType(space.type, EntityId.PLAYER1)) {
+            rval += "a";
+        } else if (UrUtils.hasEntityType(space.type, EntityId.PLAYER2)) {
+            rval += "b";
+        } else if (UrUtils.hasEntityType(space.type, EntityId.MIDDLE)) {
+            rval += "m";
+        }
+        return rval + space.trackId;
+    }
+
+    export function disableDnD() {
+        console.debug("Disabling all drag and drop");
+        $(".startingArea > div").draggable("option", {
+            disabled: true,
+            scope: undefined,
+        });
+        $(".space, .startingArea, .finishArea").droppable({
+            disabled: true,
+            scope: undefined,
+        });
+    }
+
+    export function dropControl(space:Space, enabled:boolean, scope?:string) {
+        let cssId = spaceCssId(space);
+        let action = enabled ? "enable" : "disable"
+        console.debug(action+" drop for "+cssId+" in scope:"+scope || "");
+        $(cssId).droppable("option", "scope", scope);
+        $(cssId).droppable(action);
+    }
+
+    export function dragControl(piece:Piece, enabled:boolean, scope?:string) {
+        let cssId = "#"+piece.id;
+        let action = enabled ? "enable" : "disable"
+        console.debug(action+" drag for "+cssId+" in scope:"+scope || "");
+        $(cssId).draggable("option", "scope", scope);
+        $(cssId).draggable(action);
+    }
+
+    export function returnPieceToStart(pieceId:string): void {
+        $("#"+pieceId).animate({"left":0, "top":0}, 750);
+        console.debug("Updated left/top coords for #"+pieceId);
     }
 
     export function initializePieces(mask: PlayerEntity, id: string, list: Piece[]) {
         console.debug("initializePieces",mask, id, list);
-        return new Pieces(mask, '#'+id+'Start', '#'+id+'Finish', list);
+        return new Pieces(mask, '#'+UrUtils.SPACE_ID_PREFIX+id+"0", '#'+UrUtils.SPACE_ID_PREFIX+id+"15", list);
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
