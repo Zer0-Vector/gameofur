@@ -13,12 +13,6 @@ function toViewPieces(modelPieces: Piece[]) {
     return result;
 }
 
-function refreshTurnDisplay() {
-    console.debug("refreshTurnDisplay: ", MODEL.players, MODEL.turn.player, MODEL.players[MODEL.turn.player]);
-    var p = MODEL.players[MODEL.turn.player];
-    VIEW.updateTurnDisplay(p.mask, p.name);
-}
-
 class GameActionImpl {
     private _doit: ()=>void;
     private logMessage: ()=>void;
@@ -218,7 +212,7 @@ let ACTIONS: ActionRepository = (() => {
             VIEW.buttons.starter.enable();
         })
         actionMaker(GameAction.StartGame, ()=>{
-            refreshTurnDisplay();
+            VIEW.updateTurnDisplay(MODEL.currentPlayer.mask, MODEL.currentPlayer.name);
         });
         actionMaker(GameAction.SetupGame, ()=>{
             VIEW.buttons.starter.disable();
@@ -273,7 +267,7 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.PassTurn, ()=>{
             MODEL.turn = MODEL.nextTurn;
             MODEL.nextTurn = TurnData.create(opponent(MODEL.turn.player));
-            refreshTurnDisplay();
+            VIEW.updateTurnDisplay(MODEL.currentPlayer.mask, MODEL.currentPlayer.name);
         });
         actionMaker(GameAction.EndGame, notImplemented(GameAction.EndGame));
         actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
@@ -402,11 +396,6 @@ namespace UrController {
         ENGINE.do(GameAction.Initialize);
     }
     
-    export function startGame() {
-        console.info("Starting game.");
-        refreshTurnDisplay();
-    }
-
     function setupView(p1:Player, p2: Player) {
         VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
         VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
