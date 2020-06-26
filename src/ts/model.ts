@@ -7,9 +7,12 @@ export class TurnData {
     rosette: boolean = false;
     knockout: boolean = false;
     scored: boolean = false;
-    startSpace?: string = undefined;
-    endSpace?: string = undefined;
+    piece?: Piece = undefined;
+    startSpace?: Space = undefined;
+    endSpace?: Space = undefined;
     number: number = TurnData.COUNTER++;
+    knockedPiece?: Piece = undefined;
+    noLegalMoves: boolean = false;
 
     protected constructor(player: PlayerEntity) {
         this.player = player;
@@ -20,23 +23,23 @@ export class TurnData {
     }
 }
 
-class TurnTaken extends TurnData { // TODO for tracking history
-    public knockoff: boolean;
-    constructor(player: PlayerEntity) {
-        super(player);
-        this.knockoff = false;
-    }
-    validate() {
-        console.assert(this.rollValue >= 0 && this.rollValue <= 4, "Invalid roll value: ",this.rollValue);
-        // roll is zero iff start & end spaces are both null
-        console.assert((this.rollValue === 0) === ((this.startSpace == null) === (this.endSpace == null)), "Invalid start/end space given roll value: roll=",this.rollValue,", start=",this.startSpace,", end=",this.endSpace);
-        var rosettes = ["a1", "b1", "m4", "a7", "b7"];
-        console.assert(this.rosette === rosettes.includes(this.endSpace!), "Invalid endSpace given rosette==true: ",this.endSpace);
-        console.assert(this.knockoff !== this.startSpace?.endsWith('Start'), "Invalid startSpace given knockoff==true: ", this.startSpace);
-        // TODO validate impossible knockoffs near off ramp
-        // TODO validate impossible knockoffs near on ramp
-    }
-}
+// class TurnTaken extends TurnData { // TODO for tracking history
+//     public knockoff: boolean;
+//     constructor(player: PlayerEntity) {
+//         super(player);
+//         this.knockoff = false;
+//     }
+//     validate() {
+//         console.assert(this.rollValue >= 0 && this.rollValue <= 4, "Invalid roll value: ",this.rollValue);
+//         // roll is zero iff start & end spaces are both null
+//         console.assert((this.rollValue === 0) === ((this.startSpace == null) === (this.endSpace == null)), "Invalid start/end space given roll value: roll=",this.rollValue,", start=",this.startSpace,", end=",this.endSpace);
+//         var rosettes = ["a1", "b1", "m4", "a7", "b7"];
+//         console.assert(this.rosette === rosettes.includes(this.endSpace!), "Invalid endSpace given rosette==true: ",this.endSpace);
+//         console.assert(this.knockoff !== this.startSpace?.endsWith('Start'), "Invalid startSpace given knockoff==true: ", this.startSpace);
+//         // TODO validate impossible knockoffs near off ramp
+//         // TODO validate impossible knockoffs near on ramp
+//     }
+// }
 
 type DieValue =  0 | 1;
 export type DiceValue = 0 | 1 | 2 | 3 | 4;
@@ -115,7 +118,7 @@ export class Space {
 }
 
 export class Bucket extends Space {
-    occupants: Piece[] = [];
+    occupants: Set<Piece> = new Set<Piece>();
     constructor(id: number, type: EntityId, trackId: number) {
         super(id, (() => {
             let m = type & (EntityId.START + EntityId.FINISH)
@@ -159,13 +162,14 @@ export class Piece {
 export interface Move {
     piece: Piece;
     space: Space;
+    id: string; // for scope
 }
 
 export class Player {
     name: string;
     mask: PlayerEntity;
     id: string;
-    private _pieces: Piece[];
+    private _pieces: Piece[]; // TODO make pieces addressable by id
     constructor(name: string, mask: PlayerEntity, id:string, pieces: Piece[]) {
         this.name = name;
         if (!UrUtils.isPlayer(mask)) {
@@ -196,7 +200,7 @@ export class Board {
             if (i === 3) {
                 type |= EntityId.ROSETTE;
             }
-            rval.push(new Space(i, type, i + TrackIdOffset)); 
+            rval.push(new Space(i, type, i + TrackIdOffset));
         }
         return rval;
     }
@@ -214,9 +218,9 @@ export class Board {
                 completeType |= EntityId.ROSETTE;
             }
             if (type === EntityId.START || type === EntityId.FINISH) {
-                addToBoth(new Bucket(this.spaces.length, type | player, track.length));
+                addToBoth(new Bucket(this.spaces.length, completeType, track.length));
             } else {
-                addToBoth(new Space(this.spaces.length, type | player, track.length));
+                addToBoth(new Space(this.spaces.length, completeType, track.length));
             }
         }
         
@@ -249,8 +253,9 @@ export class UrModel implements StateOwner {
     public turn = TurnData.create();
     public nextTurn = TurnData.create(EntityId.PLAYER2);
     public state: GameState = GameState.Initial;
+    public score: {[EntityId.PLAYER1]: number, [EntityId.PLAYER2]: number};
     
-    public readonly history: TurnTaken[] = []; // TODO
+    // public readonly history: TurnTaken[] = []; // TODO
     
     private constructor(player1: Player, player2: Player) {
         this.players = {
@@ -258,6 +263,7 @@ export class UrModel implements StateOwner {
             [EntityId.PLAYER2]: player2
         };
         this.board = new Board();
+        this.score = {[EntityId.PLAYER1]: 0, [EntityId.PLAYER2]: 0};
     }
 
     get currentPlayer() {
@@ -266,6 +272,10 @@ export class UrModel implements StateOwner {
 
     get currentTrack() {
         return this.board.tracks[this.turn.player];
+    }
+
+    get opponentStartBucket() {
+        return this.board.tracks[UrUtils.getOpponent(this.turn.player)][0] as Bucket;
     }
 
     static create(player1: Player, player2: Player) {

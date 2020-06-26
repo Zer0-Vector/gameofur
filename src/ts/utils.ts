@@ -29,11 +29,13 @@ export enum GameState {
     EndTurn,
     GameOver,
     PreMove,
-    PostMove,
     CheckScore,
     PlayersReady,
     PreRoll,
-    PostGame
+    PostGame,
+    PostMove,
+    PieceDropped,
+    ReadyToMove
 }
 
 export enum GameAction {
@@ -68,7 +70,6 @@ export enum GameAction {
      * -
      */
     EnableLegalMoves,
-    AnalyzeMove,
     RosetteBonus,
     KnockoutOpponent,
     PieceScored,
@@ -80,13 +81,16 @@ export enum GameAction {
     SetupGame,
     TurnEnding,
     MoveFinished,
-    ShowWinner
+    ShowWinner,
+    FreezeBoard,
+    MovesAvailable
 }
 
 export interface UrHandlers {
+    newGame(): void;
     roll(): void;
     passTurn(): void;
-    pieceDropped(event: any, ui: any): void; // TODO types
+    pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam): void; // TODO types
     startGame(): void;
 }
 
@@ -131,6 +135,18 @@ export namespace UrUtils {
 
     export function hasEntityType(compoundType:EntityId, type:EntityId) {
         return (compoundType & type) === type;
+    }
+
+    export function entityHasAny(compoundType:EntityId, type1:EntityId, type2:EntityId, ...others:EntityId[]) {
+        let mask = type1 + type2;
+        for (let o of others) {
+            mask += o;
+        }
+        return (compoundType & mask) > 0;
+    }
+
+    export function getOpponent(player:EntityId):PlayerEntity {
+        return (player ^ PLAYER_MASK) & PLAYER_MASK;
     }
 }
 
