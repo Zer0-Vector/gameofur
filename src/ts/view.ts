@@ -124,7 +124,7 @@ class UiElementImpl implements UiElement {
     }
     enable(): void {
         console.debug("Enabling "+this.id);
-        $(this.id).removeProp("disabled");
+        $(this.id).prop("disabled", false);
     }
     disable(): void {
         console.debug("Disabling "+this.id);
@@ -139,21 +139,18 @@ namespace UrView {
     export let dice: Dice = new Dice();
     export let board = null;
 
-    const _buttons = {
-        "roller": new UiElementImpl('input[type="button"]#roller'),
-        "passer": new UiElementImpl('input[type="button"]#passer')
-    };
-
-    export const buttons = _buttons as {[name:string]: UiElement};
+    export const buttons = {
+        roller: new UiElementImpl('input[type="button"]#roller'),
+        passer: new UiElementImpl('input[type="button"]#passer'),
+        starter: new UiElementImpl('input[type="button"]#starter'),
+    }
 
     export function initialize(handlers: UrHandlers) { // TODO fix type
         console.debug("Configuring roll/passTurn buttons.");
         
-        $(_buttons.roller.id)
-            .on('click', handlers.roll);
-        
-        $(_buttons.passer.id)
-            .on('click', handlers.passTurn);
+        $(buttons.roller.id).on('click', handlers.roll);
+        $(buttons.passer.id).on('click', handlers.passTurn);
+        $(buttons.starter.id).on('click', handlers.startGame);
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
         $(document).keypress(e => {
