@@ -24,9 +24,44 @@
     --color-p2-darker: #A46E01;
 
     --color-mid-lane: rgb(127,127,127);
-    --color-border: rgb(0,0,0);
+    --color-mid-move-candidate: rgb(96, 96, 96);
+    --space-border-color: rgb(0,0,0);
+    --space-border-width: 7px;
 
     --pos-space-left-p1: 25;
+
+    --space-width: 93px;
+    --space-height: 93px;
+
+    --space-total-height: calc(var(--space-height) + var(--space-border-width));
+
+    --row1-top: 0px;
+    --row2-top: calc(var(--row1-top) + var(--space-total-height));
+    --row3-top: calc(var(--row1-top) + (2 * var(--space-total-height)));
+    --row4-top: calc(var(--row1-top) + (3 * var(--space-total-height)));
+    --row5-top: calc(var(--row1-top) + (4 * var(--space-total-height)));
+    --row6-top: calc(var(--row1-top) + (5 * var(--space-total-height)));
+    --row7-top: calc(var(--row1-top) + (6 * var(--space-total-height)));
+    --row8-top: calc(var(--row1-top) + (7 * var(--space-total-height)));
+
+    --col1-left: 0px;
+    --col2-left: calc(var(--col1-left) + var(--space-total-height));
+    --col3-left: calc(var(--col1-left) + (2 * var(--space-total-height)));
+
+    --board-width: calc((3 * var(--space-total-height)) + var(--space-border-width));
+    --board-height: calc((8 * var(--space-total-height)) + var(--space-border-width));
+
+    --board-horiz-padding: 50px;
+
+    --startarea-top: var(--row4-top);
+    --startarea-left: calc(var(--board-horiz-padding) + var(--space-border-width) + 4px);
+    
+    --finisharea-top: var(--row7-top);
+    --finisharea-left: var(--startarea-left);
+
+    --z-layer-board: 5;
+    --z-layer-pieces: calc(var(--z-layer-board) + 5); /* should always be on top */
+    --z-layer-under-board: calc(var(--z-layer-board) - 5);
 }
 
 .p1 .piece {
@@ -61,10 +96,20 @@
 html {
     background-color: whitesmoke;
 }
+
 body {
-    background-color: lightgray;
     margin: 25px;
+    text-align: center;
 }
+
+body > div {
+    background-color: lightgray;
+    width: max-content;
+    border: 2px solid black;
+    margin: 0 auto;
+    padding: 10px 50px;
+}
+
 h1 {
     text-align: center;
 }
@@ -85,59 +130,78 @@ h1 {
     text-align: center;
 }
 
+#boardContainer {
+    padding: 0 var(--board-horiz-padding);
+    z-index: var(--z-layer-board);
+}
+
+#board .space.ur-move-candidate {
+    box-shadow: inset 0 0 20px #000;
+    z-index: calc(var(--z-layer-pieces) - 2);
+}
+
+#board .space.ur-move-candidate.p1 {
+    background-color: var(--color-p1-light);
+}
+
+#board .space.ur-move-candidate.p2 {
+    background-color: var(--color-p2-light);
+}
+
+#board .space.ur-move-candidate.middle {
+    background-color: var(--color-mid-move-candidate);
+}
+
 #board {
-    width: 350px;
-    height: 850px;
-    padding-left:50px;
-    padding-right:50px;
-    padding-bottom: 15px;
-    /* background: url("/images/board.png") no-repeat center; */
+    width: var(--board-width);
+    height: var(--board-height);
     position: relative;
+    z-index: var(--z-layer-board);
 }
 
 #board div.space {
-    width: 93px;
-    height: 93px;
-    border: 7px var(--color-border) solid;
+    width: var(--space-width);
+    height: var(--space-height);
+    border: var(--space-border-width) var(--space-border-color) solid;
     background-color: var(--color-mid-lane);
     position: absolute;
 }
 
 #board div.space.r1 {
-    top: 71px;
+    top: var(--row1-top);
 }
 #board div.space.r2 {
-    top: 171px;
+    top: var(--row2-top);
 }
 #board div.space.r3 {
-    top: 271px;
+    top: var(--row3-top);
 }
 #board div.space.r4 {
-    top: 371px;
+    top: var(--row4-top);
 }
 #board div.space.r5 {
-    top: 471px;
+    top: var(--row5-top);
 }
 #board div.space.r6 {
-    top: 571px;
+    top: var(--row6-top);
 }
 #board div.space.r7 {
-    top: 671px;
+    top: var(--row7-top);
 }
 #board div.space.r8 {
-    top: 771px;
+    top: var(--row8-top);
 }
 
 #board div.space.p1 {
     background-color: var(--color-p1-lighter);
-    left: 71px;
+    left: var(--col1-left);
 }
 #board div.space.middle {
-    left: 171px
+    left: var(--col2-left);
 }
 #board div.space.p2 {
     background-color: var(--color-p2-lighter);
-    left: 271px;
+    left: var(--col3-left);
 }
 
 #board div.space.rosette {
@@ -149,6 +213,8 @@ h1 {
 #gameArea {
     text-align: center;
     position: relative;
+    padding: 50px 0 0 0;
+    height: max-content;
 }
 
 #gameArea > div {
@@ -157,43 +223,53 @@ h1 {
 
 .playerArea {
     vertical-align: top;
-}
-
-.playerArea > * {
     position: relative;
+    height: var(--board-height);
+    width: calc(var(--space-total-height) + var(--space-border-width));
+    z-index: var(--z-layer-bottom);
 }
 
 .startingArea {
-    width: 190px;
-    height: 190px;
-    border: 5px groove;
+    width: var(--space-width);
+    height: var(--space-height);
+    border: var(--space-border-width) groove;
+    position: absolute;
+    top: var(--startarea-top);
 }
 .startingArea.p1 {
     border-color: var(--color-p1);
+    left: var(--startarea-left);
 }
 .startingArea.p2 {
     border-color: var(--color-p2);
+    left: calc(-1 * var(--startarea-left));
 }
 .finishArea {
-    width: 180px;
-    height: 180px;
-    border: 10px inset;
+    position: absolute;
+    width: var(--space-width);
+    height: var(--space-height);
+    border: var(--space-border-width) inset;
+    top: var(--finisharea-top);
 }
 .finishArea.p1 {
     border-color: var(--color-p1-lighter);
+    left: var(--startarea-left);
 }
 .finishArea.p2 {
     border-color: var(--color-p2-lighter);
+    left: calc(-1 * var(--startarea-left));
 }
 /* Pieces divs */
 .startingArea > div {
     position: absolute;
-    width: min-content;
-    height: min-content;
+    width: max-content;
+    height: max-content;
+    padding: 0;
+    margin: 0;
 }
 
 .pieceHolder {
-    z-index: 100;
+    z-index: var(--z-layer-pieces);
 }
 
 #userArea {
@@ -208,13 +284,6 @@ h1 {
 }
 
 .ur-piece-hover {
-    box-shadow: 
-        inset 0 0 50px #fff,
-        inset 20px 0 80px #f0f,
-        inset -20px 0 80px #0ff,
-        inset 20px 0 300px #f0f,
-        inset -20px 0 300px #0ff,
-        0 0 50px #fff,
-        -10px 0 80px #f0f,
-        10px 0 80px #0ff;
+    box-shadow: inset 0 0 5px 5px #f0f;
+    z-index: calc(var(--z-layer-board) - 1); /* just under the space */
 }
