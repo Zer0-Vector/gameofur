@@ -17,7 +17,10 @@
         </script>
     </head>
     <body>
-        <h1>Royal Game of Ur</h1>
+        <div id="titleArea">
+            <h1>Royal Game of Ur</h1>
+            <input type="button" value="Start Game" id="starter" disabled/>
+        </div>
         <div id="gameArea">
             <div id="p1Area" class="playerArea">
                 <div id="aStart" class="startingArea p1"></div>
@@ -62,9 +65,9 @@
         <div id="userArea">
             <div id="inputArea">
                 <h2 id="turnIndiator"></h2>
-                <input type="button" value="Roll" id="roller" /> | 
-                <input type="button" value="Pass Turn" id="passer" />
-                <p>Roll the dice.</p>
+                <input type="button" value="Roll" id="roller" disabled/> | 
+                <input type="button" value="Pass Turn" id="passer" disabled/>
+                <p></p>
             </div>
             <div id="diceCup"></div>
         </div>
