@@ -19,54 +19,58 @@
     <body>
         <div id="titleArea">
             <h1>Royal Game of Ur</h1>
-            <input type="button" value="Start Game" id="starter" disabled/>
+            <button type="button" id="starter" disabled><u>S</u>tart Game</button>
         </div>
         <div id="gameArea">
             <div id="p1Area" class="playerArea">
-                <div id="aStart" class="startingArea p1"></div>
-                <div id="aFinish" class="finishArea p1"></div>
+                <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
+                <div><button type="button" id="setName1">Set Name</button></div>
+                <div id="s-a0" class="startingArea p1"></div>
+                <div id="s-a15" class="finishArea p1"></div>
             </div>
             <div id="board">
                 <!-- p1 on-ramp -->
-                <div class="space onramp p1 rosette r1" id="s-a1"></div>
-                <div class="space onramp p1 r2" id="s-a2"></div>
-                <div class="space onramp p1 r3" id="s-a3"></div>
-                <div class="space onramp p1 r4" id="s-a4"></div>
+                <div class="space onramp p1 rosette r1" id="s-a4"></div>
+                <div class="space onramp p1 r2" id="s-a3"></div>
+                <div class="space onramp p1 r3" id="s-a2"></div>
+                <div class="space onramp p1 r4" id="s-a1"></div>
                 
                 <!-- p1 off-ramp -->
-                <div class="space offramp p1 rosette r7" id="s-a7"></div>
-                <div class="space offramp p1 r8" id="s-a8"></div>
+                <div class="space offramp p1 rosette r7" id="s-a14"></div>
+                <div class="space offramp p1 r8" id="s-a13"></div>
                 
                 <!-- middle lane -->
-                <div class="space middle r1" id="s-m1"></div>
-                <div class="space middle r2" id="s-m2"></div>
-                <div class="space middle r3" id="s-m3"></div>
-                <div class="space middle rosette r4" id="s-m4"></div>
-                <div class="space middle r5" id="s-m5"></div>
-                <div class="space middle r6" id="s-m6"></div>
-                <div class="space middle r7" id="s-m7"></div>
-                <div class="space middle r8" id="s-m8"></div>
+                <div class="space middle r1" id="s-m5"></div>
+                <div class="space middle r2" id="s-m6"></div>
+                <div class="space middle r3" id="s-m7"></div>
+                <div class="space middle rosette r4" id="s-m8"></div>
+                <div class="space middle r5" id="s-m9"></div>
+                <div class="space middle r6" id="s-m10"></div>
+                <div class="space middle r7" id="s-m11"></div>
+                <div class="space middle r8" id="s-m12"></div>
                 
                 <!-- p2 on-ramp -->
-                <div class="space onramp p2 rosette r1" id="s-b1"></div>
-                <div class="space onramp p2 r2" id="s-b2"></div>
-                <div class="space onramp p2 r3" id="s-b3"></div>
-                <div class="space onramp p2 r4" id="s-b4"></div>
+                <div class="space onramp p2 rosette r1" id="s-b4"></div>
+                <div class="space onramp p2 r2" id="s-b3"></div>
+                <div class="space onramp p2 r3" id="s-b2"></div>
+                <div class="space onramp p2 r4" id="s-b1"></div>
                 
                 <!-- p1 off-ramp -->
-                <div class="space offramp p2 rosette r7" id="s-b7"></div>
-                <div class="space offramp p2 r8" id="s-b8"></div>
+                <div class="space offramp p2 rosette r7" id="s-b14"></div>
+                <div class="space offramp p2 r8" id="s-b13"></div>
             </div>
             <div id="p2Area" class="playerArea">
-                <div id="bStart" class="startingArea p2"></div>
-                <div id="bFinish" class="finishArea p2"></div>
+                <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
+                <div><button type="button" id="setName1">Set Name</button></div>
+                <div id="s-b0" class="startingArea p2"></div>
+                <div id="s-b15" class="finishArea p2"></div>
             </div>
         </div>
         <div id="userArea">
             <div id="inputArea">
                 <h2 id="turnIndiator"></h2>
-                <input type="button" value="Roll" id="roller" disabled/> | 
-                <input type="button" value="Pass Turn" id="passer" disabled/>
+                <button type="button" id="roller" disabled><u>R</u>oll</button>
+                <button type="button" id="passer" disabled><u>P</u>ass Turn</button>
                 <p></p>
             </div>
             <div id="diceCup"></div>
