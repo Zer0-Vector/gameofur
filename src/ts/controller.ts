@@ -327,6 +327,7 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.EndGame, notImplemented(GameAction.EndGame));
         actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
         actionMaker(GameAction.AllFinished, notImplemented(GameAction.AllFinished));
+        actionMaker(GameAction.ShowWinner, notImplemented(GameAction.ShowWinner));
         return rval as ActionRepository;
     })();
 //#endregion
