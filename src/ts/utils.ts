@@ -23,7 +23,7 @@ export const SPACE_MASK = ONBOARD_MASK + BUCKET_MASK;
 export enum GameState {
     Initial,
     PreGame,
-    StartTurn,
+    TurnStart,
     Rolled,
     Moved,
     EndTurn,
@@ -31,7 +31,9 @@ export enum GameState {
     PreMove,
     PostMove,
     CheckScore,
-    SetupGame
+    PlayersReady,
+    PreRoll,
+    PostGame
 }
 
 export enum GameAction {
@@ -39,7 +41,7 @@ export enum GameAction {
      * Triggers on document.ready().
      *  - Enable Pregame UI: set name, start game button
      */
-    Initialized,
+    Initialize,
 
     /**
      * Triggers on button#startGame.click()
@@ -52,7 +54,7 @@ export enum GameAction {
      * - Update turn indicator
      * - Enable dice button
      */
-    StartTurn,
+    StartingTurn,
 
     /**
      * Triggers on button#RollDice.click()
@@ -70,22 +72,22 @@ export enum GameAction {
     RosetteBonus,
     KnockoutOpponent,
     PieceScored,
-    CheckWinCondition,
     PassTurn,
     EndGame,
     NewGame,
     MovePiece,
     AllFinished,
-    PiecesRemain,
-    GameSetup,
-    RolledZero,
-    MoveFinished
+    SetupGame,
+    TurnEnding,
+    MoveFinished,
+    ShowWinner
 }
 
 export interface UrHandlers {
     roll(): void;
     passTurn(): void;
     pieceDropped(event: any, ui: any): void; // TODO types
+    startGame(): void;
 }
 
 export namespace UrUtils {
@@ -125,6 +127,10 @@ export namespace UrUtils {
 
     export function isPlayer(t: EntityId) {
         return t === EntityId.PLAYER1 || t === EntityId.PLAYER2;
+    }
+
+    export function hasEntityType(compoundType:EntityId, type:EntityId) {
+        return (compoundType & type) === type;
     }
 }
 
