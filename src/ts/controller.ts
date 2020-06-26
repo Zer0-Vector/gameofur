@@ -1,4 +1,4 @@
-import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move} from './model.js';
+import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space, DiceValue} from './model.js';
 import * as View from './view.js';
 import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction } from './utils.js';
 
@@ -236,27 +236,9 @@ let ACTIONS: ActionRepository = (() => {
         });
         actionMaker(GameAction.EnableLegalMoves, () => {
             // TODO extract this to class MoveComputer
-            let legal: Move[] = []
-            for (let p of MODEL.currentPlayer.pieces) {
-                let index = p.location.trackId + MODEL.turn.rollValue;
-                if (index >= MODEL.currentTrack.length) {
-                    continue; // rolled too high to finish
-                }
-                let candidate = MODEL.currentTrack[index];
-                if (candidate.occupant !== undefined) {
-                    if (candidate.occupant.owner === MODEL.turn.player) {
-                        continue; // can't move atop a piece you own
-                    } else if (candidate.isRosette()) { // NOTE: for the standard board, we could just check that specific index.
-                        continue; // can't knockout opponent on rosette
-                    }
-                }
-                // passed the test. This move is legal.
-                console.debug("Found legal move: "+p.id+": "+p.location.name+" to "+candidate.name);
-                legal.push({
-                    piece: p,
-                    space: candidate
-                });
-
+            let legal = new MoveComputer(MODEL.turn.player, MODEL.currentPlayer.pieces, MODEL.currentTrack).compute(MODEL.turn.rollValue as DiceValue);
+            for (let p of legal) {
+                // TODO
             }
             notImplemented(GameAction.EnableLegalMoves)();
         });
@@ -279,6 +261,46 @@ let ACTIONS: ActionRepository = (() => {
         return rval as ActionRepository;
     })();
 //#endregion
+
+class MoveComputer {
+    private readonly pieces: Piece[];
+    private readonly track: Space[];
+    private readonly player: PlayerEntity;
+    constructor(whosTurn: PlayerEntity, pieces:Piece[], track:Space[]) {
+        this.pieces = pieces;
+        this.track = track;
+        this.player = whosTurn;
+    }
+
+    compute(roll:DiceValue): Move[] {
+        if (roll === 0) {
+            return [];
+        }
+
+        let legal: Move[] = [];
+        for (let p of this.pieces) {
+            let index = p.location.trackId + roll;
+            if (index >= this.track.length) {
+                continue; // rolled too high to finish
+            }
+            let candidate = this.track[index];
+            if (candidate.occupant !== undefined) {
+                if (candidate.occupant.owner === this.player) {
+                    continue; // can't move atop a piece you own
+                } else if (candidate.isRosette()) { // NOTE: for the standard board, we could just check that specific index.
+                    continue; // can't knockout opponent on rosette
+                }
+            }
+            // passed the test. This move is legal.
+            console.debug("Found legal move: "+p.id+": "+p.location.name+" to "+candidate.name);
+            legal.push({
+                piece: p,
+                space: candidate
+            });
+        }
+        return legal;
+    }
+}
 
 const opponent = (p:PlayerEntity): PlayerEntity => ((p ^ 0x3) & 0x3) as PlayerEntity;
 
@@ -395,7 +417,7 @@ namespace UrController {
         ENGINE = new GameEngine(MODEL);
         ENGINE.do(GameAction.Initialize);
     }
-    
+
     function setupView(p1:Player, p2: Player) {
         VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
         VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
