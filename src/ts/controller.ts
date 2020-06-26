@@ -1,4 +1,4 @@
-import {Piece, UrModel, Player, Bucket, StateOwner, TurnData} from './model.js';
+import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move} from './model.js';
 import * as View from './view.js';
 import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction } from './utils.js';
 
@@ -19,16 +19,26 @@ function refreshTurnDisplay() {
     VIEW.updateTurnDisplay(p.mask, p.name);
 }
 
-type GameActionImpl = ()=>void;
-const CompositeGameTask = (first:GameActionImpl, second:GameActionImpl, ...theRest:GameActionImpl[]): GameActionImpl => () => {
-    first();
-    second();
-    for (let action of theRest) {
-        action();
+class GameActionImpl {
+    private _doit: ()=>void;
+    private logMessage: ()=>void;
+    constructor(message: string | (()=>string), action:()=>void) {
+        this._doit = action;
+        if (typeof message === "string") {
+            this.logMessage = ()=>{console.info(message);};
+        } else {
+            this.logMessage = ()=>{console.info(message());};
+        }
     }
-};
+    public doit() {
+        this._doit();
+        this.logMessage();
+    }
+}
 
-interface GameStateImpl {
+type FuncOrVal<T> = T | (()=>T);
+
+class GameStateImpl {
     id: GameState;
     /**
      * When defined, this state requires no user interaction.
@@ -36,122 +46,247 @@ interface GameStateImpl {
      * 
      * Conditionals should be implemented here where this method returns the desired GameAction.
      */
-    continue?: ()=>GameAction;
-}
-
-const EmptyState = (id: GameState): GameStateImpl => {
-    return {
-        id: id,
+    action?: ()=>GameAction;
+    constructor(id:GameState, action?:()=>GameAction) {
+        this.id = id;
+        this.action = action;
     }
+    
 }
 
-const ACTIONS: {[index in GameAction]:GameActionImpl} = {
-    [GameAction.Initialized]: () => {
-        
-    },
-    [GameAction.StartGame]: () => {
-        refreshTurnDisplay();
-        VIEW.buttons.passer.disable();
-        VIEW.buttons.roller.disable();
-    },
-    [GameAction.StartTurn]: () => {
-        VIEW.buttons.roller.enable();
-    },
-    [GameAction.ThrowDice]: () => {
-        MODEL.turn.rollValue = MODEL.dice.roll();
-        console.debug("Rolled dice: ",MODEL.dice.values," = ",MODEL.turn.rollValue);
-        VIEW.buttons.roller.disable();
-        VIEW.dice.updateValues(MODEL.dice.values);
-    },
-    [GameAction.EnableLegalMoves]: () => {
-        // TODO
-    },
-    [GameAction.MoveFinished]: () => {},
-    [GameAction.AnalyzeMove]: () => {},
-    [GameAction.RosetteBonus]: () => {},
-    [GameAction.KnockoutOpponent]: () => {},
-    [GameAction.PieceScored]: () => {},
-    [GameAction.CheckWinCondition]: () => {},
-    [GameAction.PassTurn]: () => {
-        MODEL.turn = MODEL.nextTurn;
-        MODEL.nextTurn = TurnData.create(opponent(MODEL.turn.player));
-        refreshTurnDisplay(); // TODO is this redundant? 
-    },
-    [GameAction.EndGame]: () => {},
-    [GameAction.NewGame]: () => {},
-    [GameAction.GameSetup]: () => {},
-    [GameAction.AllFinished]: () => {},
-    [GameAction.PiecesRemain]: () => {},
-    [GameAction.MovePiece]: () => {},
-    [GameAction.RolledZero]: () => {},
+type Repository<K extends number,V> = {[index in K]:V}
+type ActionRepository = Repository<GameAction, AGameAction>;
+type StateRepository = Repository<GameState, AGameState>;
+
+enum GameStateType {
+    USER, // in this state, we wait for a user interaction
+    TEMP, // a "temporary" state which triggers its own transition (to chain actions together)
+    FORK // Same as TEMP, but checks a condition to determine the next action.
 }
+
+type OuterTransitionMethod = ((action: GameAction)=>AGameState)
+interface AGameState {
+    id: GameState;
+    type: GameStateType;
+    transition: OuterTransitionMethod;
+    edges: GameAction[];
+}
+interface ATempState extends AGameState {
+    action: GameAction;
+}
+//#region States
+
+type ConditionalAction = (()=>GameAction);
+type DerivedOrConstantAction = ConditionalAction|GameAction;
+type InnerTransitionMethod = ((action:GameAction)=>GameState|undefined);
+
+let STATES: StateRepository = (()=>{
+    let rval: any = {};
+    let buildTransitionMethod = (thiz:any, transition:InnerTransitionMethod):OuterTransitionMethod => ((action:GameAction) => {
+        let t = transition(action);
+        if (t === undefined) throw "Cannot transition from "+GameState[thiz.id]+" through "+GameAction[action];
+        else return rval[t];
+    });
+    let buildState = (id:GameState, type:GameStateType, transition:InnerTransitionMethod, edges:GameAction[], condition?:ConditionalAction):void => {
+        switch (type) {
+            case GameStateType.USER:
+                if (condition !== undefined) {
+                    console.warn("Building a USER state, but a condition was still given:", condition);
+                }
+                rval[id] = new (class implements AGameState {
+                    id = id;
+                    type = type;
+                    transition = buildTransitionMethod(this, transition);
+                    edges = edges;
+                })();
+                break;
+            case GameStateType.TEMP:
+                console.assert(edges.length === 1);
+
+                rval[id] = new (class implements ATempState {
+                    id = id;
+                    type = type;
+                    transition = buildTransitionMethod(this, transition);
+                    action = edges[0];
+                    edges = edges;
+                })();
+                break;
+            case GameStateType.FORK:
+                console.assert(edges.length > 0 && condition !== undefined);
+
+                rval[id] = new (class implements ATempState {
+                    id = id;
+                    type = type;
+                    transition = buildTransitionMethod(this, transition);
+                    get action() {
+                        return (condition as ConditionalAction)();
+                    }
+                    edges = edges;
+                })();
+                break;
+        }
+        console.debug("Created GameState "+GameState[id]);
+    };
+    let buildSimpleState = (id:GameState, op:GameAction, next: GameState, instant:boolean = false) => {
+        let transition = (a:GameAction) => {
+            if (a === op) return next;
+            else return undefined;
+        }
+        if (instant) {
+            buildState(id, GameStateType.TEMP, transition, [op]);
+        } else {
+            buildState(id, GameStateType.USER, transition, [op]);
+        }
+    };
+    let buildForkState = (id:GameState, condition:ConditionalAction, choices:{[op in GameAction]?:GameState}) => {
+        buildState(id, GameStateType.FORK, (a:GameAction) => choices[a], Object.keys(choices).map(e => parseInt(e)), condition);
+    };
+
+    buildSimpleState(GameState.Initial, GameAction.Initialize, GameState.PreGame);
+    buildSimpleState(GameState.PreGame, GameAction.StartGame, GameState.PlayersReady);
+    buildSimpleState(GameState.PlayersReady, GameAction.SetupGame, GameState.TurnStart, true);
+    buildSimpleState(GameState.TurnStart, GameAction.StartingTurn, GameState.PreRoll, true); // TODO can this state be cut?
+    buildSimpleState(GameState.PreRoll, GameAction.ThrowDice, GameState.Rolled);
+    buildForkState(GameState.Rolled, 
+        ()=>{ return (MODEL.turn.rollValue === 0) ? GameAction.TurnEnding : GameAction.EnableLegalMoves },
+        {
+            [GameAction.TurnEnding]: GameState.EndTurn,
+            [GameAction.EnableLegalMoves]: GameState.PreMove
+        });
+    buildSimpleState(GameState.PreMove, GameAction.MovePiece, GameState.Moved);
+    buildSimpleState(GameState.Moved, GameAction.AnalyzeMove, GameState.PostMove, true);
+    buildForkState(GameState.PostMove, 
+        ()=> {
+            if (MODEL.turn.rosette) return GameAction.RosetteBonus;
+            if (MODEL.turn.knockout) return GameAction.KnockoutOpponent;
+            if (MODEL.turn.scored) return GameAction.PieceScored;
+            return GameAction.MoveFinished;
+        },
+        {
+            [GameAction.RosetteBonus]: GameState.EndTurn,
+            [GameAction.KnockoutOpponent]: GameState.EndTurn,
+            [GameAction.MoveFinished]: GameState.EndTurn,
+            [GameAction.PieceScored]: GameState.CheckScore,
+        });
+    buildForkState(GameState.CheckScore,
+        () => {
+            let playerPieces = MODEL.currentPlayer.pieces;
+            for (let p of playerPieces) {
+                if ((p.location.type & EntityId.FINISH) === 0) {
+                    return GameAction.TurnEnding; // found piece not finished
+                }
+            }
+            return GameAction.AllFinished;
+        },
+        {
+            [GameAction.TurnEnding]: GameState.EndTurn,
+            [GameAction.AllFinished]: GameState.GameOver,
+        });
+    buildSimpleState(GameState.EndTurn, GameAction.PassTurn, GameState.TurnStart);
+    buildSimpleState(GameState.GameOver, GameAction.ShowWinner, GameState.PostGame, true);
+    buildSimpleState(GameState.PostGame, GameAction.NewGame, GameState.PlayersReady);
+
+    return rval as StateRepository;
+})();
+
+
+
+//#endregion
+
+//#region Actions
+interface AGameAction {
+    id: GameAction;
+    run(): void;
+}
+let ACTIONS: ActionRepository = (() => {
+        let rval: any = {};
+
+        // FIXME
+        let notImplemented = (a:GameAction) => (() => {console.warn(GameAction[a]+" not implemented!")});
+
+        let actionMaker = (id:GameAction, run:()=>void): void => {
+            rval[id] = new (class implements AGameAction {
+                id: GameAction = id;
+                run: ()=>void = () => {
+                    run();
+                    console.info(GameAction[this.id]+" completed.");
+                };
+            })();
+            console.debug("Created action: "+GameAction[id]);
+        }
+        actionMaker(GameAction.Initialize, ()=>{
+            VIEW.buttons.starter.enable();
+        })
+        actionMaker(GameAction.StartGame, ()=>{
+            refreshTurnDisplay();
+        });
+        actionMaker(GameAction.SetupGame, ()=>{
+            VIEW.buttons.starter.disable();
+        });
+        actionMaker(GameAction.StartingTurn, ()=>{
+            VIEW.buttons.roller.enable();
+            VIEW.buttons.passer.disable();
+            console.info(MODEL.currentPlayer.name+"'s turn. Turn "+MODEL.turn.number);
+        });
+        actionMaker(GameAction.ThrowDice, ()=>{
+            
+            MODEL.turn.rollValue = MODEL.dice.roll();
+            // ALWAYS ROLL 0
+            // MODEL.turn.rollValue = 0;
+            // MODEL.dice.values = [0,0,0,0];
+            console.debug("Rolled dice: ",MODEL.dice.values," = ",MODEL.turn.rollValue);
+            VIEW.buttons.roller.disable();
+            VIEW.dice.updateValues(MODEL.dice.values);
+
+            console.info(MODEL.currentPlayer.name+" rolled "+MODEL.turn.rollValue);
+        });
+        actionMaker(GameAction.EnableLegalMoves, () => {
+            // TODO extract this to class MoveComputer
+            let legal: Move[] = []
+            for (let p of MODEL.currentPlayer.pieces) {
+                let index = p.location.trackId + MODEL.turn.rollValue;
+                if (index >= MODEL.currentTrack.length) {
+                    continue; // rolled too high to finish
+                }
+                let candidate = MODEL.currentTrack[index];
+                if (candidate.occupant !== undefined) {
+                    if (candidate.occupant.owner === MODEL.turn.player) {
+                        continue; // can't move atop a piece you own
+                    } else if (candidate.isRosette()) { // NOTE: for the standard board, we could just check that specific index.
+                        continue; // can't knockout opponent on rosette
+                    }
+                }
+                // passed the test. This move is legal.
+                console.debug("Found legal move: "+p.id+": "+p.location.name+" to "+candidate.name);
+                legal.push({
+                    piece: p,
+                    space: candidate
+                });
+
+            }
+            notImplemented(GameAction.EnableLegalMoves)();
+        });
+        actionMaker(GameAction.MoveFinished, notImplemented(GameAction.MoveFinished));
+        actionMaker(GameAction.AnalyzeMove, notImplemented(GameAction.AnalyzeMove));
+        actionMaker(GameAction.RosetteBonus, notImplemented(GameAction.RosetteBonus));
+        actionMaker(GameAction.PieceScored, notImplemented(GameAction.PieceScored));
+        actionMaker(GameAction.PassTurn, ()=>{
+            MODEL.turn = MODEL.nextTurn;
+            MODEL.nextTurn = TurnData.create(opponent(MODEL.turn.player));
+            refreshTurnDisplay();
+        });
+        actionMaker(GameAction.EndGame, notImplemented(GameAction.EndGame));
+        actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
+        actionMaker(GameAction.AllFinished, notImplemented(GameAction.AllFinished));
+        actionMaker(GameAction.MovePiece, notImplemented(GameAction.MovePiece));
+        actionMaker(GameAction.TurnEnding, () => {
+            VIEW.buttons.passer.enable();
+        });
+        return rval as ActionRepository;
+    })();
+//#endregion
 
 const opponent = (p:PlayerEntity): PlayerEntity => ((p ^ 0x3) & 0x3) as PlayerEntity;
-
-const STATES: {[index in GameState]: GameStateImpl} = {
-    [GameState.Initial]: EmptyState(GameState.Initial),
-    [GameState.SetupGame]: EmptyState(GameState.SetupGame),
-    [GameState.PreGame]: EmptyState(GameState.PreGame),
-    [GameState.StartTurn]: EmptyState(GameState.StartTurn),
-    [GameState.Rolled]: {
-        id: GameState.Rolled,
-        continue: () => {
-            if (MODEL.turn.rollValue === 0) {
-                return GameAction.RolledZero;
-            }
-            return GameAction.EnableLegalMoves;
-        }
-    },
-    [GameState.PreMove]: EmptyState(GameState.PreMove),
-    [GameState.Moved]: EmptyState(GameState.Moved),
-    [GameState.PostMove]: EmptyState(GameState.PostMove),
-    [GameState.CheckScore]: EmptyState(GameState.CheckScore),
-    [GameState.EndTurn]: EmptyState(GameState.EndTurn),
-    [GameState.GameOver]: EmptyState(GameState.GameOver),
-};
-
-const FSM: {[index in GameState]: {[index in GameAction]?: GameState}} = {
-    [GameState.Initial]: {
-        [GameAction.Initialized]: GameState.PreGame
-    },
-    [GameState.PreGame]: {
-        [GameAction.StartGame]: GameState.SetupGame
-    },
-    [GameState.SetupGame]: {
-        [GameAction.GameSetup]: GameState.StartTurn
-    },
-    [GameState.StartTurn]: {
-        [GameAction.ThrowDice]: GameState.Rolled
-    },
-    [GameState.Rolled]: {
-        [GameAction.EnableLegalMoves]: GameState.PreMove,
-        [GameAction.RolledZero]: GameState.EndTurn
-    },
-    [GameState.PreMove]: {
-        [GameAction.MovePiece]: GameState.Moved
-    },
-    [GameState.Moved]: {
-        [GameAction.AnalyzeMove]: GameState.PostMove
-    },
-    [GameState.PostMove]: {
-        [GameAction.RosetteBonus]: GameState.EndTurn,
-        [GameAction.KnockoutOpponent]: GameState.EndTurn,
-        [GameAction.PieceScored]: GameState.CheckScore,
-        [GameAction.MoveFinished]: GameState.EndTurn
-    },
-    [GameState.CheckScore]: {
-        [GameAction.AllFinished]: GameState.GameOver,
-        [GameAction.PiecesRemain]: GameState.EndTurn
-    },
-    [GameState.EndTurn]: {
-        [GameAction.PassTurn]: GameState.StartTurn
-    },
-    [GameState.GameOver]: {
-        [GameAction.NewGame]: GameState.SetupGame
-    },
-};
-
-// TODO create start button
 
 class GameEngine {
     private _model: StateOwner;
@@ -159,45 +294,60 @@ class GameEngine {
         this._model = model;
         console.info("GameEngine initialized. state="+GameState[this._model.state]);
     }
-    transition(action: GameAction) {
-        let nextAction: GameAction | undefined = undefined;
-        do {
-            nextAction = this.doTransition(action, STATES[this.state])?.call(this);
+
+    // TODO move transition logic to state class
+    // TODO hold current state in GameEngine (delegae property to MODEL)
+    // TODO define State/Action repository
+    // TODO implement states/actions in separate classes
+
+    do(action: GameAction): void {
+        let nextAction: GameAction | undefined = action;
+        let i = 1;
+        for (; nextAction !== undefined; i++) {
+            let srcStateId = this.currentState;
+            let dstState = this.doTransition(nextAction);
             
-        } while(nextAction);
+            console.assert(srcStateId !== dstState.id, "GameState did not change after transition action: src="+GameState[srcStateId]+", action="+GameAction[nextAction]);
+            
+            switch(dstState.type) {
+                case GameStateType.TEMP:
+                case GameStateType.FORK:
+                    nextAction = (dstState as ATempState).action
+                    console.assert(nextAction !== undefined, "Got undefined action from a "+dstState.type+" state:",dstState);
+                    break;
+                default:
+                    nextAction = undefined;
+            }
+        }
+        console.debug("Finished transition loop after "+i+" iterations");
+        console.assert(this.currentStateImpl.type === GameStateType.USER);
+        console.info("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
     }
 
-    private doTransition(action: GameAction, state: GameStateImpl): (()=>GameAction) | undefined {
-        let nextState: GameState | undefined = FSM[state.id][action];
-        // validate transition
-        if (!nextState) {
-            throw "Invalid state transition: "+GameState[state.id]+" via "+GameAction[action];
-        }
+    private doTransition(action: GameAction): AGameState {
+        console.debug(GameState[this.currentState]+".doTransition: "+GameAction[action]);
+        let nextState = this.currentStateImpl.transition(action);
+        console.assert(nextState !== undefined, "Transition from "+GameState[this.currentState]+" via "+GameAction[action]+" did not return a state.");
 
-        console.info("Executing "+GameAction[action]);
         // trigger transition action
-        ACTIONS[action]();
+        ACTIONS[action].run();
 
         // enter new state
-        this.state = nextState;
-        
-        // return continue action
-        return state.continue;
-    }
+        console.info(GameState[this._model.state]+" --> "+GameState[nextState.id]);
+        this._model.state = nextState.id;
 
-    /**
-     * Triggers enter action
-     */
-    private set state(newState: GameState) {
-        console.info(GameState[this._model.state]+" --> "+GameState[newState]);
-        this._model.state = newState;
+        return this.currentStateImpl;
     }
-    private get state() {
+    
+    private get currentState(): GameState {
         return this._model.state;
     }
+    private set currentState(id: GameState) {
+        this._model.state = id;
+    }
 
-    get currentState() {
-        return this._model.state;
+    private get currentStateImpl(): AGameState {
+        return STATES[this.currentState];
     }
 }
 
@@ -205,12 +355,15 @@ namespace UrController {
     let ENGINE: GameEngine;
     class UrHandlersImpl implements UrHandlers {
         roll() {
-            ENGINE.transition(GameAction.ThrowDice);
+            ENGINE.do(GameAction.ThrowDice);
         }
     
         passTurn() {
-            console.info("Passing turn: ", MODEL.turn, MODEL.nextTurn);
-            ENGINE.transition(GameAction.PassTurn);
+            ENGINE.do(GameAction.PassTurn);
+        }
+
+        startGame() {
+            ENGINE.do(GameAction.StartGame);
         }
     
         pieceDropped(event: any, ui: any) {
@@ -246,8 +399,7 @@ namespace UrController {
         setupView(p1, p2);
 
         ENGINE = new GameEngine(MODEL);
-        ENGINE.transition(GameAction.Initialized);
-        console.info("Game initialized");
+        ENGINE.do(GameAction.Initialize);
     }
     
     export function startGame() {

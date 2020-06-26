@@ -1,12 +1,15 @@
 import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, ONBOARD_MASK} from './utils.js';
 
 export class TurnData {
+    private static COUNTER = 1;
     rollValue: number = -1;
     player: PlayerEntity;
     rosette: boolean = false;
     knockout: boolean = false;
+    scored: boolean = false;
     startSpace?: string = undefined;
     endSpace?: string = undefined;
+    number: number = TurnData.COUNTER++;
 
     protected constructor(player: PlayerEntity) {
         this.player = player;
@@ -17,16 +20,6 @@ export class TurnData {
     }
 }
 
-// TODO add states for initialization and starting the game
-// TODO add states for starting a new game after completing one
-/*
-                                                                                             /----[ALL_FINISHED]-----> GAME_OVER
-                                                                  /--[TO_FINISH]---> CHECK_SCORE ---[PIECES_REMAIN]---\
-                                                                  |--[TO_ROSETTE]---> ROSETTE ---[NEXT_PLAYER_SET]--\ |
- Start ---> PREROLL ---[ROLL]---> PREMOVE ---[MOVE]---> POSTMOVE -|--[TO_EMPTY]--------------------------------------------> CLEANUP --[NEXT_TURN]--\
-             ^                                                    \--[TO_OCCUPIED]--> KNOCKOUT ---[KNOCK_PIECE]---------/                           |
-             |--------------------------------------------------------------------------------------------------------------------------------------/
-*/
 class TurnTaken extends TurnData { // TODO for tracking history
     public knockoff: boolean;
     constructor(player: PlayerEntity) {
@@ -91,6 +84,7 @@ export class Space {
         UrUtils.isValidSpace(type);
         this.type = type;
         this.trackId = trackId;
+        console.debug("Created space: "+this.name);
     }
     get occupant() {
         return this._occupant;
@@ -104,18 +98,19 @@ export class Space {
         const rosette: EntityId = this.type & EntityId.ROSETTE;
         let name = "";
         if (player > 0) {
-            name += EntityId[player] + " ";
-        }
-        name += EntityId[space];
-        if (space === EntityId.MIDDLE) {
-            name += "-"+this.id;
-        } else if ((space & ONBOARD_MASK) > 0) {
-            name += "-"+this.trackId;
-        }
+            name += EntityId[player] + "-" + this.trackId + "-" + EntityId[space];
+        } else if (UrUtils.hasEntityType(space, EntityId.MIDDLE)) {
+            name += EntityId[space] + "-" + this.trackId;
+        } else throw "This space is messed up...";
+        
         if (rosette > 0) {
-            name += " "+EntityId[rosette];
+            name += "*"
         }
+
         return name;
+    }
+    isRosette() {
+        return UrUtils.hasEntityType(this.type, EntityId.ROSETTE);
     }
 }
 
@@ -214,15 +209,14 @@ export class Board {
         };
 
         let makePlayerSpace = (type: SpaceEntity, rosette: boolean = false) => {
-            let t = type | player;
+            let completeType = type | player;
             if (rosette) {
-                t |= EntityId.ROSETTE;
+                completeType |= EntityId.ROSETTE;
             }
-            console.debug("Creating space for type="+type+" ("+t+")");
             if (type === EntityId.START || type === EntityId.FINISH) {
-                addToBoth(new Bucket(this.spaces.length, t, track.length));
+                addToBoth(new Bucket(this.spaces.length, type | player, track.length));
             } else {
-                addToBoth(new Space(this.spaces.length, t, track.length));
+                addToBoth(new Space(this.spaces.length, type | player, track.length));
             }
         }
         
@@ -264,6 +258,14 @@ export class UrModel implements StateOwner {
             [EntityId.PLAYER2]: player2
         };
         this.board = new Board();
+    }
+
+    get currentPlayer() {
+        return this.players[this.turn.player];
+    }
+
+    get currentTrack() {
+        return this.board.tracks[this.turn.player];
     }
 
     static create(player1: Player, player2: Player) {
