@@ -69,6 +69,10 @@ h1 {
     text-align: center;
 }
 
+#titleArea {
+    text-align: center;
+}
+
 #turnIndiator.p1 {
     color: var(--color-p1-dark);
 }
