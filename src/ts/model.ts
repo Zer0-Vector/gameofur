@@ -2,7 +2,7 @@ import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SP
 
 export class TurnData {
     private static COUNTER = 1;
-    rollValue: number = -1;
+    rollValue: DiceValue | -1 = -1;
     player: PlayerEntity;
     rosette: boolean = false;
     knockout: boolean = false;
@@ -39,7 +39,7 @@ class TurnTaken extends TurnData { // TODO for tracking history
 }
 
 type DieValue =  0 | 1;
-type DiceValue = 0 | 1 | 2 | 3 | 4;
+export type DiceValue = 0 | 1 | 2 | 3 | 4;
 type DiceList = [DieValue, DieValue, DieValue, DieValue];
 export class Dice {
     values: DiceList;
