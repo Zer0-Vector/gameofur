@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./dist",
-    "prestart": "gulp build"
+    "prestart": "gulp build",
+    "preinstall": "npx npm-force-resolutions"
   },
   "author": "Arthur Little <1690572+littleaj@users.noreply.github.com> (https://github.com/littleaj)",
   "license": "ISC",
@@ -24,5 +25,8 @@
     "gulp-typescript": "^6.0.0-alpha.1",
     "map-stream": "0.0.7",
     "typescript": "^3.9.5"
+  },
+  "resolutions": {
+    "lodash.template": ">=4.5.0"
   }
 }
