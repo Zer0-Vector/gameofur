@@ -211,7 +211,7 @@ let ACTIONS: ActionRepository = (() => {
         let actionMaker = (id:GameAction, run:()=>void): void => {
             rval[id] = new (class implements AGameAction {
                 id: GameAction = id;
-                run: ()=>void = () => {
+                run: (()=>void) = () => {
                     run();
                     console.info(GameAction[this.id]+" completed.");
                 };
