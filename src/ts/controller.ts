@@ -66,7 +66,7 @@ type OuterTransitionMethod = ((action: GameAction)=>AGameState)
 interface AGameState {
     id: GameState;
     type: GameStateType;
-    transition: OuterTransitionMethod;
+    peekNext: OuterTransitionMethod;
     edges: GameAction[];
 }
 interface ATempState extends AGameState {
@@ -93,7 +93,7 @@ let STATES: StateRepository = (()=>{
                 rval[id] = new (class implements AGameState {
                     id = id;
                     type = type;
-                    transition = buildTransitionMethod(this, transition);
+                    peekNext = buildTransitionMethod(this, transition);
                     edges = edges;
                 })();
                 break;
@@ -103,7 +103,7 @@ let STATES: StateRepository = (()=>{
                 rval[id] = new (class implements ATempState {
                     id = id;
                     type = type;
-                    transition = buildTransitionMethod(this, transition);
+                    peekNext = buildTransitionMethod(this, transition);
                     action = edges[0];
                     edges = edges;
                 })();
@@ -114,7 +114,7 @@ let STATES: StateRepository = (()=>{
                 rval[id] = new (class implements ATempState {
                     id = id;
                     type = type;
-                    transition = buildTransitionMethod(this, transition);
+                    peekNext = buildTransitionMethod(this, transition);
                     get action() {
                         return (condition as ConditionalAction)();
                     }
@@ -332,6 +332,8 @@ let ACTIONS: ActionRepository = (() => {
     })();
 //#endregion
 
+// TODO refactor to use callbacks
+
 class MoveComputer {
     private readonly pieces: Piece[];
     private readonly track: Space[];
@@ -376,7 +378,6 @@ class MoveComputer {
 }
 
 const opponent = (p:PlayerEntity): PlayerEntity => ((p ^ 0x3) & 0x3) as PlayerEntity;
-
 class GameEngine {
     private _model: StateOwner;
     constructor(model: StateOwner) {
@@ -384,50 +385,6 @@ class GameEngine {
         console.info("GameEngine initialized. state="+GameState[this._model.state]);
     }
 
-    // TODO move transition logic to state class
-    // TODO hold current state in GameEngine (delegae property to MODEL)
-    // TODO define State/Action repository
-    // TODO implement states/actions in separate classes
-
-    do(action: GameAction): void {
-        let nextAction: GameAction | undefined = action;
-        let i = 1;
-        for (; nextAction !== undefined; i++) {
-            let srcStateId = this.currentState;
-            let dstState = this.doTransition(nextAction);
-            
-            console.assert(srcStateId !== dstState.id, "GameState did not change after transition action: src="+GameState[srcStateId]+", action="+GameAction[nextAction]);
-            
-            switch(dstState.type) {
-                case GameStateType.TEMP:
-                case GameStateType.FORK:
-                    nextAction = (dstState as ATempState).action
-                    console.assert(nextAction !== undefined, "Got undefined action from a "+dstState.type+" state:",dstState);
-                    break;
-                default:
-                    nextAction = undefined;
-            }
-        }
-        console.debug("Finished transition loop after "+i+" iterations");
-        console.assert(this.currentStateImpl.type === GameStateType.USER);
-        console.info("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
-    }
-
-    private doTransition(action: GameAction): AGameState {
-        console.debug(GameState[this.currentState]+".doTransition: "+GameAction[action]);
-        let nextState = this.currentStateImpl.transition(action);
-        console.assert(nextState !== undefined, "Transition from "+GameState[this.currentState]+" via "+GameAction[action]+" did not return a state.");
-
-        // trigger transition action
-        ACTIONS[action].run();
-
-        // enter new state
-        console.info(GameState[this._model.state]+" --> "+GameState[nextState.id]);
-        this._model.state = nextState.id;
-
-        return this.currentStateImpl;
-    }
-    
     private get currentState(): GameState {
         return this._model.state;
     }
@@ -437,6 +394,55 @@ class GameEngine {
 
     private get currentStateImpl(): AGameState {
         return STATES[this.currentState];
+    }
+
+    async do(currentAction: GameAction): Promise<void> {
+        let loop = async (init:{count:number, next:GameAction}, fn:(action:GameAction)=>Promise<GameAction|undefined>): Promise<number> => {
+            const next = await fn(init.next);
+            if (next === undefined) {
+                return init.count;
+            } else {
+                // TODO should this await?
+                return loop({count:init.count+1, next:next}, fn);
+            }
+        };
+
+        await loop({count:1, next:currentAction}, async (action:GameAction):Promise<GameAction|undefined> => {
+            const dstState = await this.doTransition((action as GameAction));
+            switch (dstState.type) {
+                case GameStateType.TEMP:
+                case GameStateType.FORK:
+                    // TODO console.assert(nextAction !== undefined, "Got undefined action from a "+dstState.type+" state:",dstState);
+                    let nextAction = (dstState as ATempState).action;
+                    if (nextAction === undefined) {
+                        return Promise.reject("Got undefined action from a " + dstState.type + " state: " + dstState);
+                    }
+                    return nextAction;
+                default:
+                    return undefined;
+            }
+        }).then((i:number):void => {
+            console.debug("Finished transition loop after "+i+" iterations");
+            console.assert(this.currentStateImpl.type === GameStateType.USER);
+            console.info("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
+        });
+    }
+
+    private async doTransition(action: GameAction): Promise<AGameState> {
+        console.debug(GameState[this.currentState]+".doTransition: "+GameAction[action]);
+        let nextState = this.currentStateImpl.peekNext(action);
+        if (nextState === undefined) {
+            return Promise.reject("Transition from "+GameState[this.currentState]+" via "+GameAction[action]+" did not return a state.");
+        }
+
+        // TODO make the GameActionImpl.run() async
+        await (async () => Promise.resolve(ACTIONS[action].run()))();
+
+        console.info(GameState[this._model.state]+" --> "+GameState[nextState.id]);
+        this.currentState = nextState.id;
+
+        // the previous assignment updates this getter's value.
+        return this.currentStateImpl;
     }
 }
 
@@ -461,7 +467,7 @@ namespace UrController {
         pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) {
 
             // snap to center
-            
+            // TODO all calls to jquery should be in the VIEW
             ui.draggable.position({
                 my: "center",
                 at: "center",
