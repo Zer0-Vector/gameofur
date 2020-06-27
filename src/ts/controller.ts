@@ -312,7 +312,7 @@ let ACTIONS: ActionRepository = (() => {
 
         actionMaker(GameAction.PassTurn, ()=>{
             MODEL.turn = MODEL.nextTurn;
-            MODEL.nextTurn = TurnData.create(opponent(MODEL.turn.player));
+            MODEL.nextTurn = TurnData.create(UrUtils.getOpponent(MODEL.turn.player));
             VIEW.updateTurnDisplay(MODEL.currentPlayer.mask, MODEL.currentPlayer.name);
         });
         actionMaker(GameAction.MoveFinished, ()=>{
@@ -377,7 +377,6 @@ class MoveComputer {
     }
 }
 
-const opponent = (p:PlayerEntity): PlayerEntity => ((p ^ 0x3) & 0x3) as PlayerEntity;
 class GameEngine {
     private _model: StateOwner;
     constructor(model: StateOwner) {
