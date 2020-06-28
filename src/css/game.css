@@ -269,9 +269,14 @@ h1 {
     display: inline-block;
 }
 
-.ur-piece-hover {
-    box-shadow: inset 0 0 5px 5px #f0f;
+#board .ur-piece-hover {
+    box-shadow: inset 0 0 5px 5px #f0f !important;
     z-index: calc(var(--z-layer-board) - 1); /* just under the space; TODO is this needed? */
+}
+
+.ur-legal-move-hover {
+    box-shadow: inset 0 0 20px #000;
+    z-index: calc(var(--z-layer-board) + 1);
 }
 
 #board .space.ur-move-candidate {
@@ -290,3 +295,5 @@ h1 {
 #board .space.ur-move-candidate.middle {
     background-color: var(--color-mid-move-candidate);
 }
+
+/* TODO style for pieces on player's turn: with/without moves */
