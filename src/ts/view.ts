@@ -147,6 +147,8 @@ namespace UrView {
         newgame: new UiElementImpl('button#newgame'),
     }
 
+    let moveHander:(pid:string,sid:string)=>void;
+
     export function initialize(handlers: UrHandlers) { // TODO fix type
         console.debug("Configuring roll/passTurn buttons.");
         
@@ -154,6 +156,7 @@ namespace UrView {
         $(buttons.passer.id).on('click', handlers.passTurn);
         $(buttons.starter.id).on('click', handlers.startGame);
         $(buttons.newgame.id).on('click', handlers.newGame);
+        moveHander = handlers.pieceMoved;
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
         $(document).on('keypress', e => {
@@ -199,7 +202,6 @@ namespace UrView {
             drop: (e,u) => handlers.pieceDropped(e,u)
         });
         $('.space, .startingArea, .finishArea').droppable("option", "classes.ui-droppable-hover", "ur-piece-hover");
-
     }
 
     function spaceCssId(space:Space): string {
@@ -213,7 +215,6 @@ namespace UrView {
         }
         return rval + space.trackId;
     }
-
     export function disableDnD() {
         console.debug("Disabling all drag and drop");
         $(".startingArea > div").draggable("option", {
@@ -226,7 +227,7 @@ namespace UrView {
         });
     }
 
-    export function dropControl(space:Space, enabled:boolean, scope?:string) {
+    function dropControl(space:Space, enabled:boolean, scope?:string) {
         let cssId = spaceCssId(space);
         let action = enabled ? "enable" : "disable"
         console.debug(action+" drop for "+cssId+" in scope:"+scope || "");
@@ -234,7 +235,7 @@ namespace UrView {
         $(cssId).droppable(action);
     }
 
-    export function dragControl(piece:Piece, enabled:boolean, scope?:string) {
+    function dragControl(piece:Piece, enabled:boolean, scope?:string) {
         let cssId = "#"+piece.id;
         let action = enabled ? "enable" : "disable"
         console.debug(action+" drag for "+cssId+" in scope:"+scope || "");
@@ -242,9 +243,55 @@ namespace UrView {
         $(cssId).draggable(action);
     }
 
-    export function returnPieceToStart(pieceId:string): void {
-        $("#"+pieceId).animate({"left":0, "top":0}, 750);
-        console.debug("Updated left/top coords for #"+pieceId);
+    export function dndControl(piece:Piece, space:Space, enabled:boolean, scope?: string) {
+        console.assert(!enabled || scope !== undefined, "Cannot enable dnd for pieces/spaces unless specifying a scope");
+        dragControl(piece, enabled, scope);
+        dropControl(space, enabled, scope);
+    }
+
+    const LEGAL_MOVE_HOVER_CLASS = "ur-legal-move-hover";
+    export function applyLegalMoveBehavior(piece:Piece, space:Space) {
+        let pcid = "#"+piece.id;
+        let spid = spaceCssId(space);
+        $(pcid).on("mouseenter", () => {
+            $(spid).addClass(LEGAL_MOVE_HOVER_CLASS);
+        }).on("mouseleave", () => {
+            $(spid).removeClass(LEGAL_MOVE_HOVER_CLASS);
+        }).on("dblclick", (event) => {
+            $(pcid).position({
+                my: "center",
+                at: "center",
+                of: $(spid),
+                using: (pos:any) => {
+                    console.debug("Animating target: ",$(pcid));
+                    $(pcid).animate(pos, {
+                        duration: 500,
+                        start: () => {
+                            // TODO FreezeBoard and Disable hover behaviors. This may require reworking state machine
+                            console.debug("Dblclick move animation: start");
+                        },
+                        done: () => {
+                            console.debug("Dblclick move animation: done");
+                            moveHander(piece.id, spid.substring(1));
+                        }
+                    });
+                }
+            })
+        });
+    }
+
+    export function removeLegalMoveBehavior() {
+        $(".startingArea > div").off("mouseenter mouseleave dblclick");
+        $(".space, .finishArea").removeClass(LEGAL_MOVE_HOVER_CLASS);
+    }
+
+    export async function returnPieceToStart(pieceId:string): Promise<void> {
+        return new Promise<void>((resovle, reject) => {
+            $("#"+pieceId).animate({"left":0, "top":0}, 750, "swing", () => {
+                console.debug("Updated left/top coords for #"+pieceId);
+                resovle();
+            });
+        });
     }
 
     export function initializePieces(mask: PlayerEntity, id: string, list: Piece[]) {
@@ -261,5 +308,7 @@ namespace UrView {
     }
 
 }
+
+// TODO double-click to animate move to space
 
 export let VIEW = UrView;
