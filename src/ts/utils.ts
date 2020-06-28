@@ -74,7 +74,6 @@ export enum GameAction {
     KnockoutOpponent,
     PieceScored,
     PassTurn,
-    EndGame,
     NewGame,
     MovePiece,
     AllFinished,
@@ -92,6 +91,7 @@ export interface UrHandlers {
     passTurn(): void;
     pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam): void; // TODO types
     startGame(): void;
+    pieceMoved(pid:string, sid:string): void;
 }
 
 export namespace UrUtils {
