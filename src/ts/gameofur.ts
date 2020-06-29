@@ -1,4 +1,4 @@
 import UrController from './controller.js';
-$(document).ready(function() {
-    UrController.initialize();
+$(document).ready(async function() {
+    await UrController.initialize();
 });

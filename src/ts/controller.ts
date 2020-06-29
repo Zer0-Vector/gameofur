@@ -511,7 +511,7 @@ namespace UrController {
     }
 
     type PlayerInfo = {mask:PlayerEntity,id:string,name:string};
-    export function initialize() {
+    export async function initialize() {
         let p1Info = {
             mask: EntityId.PLAYER1 as PlayerEntity,
             id: "a",
@@ -530,15 +530,16 @@ namespace UrController {
         MODEL = UrModel.create(p1, p2);
 
         setupBoard();
-        setupView(p1, p2);
+        await setupView(p1, p2);
 
         ENGINE = new GameEngine(MODEL);
         ENGINE.do(GameAction.Initialize);
     }
 
-    function setupView(p1:Player, p2: Player) {
+    async function setupView(p1:Player, p2: Player) {
         VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
         VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
+        await Promise.all([VIEW.p1Pieces.render(), VIEW.p2Pieces.render()]);
         VIEW.initialize(new UrHandlersImpl());
         console.debug("View initialized.");
     }
