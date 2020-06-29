@@ -1,16 +1,17 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue } from "./utils.js";
 import { Space } from "./model.js";
 
-type DieView = 0 | 1;
-
 interface Renderable {
-    render(): void;
-    asyncRender(): Promise<void>; // TODO this will replace render.
+    render(): Promise<void>;
+}
+
+interface Updateable<UpdateDescriptor> {
+    update(update:UpdateDescriptor): Promise<void>;
 }
 
 abstract class AnUrUiElement {
     private readonly _id: string
-    constructor(id: string) {
+    protected constructor(id: string) {
         this._id = id;
     }
     get id(): string {
@@ -22,55 +23,73 @@ abstract class AnUrUiElement {
 }
 
 abstract class ARenderableUrUiElement extends AnUrUiElement implements Renderable {
-    abstract render(): void;
-    abstract asyncRender(): Promise<void>; // TODO this will replace render once I get it to work
+    abstract render(): Promise<void>;
 }
 
-class Die extends ARenderableUrUiElement {
+class Die extends ARenderableUrUiElement implements Updateable<DieValue> {
     static nextId = 0;
 
     static readonly svgMap = {
-        [0 as DieView]: 'images/die0.svg',
-        [1 as DieView]: 'images/die1.svg'
+        [0 as DieValue]: 'images/die0.svg',
+        [1 as DieValue]: 'images/die1.svg'
     }
 
     static getNew(n:number):Die {
-        if (n > 3 || n < 0) throw "Invlid Die number: "+n;
         return new Die(n);
     }
-
+    
+    currentView: DieValue = 0;
+    
     private constructor(n:number) {
-        super("die"+n);
+        super((() => {
+            if (n > 3 || n < 0) throw "Invlid Die id number: "+n;
+            return "die"+n;
+        })());
     }
 
-    render(): void {
-
+    get svg(): string {
+        return Die.svgMap[this.currentView];
     }
 
-    async asyncRender(): Promise<void> {
-        
-    }
-
-    setView(view: DieView | null): void {
-        let orientation = Math.floor(Math.random() * 3) * 120; // TODO
-        if (view !== null) {
-            let svg = Die.svgMap[view];
-            $(this.selector).load(svg, (resonse, status, xhr) => {
-                if (status == "error") {
-                    console.error("Error loading",svg,"into"+this.selector);
+    async render(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            $(this.selector).load(this.svg, (response, status, xhr) => {
+                if (status === "success") {                    
+                    console.debug("Loaded view",this.currentView,"into",this.selector);
+                    resolve();
+                } else {
+                    let reason = "Error loading "+this.svg+" into "+this.selector;
+                    console.error(reason);
+                    reject(reason);
                 }
-                console.debug("Loaded view",view,"into",this.selector);
             });
-        } else {
-            $(this.selector).empty();
-        }
+        });
+    }    
+    
+    async update(view: DieValue): Promise<void> {
+        let orientation = Math.floor(Math.random() * 3) * 120; // TODO
+        this.currentView = view;
+        return this.render();
     }
+
     clear() {
-        $('#'+this.id+' > div').empty();
+        $(this.selector).empty();
     }
 }
 
-class Dice extends ARenderableUrUiElement {
+class RollInfo extends AnUrUiElement implements Updateable<DiceValue> {
+    constructor() {
+        super("rollInfo");
+    }
+    async update(update: DiceValue): Promise<void> {
+        $(this.selector).html("You rolled: <em class=\"rollValue\">"+update+"</em>");
+    }
+    async rolling(): Promise<void> {
+        $(this.selector).html("Rolling...");
+    };
+}
+
+class Dice extends AnUrUiElement implements Updateable<DiceList>{
     readonly dice: [Die, Die, Die, Die];
     constructor() {
         super("diceCup");
@@ -81,25 +100,13 @@ class Dice extends ARenderableUrUiElement {
             Die.getNew(3)
         ];
     }
-    updateValues(values: [DieView,DieView,DieView,DieView]) {
-        // TODO die rotations
-        var total = 0;
-        $('#rollInfo').html("Rolling...");
+    
+    async update(values: DiceList): Promise<void> {
         this.clear();
-        
-        let dice = this.dice;
-        setTimeout(() => {
-            values.forEach((val, i) => {
-                total += val;
-                dice[i].setView(val);
-            });
-            $('#rollInfo').html("You rolled: <em class=\"rollValue\">"+total+"</em>") 
-        }, 250);
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(() => resolve(), 250);
+        }).then(async () => { await Promise.all(values.map((val, i) => this.dice[i].update(val))); } );
     }
-    
-    render(): void {}
-    
-    async asyncRender(): Promise<void> {}
 
     clear() {
         this.dice.forEach(d => {
@@ -176,6 +183,7 @@ namespace UrView {
     export let p2Pieces: Pieces;
     export let dice: Dice = new Dice();
     export let board = null;
+    export let rollInfo: RollInfo = new RollInfo();
 
     export const buttons = {
         roller: new UiElementImpl('button#roller'),
