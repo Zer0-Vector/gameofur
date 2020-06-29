@@ -2,7 +2,7 @@ import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SP
 
 export class TurnData {
     private static COUNTER = 1;
-    rollValue: DiceValue | -1 = -1;
+    rollValue: DiceValue | null = null;
     player: PlayerEntity;
     rosette: boolean = false;
     knockout: boolean = false;

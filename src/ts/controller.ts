@@ -1,6 +1,6 @@
-import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space, DiceValue} from './model.js';
+import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
 import * as View from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction } from './utils.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue } from './utils.js';
 
 let VIEW = View.VIEW;
 let MODEL: UrModel;
@@ -243,16 +243,17 @@ let ACTIONS: ActionRepository = (() => {
             console.info(MODEL.currentPlayer.name+"'s turn. Turn "+MODEL.turn.number);
         });
         actionMaker(GameAction.ThrowDice, async ()=>{
-            
-            MODEL.turn.rollValue = MODEL.dice.roll();
-            // ALWAYS ROLL 0
-            // MODEL.turn.rollValue = 0;
-            // MODEL.dice.values = [0,0,0,0];
-            console.debug("Rolled dice: ",MODEL.dice.values," = ",MODEL.turn.rollValue);
+            let infoClear = VIEW.rollInfo.rolling();
+            let roll = MODEL.dice.roll();
+            MODEL.turn.rollValue = roll;
+            console.debug("Rolled dice: ",MODEL.dice.values," = ",roll);
             VIEW.buttons.roller.disable();
-            VIEW.dice.updateValues(MODEL.dice.values);
-
-            console.info(MODEL.currentPlayer.name+" rolled "+MODEL.turn.rollValue);
+            await infoClear
+                .then(() => VIEW.dice.update(MODEL.dice.values))
+                .then(() => { 
+                    console.info(MODEL.currentPlayer.name+" rolled "+roll);
+                    return VIEW.rollInfo.update(roll);
+                });
         });
         actionMaker(GameAction.EnableLegalMoves, async () => {
             // TODO extract this to class MoveComputer
