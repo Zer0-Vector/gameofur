@@ -3,7 +3,30 @@ import { Space } from "./model.js";
 
 type DieView = 0 | 1;
 
-class Die {
+interface Renderable {
+    render(): void;
+    asyncRender(): Promise<void>; // TODO this will replace render.
+}
+
+abstract class AnUrUiElement {
+    private readonly _id: string
+    constructor(id: string) {
+        this._id = id;
+    }
+    get id(): string {
+        return this._id;
+    }
+    get selector(): string {
+        return "#" + this.id;
+    };
+}
+
+abstract class ARenderableUrUiElement extends AnUrUiElement implements Renderable {
+    abstract render(): void;
+    abstract asyncRender(): Promise<void>; // TODO this will replace render once I get it to work
+}
+
+class Die extends ARenderableUrUiElement {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -11,26 +34,35 @@ class Die {
         [1 as DieView]: 'images/die1.svg'
     }
 
-    readonly id: string;
+    static getNew(n:number):Die {
+        if (n > 3 || n < 0) throw "Invlid Die number: "+n;
+        return new Die(n);
+    }
 
-    constructor() {
-        this.id = "die"+(Die.nextId++);
-        $(Dice.cupId).append($("<div id=\""+this.id+"\" class=\"dieHolder\">").append("<div>"));
+    private constructor(n:number) {
+        super("die"+n);
+    }
+
+    render(): void {
+
+    }
+
+    async asyncRender(): Promise<void> {
+        
     }
 
     setView(view: DieView | null): void {
         let orientation = Math.floor(Math.random() * 3) * 120; // TODO
-        let targetElement = '#'+this.id+' > div';
         if (view !== null) {
             let svg = Die.svgMap[view];
-            $(targetElement).load(svg, (resonse, status, xhr) => {
+            $(this.selector).load(svg, (resonse, status, xhr) => {
                 if (status == "error") {
-                    console.error("Error loading",svg,"into #"+targetElement);
+                    console.error("Error loading",svg,"into"+this.selector);
                 }
-                console.debug("Loaded view",view,"into",targetElement);
+                console.debug("Loaded view",view,"into",this.selector);
             });
         } else {
-            $(targetElement).empty();
+            $(this.selector).empty();
         }
     }
     clear() {
@@ -38,21 +70,21 @@ class Die {
     }
 }
 
-class Dice {
-    static readonly cupId = '#diceCup';
+class Dice extends ARenderableUrUiElement {
     readonly dice: [Die, Die, Die, Die];
     constructor() {
+        super("diceCup");
         this.dice = [
-            new Die(),
-            new Die(),
-            new Die(),
-            new Die()
+            Die.getNew(0),
+            Die.getNew(1),
+            Die.getNew(2),
+            Die.getNew(3)
         ];
     }
     updateValues(values: [DieView,DieView,DieView,DieView]) {
         // TODO die rotations
         var total = 0;
-        $('#inputArea > p').html("Rolling...");
+        $('#rollInfo').html("Rolling...");
         this.clear();
         
         let dice = this.dice;
@@ -61,9 +93,14 @@ class Dice {
                 total += val;
                 dice[i].setView(val);
             });
-            $('#inputArea > p').html("You rolled: <em class=\"rollValue\">"+total+"</em>")
+            $('#rollInfo').html("You rolled: <em class=\"rollValue\">"+total+"</em>") 
         }, 250);
     }
+    
+    render(): void {}
+    
+    async asyncRender(): Promise<void> {}
+
     clear() {
         this.dice.forEach(d => {
             d.clear();
