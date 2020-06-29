@@ -1,4 +1,4 @@
-import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, ONBOARD_MASK} from './utils.js';
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, ONBOARD_MASK, DiceList, DiceValue, DieValue} from './utils.js';
 
 export class TurnData {
     private static COUNTER = 1;
@@ -41,9 +41,6 @@ export class TurnData {
 //     }
 // }
 
-type DieValue =  0 | 1;
-export type DiceValue = 0 | 1 | 2 | 3 | 4;
-type DiceList = [DieValue, DieValue, DieValue, DieValue];
 export class Dice {
     values: DiceList;
     rolled: boolean = false;
