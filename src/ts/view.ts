@@ -1,12 +1,12 @@
 import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue } from "./utils.js";
 import { Space } from "./model.js";
 
-interface Renderable {
-    render(): Promise<void>;
+interface Renderable<Options> {
+    render(renderOptions?:Options): Promise<void | void[]>;
 }
 
 interface Updateable<UpdateDescriptor> {
-    update(update:UpdateDescriptor): Promise<void>;
+    update(update?:UpdateDescriptor): Promise<void>;
 }
 
 abstract class AnUrUiElement {
@@ -22,11 +22,11 @@ abstract class AnUrUiElement {
     };
 }
 
-abstract class ARenderableUrUiElement extends AnUrUiElement implements Renderable {
-    abstract render(): Promise<void>;
+abstract class ARenderableUrUiElement<RenderOptions> extends AnUrUiElement implements Renderable<RenderOptions> {
+    abstract render(renderOptions?: RenderOptions): Promise<void | void[]>;
 }
 
-class Die extends ARenderableUrUiElement implements Updateable<DieValue> {
+class Die extends ARenderableUrUiElement<undefined> implements Updateable<DieValue> {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -115,25 +115,33 @@ class Dice extends AnUrUiElement implements Updateable<DiceList>{
     }
 }
 
-export class Piece {
+// TODO this should export
+export class Piece extends ARenderableUrUiElement<string> {
     static readonly svgPath = 'images/piece.svg';
-    readonly id: string;
     readonly owner: PlayerEntity;
 
     constructor(id: string, owner: PlayerEntity) {
-        this.id = id;
+        super(id);
         this.owner = owner;
     }
-    render(selector: string) {
-        $(selector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(Piece.svgPath, (response, status, xhr) => {
-            if (status == "error") {
-                console.error("Error loading",Piece.svgPath,"into #"+this.id);
-            }
-            console.debug("Loaded piece into #"+this.id);
-        }));
+
+    render(parentSelector: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            $(parentSelector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(Piece.svgPath, (response, status, xhr) => {
+                if (status === "success") {
+                    console.debug("Loaded piece into #"+this.id);
+                    resolve();
+                } else {
+                    let reason = "Error loading "+Piece.svgPath+" into "+this.selector;
+                    console.error(reason);
+                    reject(reason);
+                } 
+            }));
+        });
     }
 }
-class Pieces {
+
+class Pieces implements Renderable<undefined> {
     readonly owner: PlayerEntity;
     readonly pieces: Piece[];
     readonly startPileId: string;
@@ -147,13 +155,10 @@ class Pieces {
         this.pieces = pieces;
         this.startPileId = startPileId;
         this.endPileId = endPileId;
-        this.render();
     }
-    render() {
+    render(): Promise<void[]> {
         console.debug("Loading player ",this.owner," pieces to ", this.startPileId);
-        for (var i = 0; i < this.pieces.length; i++) {
-            this.pieces[i].render(this.startPileId);
-        }
+        return Promise.all(this.pieces.map(p => p.render(this.startPileId)));
     }
 }
 
@@ -182,7 +187,6 @@ namespace UrView {
     export let p1Pieces: Pieces;
     export let p2Pieces: Pieces;
     export let dice: Dice = new Dice();
-    export let board = null;
     export let rollInfo: RollInfo = new RollInfo();
 
     export const buttons = {
