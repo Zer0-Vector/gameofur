@@ -94,6 +94,10 @@ export interface UrHandlers {
     pieceMoved(pid:string, sid:string): void;
 }
 
+export type DieValue =  0 | 1;
+export type DiceValue = 0 | 1 | 2 | 3 | 4;
+export type DiceList = [DieValue, DieValue, DieValue, DieValue];
+
 export namespace UrUtils {
     export const SPACE_ID_PREFIX: string = "s-";
     export const PIECE_ID_PREFIX: string = "pc-";
