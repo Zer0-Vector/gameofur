@@ -1,4 +1,4 @@
-import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, ONBOARD_MASK, DiceList, DiceValue, DieValue} from './utils.js';
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId} from './utils.js';
 
 export class TurnData {
     private static COUNTER = 1;
@@ -74,16 +74,16 @@ export class Dice {
     }
 }
 
-export class Space {
-    id: number; // index into Board.spaces
+export class Space implements Identifiable<SpaceId> {
+    id: SpaceId; // index into Board.spaces
     type: EntityId;
-    trackId: number; // index into player track, Board.tracks[this.type & 0x3]
+    distanceFromStart: number; // index into player track, Board.tracks[this.type & PLAYER_MASK]
     private _occupant?: Piece = undefined;
-    constructor(id: number, type: EntityId, trackId: number) {
-        this.id = id;
+    constructor(n: number, type: EntityId, distanceFromStart: number) {
+        this.id = new SpaceId(type & (PLAYER_MASK + EntityId.MIDDLE), distanceFromStart);
         UrUtils.isValidSpace(type);
         this.type = type;
-        this.trackId = trackId;
+        this.distanceFromStart = distanceFromStart;
         console.debug("Created space: "+this.name);
     }
     get occupant() {
@@ -98,9 +98,9 @@ export class Space {
         const rosette: EntityId = this.type & EntityId.ROSETTE;
         let name = "";
         if (player > 0) {
-            name += EntityId[player] + "-" + this.trackId + "-" + EntityId[space];
+            name += EntityId[player] + "-" + this.distanceFromStart + "-" + EntityId[space];
         } else if (UrUtils.hasEntityType(space, EntityId.MIDDLE)) {
-            name += EntityId[space] + "-" + this.trackId;
+            name += EntityId[space] + "-" + this.distanceFromStart;
         } else throw "This space is messed up...";
         
         if (rosette > 0) {
@@ -133,8 +133,8 @@ export class Bucket extends Space {
     }
 }
 
-export class Piece {
-    id: string;
+export class Piece implements Identifiable<PieceId> {
+    id: PieceId;
     owner: PlayerEntity;
     private _locationId: string; // TODO remove reference to space; use space repository to hold spaces; make as few links between objects as possible
     private _location?: Space; // optional to handle initialization chicken/egg problem
@@ -143,7 +143,7 @@ export class Piece {
             throw "Invalid player id: "+owner;
         }
         this.owner = owner;
-        this.id = UrUtils.getPieceId(owner, n);
+        this.id = new PieceId(owner, n);
         this._locationId = UrUtils.getSpaceId(owner | EntityId.START, 0);
     }
     get location() {
