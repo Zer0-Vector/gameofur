@@ -1,6 +1,6 @@
 import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
 import * as View from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue } from './utils.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, SpaceId, PieceId } from './utils.js';
 
 let VIEW = View.VIEW;
 let MODEL: UrModel;
@@ -263,17 +263,17 @@ let ACTIONS: ActionRepository = (() => {
             } else {
                 for (let move of legal) {
                     let vp = toViewPiece(move.piece);
-                    VIEW.dndControl(vp, move.space, true, move.id);
-                    VIEW.applyLegalMoveBehavior(vp, move.space);
+                    VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
+                    VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
                 }
             }
         });
         actionMaker(GameAction.MovePiece, async () => {
             console.debug("Updating model with new location");
             VIEW.removeLegalMoveBehavior();
-            let piece:Piece = <Piece>MODEL.turn.piece;
-            let start:Space = <Space>MODEL.turn.startSpace;
-            let end:Space = <Space>MODEL.turn.endSpace;
+            let piece:Piece = MODEL.turn.piece as Piece;
+            let start:Space = MODEL.turn.startSpace as Space;
+            let end:Space = MODEL.turn.endSpace as Space;
             let limbo:Piece|undefined = undefined;
 
             piece.location = end;
@@ -317,7 +317,7 @@ let ACTIONS: ActionRepository = (() => {
             console.debug("Returning opponent piece to start.");
             console.assert(MODEL.turn.knockedPiece !== undefined);
             console.assert(MODEL.turn.knockedPiece?.owner === UrUtils.getOpponent(MODEL.turn.player));
-            await VIEW.returnPieceToStart(MODEL.turn.knockedPiece?.id as string);
+            await VIEW.returnPieceToStart(MODEL.turn.knockedPiece?.id as PieceId);
         })
         actionMaker(GameAction.PieceScored, async ()=>{
             MODEL.score[MODEL.turn.player]++;
@@ -367,7 +367,7 @@ class MoveComputer {
 
         let legal: Move[] = [];
         for (let p of this.pieces) {
-            let index = p.location.trackId + roll;
+            let index = p.location.distanceFromStart + roll;
             if (index >= this.track.length) {
                 continue; // rolled too high to finish
             }
@@ -386,7 +386,7 @@ class MoveComputer {
             legal.push({
                 piece: p,
                 space: candidate,
-                id: p.id+"_"+candidate.trackId,
+                id: p.id+"_"+candidate.distanceFromStart,
             });
         }
         return legal;
@@ -488,20 +488,23 @@ namespace UrController {
             
             let tid: string = $(event.target).attr('id') as string;
             var pscid: string = $(ui.draggable).attr('id') as string;
-            console.info(pscid, " dropped in ",tid);
+            console.info(pscid+" dropped in "+tid);
+            // TODO can we use PieceId/SpaceId here?
             this.pieceMoved(pscid, tid);
         }
 
         pieceMoved(pieceId:string, spaceId:string) {
-            let index = parseInt(spaceId.substring(3));
+            let index = parseInt(spaceId.toString().substring(2));
+            console.assert(index >= 0);
+            console.assert(index <= 15);
             MODEL.turn.endSpace = MODEL.currentTrack[index];
             console.debug("Set end space: ", MODEL.turn.endSpace, " @ ", index, MODEL.currentTrack);
-            for (let piece of MODEL.currentPlayer.pieces) {
-                if (pieceId === piece.id) {
-                    MODEL.turn.piece = piece;
-                    console.debug("Set piece moved: ", piece);
+            for (let modelPiece of MODEL.currentPlayer.pieces) {
+                if (pieceId === modelPiece.id.toString()) {
+                    MODEL.turn.piece = modelPiece;
+                    console.debug("Set piece moved: ", modelPiece);
                     
-                    MODEL.turn.startSpace = piece.location;
+                    MODEL.turn.startSpace = modelPiece.location;
                     console.debug("Set start space: ", MODEL.turn.startSpace);
                     break;
                 }

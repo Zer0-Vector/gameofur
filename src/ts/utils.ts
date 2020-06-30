@@ -12,6 +12,7 @@ export enum EntityId {
 }
 
 export type Maybe<T> = T | undefined;
+export type Nullable<T> = T | null;
 
 export type PlayerEntity = EntityId.PLAYER1 | EntityId.PLAYER2;
 export type OnboardSpaceEntity = EntityId.ONRAMP | EntityId.OFFRAMP | EntityId.MIDDLE;
@@ -22,6 +23,50 @@ export const PLAYER_MASK = EntityId.PLAYER1 + EntityId.PLAYER2;
 export const BUCKET_MASK = EntityId.START + EntityId.FINISH;
 export const ONBOARD_MASK = EntityId.ONRAMP + EntityId.OFFRAMP + EntityId.MIDDLE;
 export const SPACE_MASK = ONBOARD_MASK + BUCKET_MASK;
+
+export abstract class Identifier {
+    protected constructor(type:string, subtype:Maybe<string>, number: Maybe<number>) {
+        const id = type + (subtype === undefined ? "" : subtype.toUpperCase()) + (number === undefined ? "" : number);
+        this.toString = () => id;
+    }
+    get selector(): string {
+        return "#"+this.toString();
+    }
+    equals(obj:any): boolean {
+        if (obj instanceof Identifier) {
+            return this.toString() === (obj as Identifier).toString();
+        }
+        return false;
+    }
+}
+
+export class DieId extends Identifier {
+    constructor(n:number) {
+        super("die", undefined, n);
+    }
+}
+
+export class SimpleId extends Identifier {
+    constructor(id:string) {
+        super(id, undefined, undefined);
+    }
+}
+
+export class PieceId extends Identifier {
+    constructor(owner:PlayerEntity, n:number) {
+        super("pc", UrUtils.StringId[owner], n)
+    }
+}
+
+export class SpaceId extends Identifier {
+    constructor(column:PlayerEntity|EntityId.MIDDLE, n:number) {
+        super("s", UrUtils.StringId[column], n);
+    }
+}
+
+export interface Identifiable<T extends Identifier> {
+    readonly id: T;
+}
 
 export enum GameState {
     Initial,
@@ -110,7 +155,7 @@ export namespace UrUtils {
     }
 
     export function getSpaceId(space: SpaceEntity, n:number) {
-        console.assert(isValidSpace(space));
+        isValidSpace(space);
         let mask = PLAYER_MASK + EntityId.MIDDLE;
         let index: (PlayerEntity | EntityId.MIDDLE) = space & mask;
         return SPACE_ID_PREFIX + StringId[index] + n;

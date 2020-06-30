@@ -1,32 +1,15 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, DieId, SimpleId, PieceId, SpaceId } from "./utils.js";
 import { Space } from "./model.js";
 
-interface Renderable<Options> {
-    render(renderOptions?:Options): Promise<void | void[]>;
+interface Renderable<RenderOptions> {
+    render(renderOptions?:RenderOptions): Promise<void | void[]>;
 }
 
 interface Updateable<UpdateDescriptor> {
     update(update?:UpdateDescriptor): Promise<void>;
 }
 
-abstract class AnUrUiElement {
-    private readonly _id: string
-    protected constructor(id: string) {
-        this._id = id;
-    }
-    get id(): string {
-        return this._id;
-    }
-    get selector(): string {
-        return "#" + this.id;
-    };
-}
-
-abstract class ARenderableUrUiElement<RenderOptions> extends AnUrUiElement implements Renderable<RenderOptions> {
-    abstract render(renderOptions?: RenderOptions): Promise<void | void[]>;
-}
-
-class Die extends ARenderableUrUiElement<undefined> implements Updateable<DieValue> {
+class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable<undefined> {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -37,14 +20,13 @@ class Die extends ARenderableUrUiElement<undefined> implements Updateable<DieVal
     static getNew(n:number):Die {
         return new Die(n);
     }
-    
+
+    id: DieId;    
     currentView: DieValue = 0;
     
     private constructor(n:number) {
-        super((() => {
-            if (n > 3 || n < 0) throw "Invlid Die id number: "+n;
-            return "die"+n;
-        })());
+        if (n > 3 || n < 0) throw "Invlid Die id number: "+n;
+        this.id = new DieId(n);
     }
 
     get svg(): string {
@@ -53,12 +35,12 @@ class Die extends ARenderableUrUiElement<undefined> implements Updateable<DieVal
 
     async render(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            $(this.selector).load(this.svg, (response, status, xhr) => {
+            $(this.id.selector).load(this.svg, (response, status, xhr) => {
                 if (status === "success") {                    
-                    console.debug("Loaded view",this.currentView,"into",this.selector);
+                    console.debug("Loaded view",this.currentView,"into",this.id.selector);
                     resolve();
                 } else {
-                    let reason = "Error loading "+this.svg+" into "+this.selector;
+                    let reason = "Error loading "+this.svg+" into "+this.id.selector;
                     console.error(reason);
                     reject(reason);
                 }
@@ -73,26 +55,28 @@ class Die extends ARenderableUrUiElement<undefined> implements Updateable<DieVal
     }
 
     clear() {
-        $(this.selector).empty();
+        $(this.id.selector).empty();
     }
 }
 
-class RollInfo extends AnUrUiElement implements Updateable<DiceValue> {
+class RollInfo implements Updateable<DiceValue>, Identifiable<SimpleId> {
+    readonly id: SimpleId;
     constructor() {
-        super("rollInfo");
+        this.id = new SimpleId("rollInfo");
     }
     async update(update: DiceValue): Promise<void> {
-        $(this.selector).html("You rolled: <em class=\"rollValue\">"+update+"</em>");
+        $(this.id.selector).html("You rolled: <em class=\"rollValue\">"+update+"</em>");
     }
     async rolling(): Promise<void> {
-        $(this.selector).html("Rolling...");
+        $(this.id.selector).html("Rolling...");
     };
 }
 
-class Dice extends AnUrUiElement implements Updateable<DiceList>{
+class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
+    readonly id: SimpleId;
     readonly dice: [Die, Die, Die, Die];
     constructor() {
-        super("diceCup");
+        this.id = new SimpleId("diceCup");
         this.dice = [
             Die.getNew(0),
             Die.getNew(1),
@@ -116,23 +100,24 @@ class Dice extends AnUrUiElement implements Updateable<DiceList>{
 }
 
 // TODO this should export
-export class Piece extends ARenderableUrUiElement<string> {
+export class Piece implements Renderable<SimpleId>, Identifiable<PieceId> {
     static readonly svgPath = 'images/piece.svg';
     readonly owner: PlayerEntity;
+    readonly id: PieceId;
 
-    constructor(id: string, owner: PlayerEntity) {
-        super(id);
+    constructor(id: PieceId, owner: PlayerEntity) {
+        this.id = id;
         this.owner = owner;
     }
 
-    render(parentSelector: string): Promise<void> {
+    render(parent: SimpleId): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            $(parentSelector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(Piece.svgPath, (response, status, xhr) => {
+            $(parent.selector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(Piece.svgPath, (response, status, xhr) => {
                 if (status === "success") {
-                    console.debug("Loaded piece into #"+this.id);
+                    console.debug("Loaded piece into "+this.id.selector+" under "+parent.selector);
                     resolve();
                 } else {
-                    let reason = "Error loading "+Piece.svgPath+" into "+this.selector;
+                    let reason = "Error loading "+Piece.svgPath+" into "+this.id.selector;
                     console.error(reason);
                     reject(reason);
                 } 
@@ -143,11 +128,11 @@ export class Piece extends ARenderableUrUiElement<string> {
 
 class Pieces implements Renderable<undefined> {
     readonly owner: PlayerEntity;
-    readonly startPileId: string;
-    readonly endPileId: string;
-    readonly _pieces: Map<string, Piece>;
+    readonly startPileId: SpaceId;
+    readonly endPileId: SpaceId;
+    readonly _pieces: Map<PieceId, Piece>;
 
-    constructor(owner: PlayerEntity, startPileId: string, endPileId: string, pieces: Piece[]) {
+    constructor(owner: PlayerEntity, startPileId: SpaceId, endPileId: SpaceId, pieces: Piece[]) {
         if (!UrUtils.isPlayer(owner)) {
             throw "Invalid player id: "+owner;
         }
@@ -159,7 +144,7 @@ class Pieces implements Renderable<undefined> {
     get pieces(): Piece[] {
         return Array.from(this._pieces.values());
     }
-    getPiece(id:string): Piece {
+    getPiece(id:PieceId): Piece {
         let piece: Maybe<Piece> = this._pieces.get(id);
         if (piece === undefined) {
             throw "Unknown piece id: "+id;
@@ -167,7 +152,7 @@ class Pieces implements Renderable<undefined> {
         return piece as Piece;
     }
 
-    tryGetPiece(id:string, piece: Maybe<Piece>): boolean {
+    tryGetPiece(id:PieceId, piece: Maybe<Piece>): boolean {
         piece = this._pieces.get(id);
         return piece !== undefined;
     }
@@ -270,17 +255,6 @@ namespace UrView {
         $('.space, .startingArea, .finishArea').droppable("option", "classes.ui-droppable-hover", "ur-piece-hover");
     }
 
-    function spaceCssId(space:Space): string {
-        let rval = "#"+UrUtils.SPACE_ID_PREFIX;
-        if (UrUtils.hasEntityType(space.type, EntityId.PLAYER1)) {
-            rval += "a";
-        } else if (UrUtils.hasEntityType(space.type, EntityId.PLAYER2)) {
-            rval += "b";
-        } else if (UrUtils.hasEntityType(space.type, EntityId.MIDDLE)) {
-            rval += "m";
-        }
-        return rval + space.trackId;
-    }
     export function disableDnD() {
         console.debug("Disabling all drag and drop");
         $(".startingArea > div").draggable("option", {
@@ -293,44 +267,40 @@ namespace UrView {
         });
     }
 
-    function dropControl(space:Space, enabled:boolean, scope?:string) {
-        let cssId = spaceCssId(space);
+    function dropControl(space: SpaceId, enabled:boolean, scope?:string) {
         let action = enabled ? "enable" : "disable"
-        console.debug(action+" drop for "+cssId+" in scope:"+scope || "");
-        $(cssId).droppable("option", "scope", scope);
-        $(cssId).droppable(action);
+        console.debug(action+" drop for "+space.selector+" in scope:"+scope || "");
+        $(space.selector).droppable("option", "scope", scope);
+        $(space.selector).droppable(action);
     }
 
-    function dragControl(piece:Piece, enabled:boolean, scope?:string) {
-        let cssId = "#"+piece.id;
+    function dragControl(piece:PieceId, enabled:boolean, scope?:string) {
         let action = enabled ? "enable" : "disable"
-        console.debug(action+" drag for "+cssId+" in scope:"+scope || "");
-        $(cssId).draggable("option", "scope", scope);
-        $(cssId).draggable(action);
+        console.debug(action+" drag for "+piece.selector+" in scope:"+scope || "");
+        $(piece.selector).draggable("option", "scope", scope);
+        $(piece.selector).draggable(action);
     }
 
-    export function dndControl(piece:Piece, space:Space, enabled:boolean, scope?: string) {
+    export function dndControl(piece:PieceId, space:SpaceId, enabled:boolean, scope?: string) {
         console.assert(!enabled || scope !== undefined, "Cannot enable dnd for pieces/spaces unless specifying a scope");
         dragControl(piece, enabled, scope);
         dropControl(space, enabled, scope);
     }
 
     const LEGAL_MOVE_HOVER_CLASS = "ur-legal-move-hover";
-    export function applyLegalMoveBehavior(piece:Piece, space:Space) {
-        let pcid = "#"+piece.id;
-        let spid = spaceCssId(space);
-        $(pcid).on("mouseenter", () => {
-            $(spid).addClass(LEGAL_MOVE_HOVER_CLASS);
+    export function applyLegalMoveBehavior(piece:PieceId, space:SpaceId) {
+        $(piece.selector).on("mouseenter", () => {
+            $(space.selector).addClass(LEGAL_MOVE_HOVER_CLASS);
         }).on("mouseleave", () => {
-            $(spid).removeClass(LEGAL_MOVE_HOVER_CLASS);
+            $(space.selector).removeClass(LEGAL_MOVE_HOVER_CLASS);
         }).on("dblclick", (event) => {
-            $(pcid).position({
+            $(piece.selector).position({
                 my: "center",
                 at: "center",
-                of: $(spid),
+                of: $(space.selector),
                 using: (pos:any) => {
-                    console.debug("Animating target: ",$(pcid));
-                    $(pcid).animate(pos, {
+                    console.debug("Animating target: ",$(piece.selector));
+                    $(piece.selector).animate(pos, {
                         duration: 500,
                         start: () => {
                             // TODO FreezeBoard and Disable hover behaviors. This may require reworking state machine
@@ -338,7 +308,7 @@ namespace UrView {
                         },
                         done: () => {
                             console.debug("Dblclick move animation: done");
-                            moveHander(piece.id, spid.substring(1));
+                            moveHander(piece.toString(), space.toString());
                         }
                     });
                 }
@@ -351,10 +321,10 @@ namespace UrView {
         $(".space, .finishArea").removeClass(LEGAL_MOVE_HOVER_CLASS);
     }
 
-    export async function returnPieceToStart(pieceId:string): Promise<void> {
+    export async function returnPieceToStart(piece:PieceId): Promise<void> {
         return new Promise<void>((resovle, reject) => {
-            $("#"+pieceId).animate({"left":0, "top":0}, 750, "swing", () => {
-                console.debug("Updated left/top coords for #"+pieceId);
+            $(piece.selector).animate({"left":0, "top":0}, 750, "swing", () => {
+                console.debug("Updated left/top coords for "+piece.selector);
                 resovle();
             });
         });
@@ -362,7 +332,7 @@ namespace UrView {
 
     export function initializePieces(mask: PlayerEntity, list: Piece[]) {
         console.debug("initializePieces",mask, list);
-        return new Pieces(mask, '#'+UrUtils.getSpaceId(mask | EntityId.START, 0), '#'+UrUtils.getSpaceId(mask | EntityId.FINISH, 15), list);
+        return new Pieces(mask, new SpaceId(mask, 0), new SpaceId(mask, 15), list);
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
