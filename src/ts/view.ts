@@ -227,8 +227,8 @@ namespace UrView {
                     console.debug("Keypress (Start Game):", e);
                     handlers.startGame();
                     break;
-                case 110:
-                case 78:
+                case 110: // N
+                case 78: // n
                     console.debug("Keypress (New Game):", e);
                     handlers.newGame();
                     break;
