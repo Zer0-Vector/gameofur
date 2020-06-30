@@ -530,18 +530,19 @@ namespace UrController {
         MODEL = UrModel.create(p1, p2);
 
         setupBoard();
-        await setupView(p1, p2);
+
+        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
+        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
+        await Promise.all([VIEW.p1Pieces.render(), VIEW.p2Pieces.render()]);
+        VIEW.initialize(new UrHandlersImpl());
+        console.debug("View initialized.");
 
         ENGINE = new GameEngine(MODEL);
         ENGINE.do(GameAction.Initialize);
     }
 
     async function setupView(p1:Player, p2: Player) {
-        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
-        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
-        await Promise.all([VIEW.p1Pieces.render(), VIEW.p2Pieces.render()]);
-        VIEW.initialize(new UrHandlersImpl());
-        console.debug("View initialized.");
+        
     }
 
     function setupBoard() {
