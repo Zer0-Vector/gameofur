@@ -343,9 +343,9 @@ namespace UrView {
         });
     }
 
-    export function initializePieces(mask: PlayerEntity, id: string, list: Piece[]) {
-        console.debug("initializePieces",mask, id, list);
-        return new Pieces(mask, '#'+UrUtils.SPACE_ID_PREFIX+id+"0", '#'+UrUtils.SPACE_ID_PREFIX+id+"15", list);
+    export function initializePieces(mask: PlayerEntity, list: Piece[]) {
+        console.debug("initializePieces",mask, list);
+        return new Pieces(mask, '#'+UrUtils.getSpaceId(mask | EntityId.START, 0), '#'+UrUtils.getSpaceId(mask | EntityId.FINISH, 15), list);
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
