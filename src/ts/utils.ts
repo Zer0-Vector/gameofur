@@ -1,4 +1,5 @@
 "use strict";
+
 export enum EntityId {
     PLAYER1 = 0x1,
     PLAYER2 = 0x2,
@@ -101,6 +102,17 @@ export type DiceList = [DieValue, DieValue, DieValue, DieValue];
 export namespace UrUtils {
     export const SPACE_ID_PREFIX: string = "s-";
     export const PIECE_ID_PREFIX: string = "pc-";
+
+    export function getPieceId(player: PlayerEntity, n:number) {
+        return PIECE_ID_PREFIX + StringId[player] + n;
+    }
+
+    export function getSpaceId(space: SpaceEntity, n:number) {
+        console.assert(isValidSpace(space));
+        let mask = PLAYER_MASK + EntityId.MIDDLE;
+        let index: (PlayerEntity | EntityId.MIDDLE) = space & mask;
+        return SPACE_ID_PREFIX + StringId[index] + n;
+    }
 
     export const StringId = {
         [EntityId.PLAYER1]: "a",

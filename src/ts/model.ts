@@ -136,14 +136,15 @@ export class Bucket extends Space {
 export class Piece {
     id: string;
     owner: PlayerEntity;
+    private _locationId: string; // TODO remove reference to space; use space repository to hold spaces; make as few links between objects as possible
     private _location?: Space; // optional to handle initialization chicken/egg problem
-    constructor(id: string, owner: PlayerEntity, location?: Space) {
-        this.id = id;
+    constructor(owner: PlayerEntity, n:number) {
         if (!UrUtils.isPlayer(owner)) {
             throw "Invalid player id: "+owner;
         }
         this.owner = owner;
-        this._location = location;
+        this.id = UrUtils.getPieceId(owner, n);
+        this._locationId = UrUtils.getSpaceId(owner | EntityId.START, 0);
     }
     get location() {
         if (this._location === undefined) {
@@ -165,16 +166,22 @@ export interface Move {
 export class Player {
     name: string;
     mask: PlayerEntity;
-    id: string;
     private _pieces: Piece[]; // TODO make pieces addressable by id
-    constructor(name: string, mask: PlayerEntity, id:string, pieces: Piece[]) {
+    constructor(name: string, mask: PlayerEntity) {
         this.name = name;
         if (!UrUtils.isPlayer(mask)) {
             throw "Invalid player mask: "+mask;
         }
         this.mask = mask;
-        this.id = id;
-        this._pieces = pieces;
+        this._pieces = this.buildPieces();
+    }
+
+    private buildPieces(): Piece[] {
+        let pcs: Piece[] = [];
+        for (let i = 0; i < 7; i++) {
+            pcs.push(new Piece(this.mask, i));
+        }
+        return pcs;
     }
     get pieces(): Piece[] {
         return this._pieces;

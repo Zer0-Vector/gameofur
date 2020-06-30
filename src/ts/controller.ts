@@ -514,25 +514,24 @@ namespace UrController {
     export async function initialize() {
         let p1Info = {
             mask: EntityId.PLAYER1 as PlayerEntity,
-            id: "a",
+            id: UrUtils.StringId[EntityId.PLAYER1],
             name: "Player 1"
         }
         let p2Info = {
             mask: EntityId.PLAYER2 as PlayerEntity,
-            id: "b",
+            id: UrUtils.StringId[EntityId.PLAYER2],
             name: "Player 2"
         }
-        let createPlayer = (info:PlayerInfo) => { return new Player(info.name, info.mask, info.id, buildPieces(info)); };
 
-        let p1 = createPlayer(p1Info);
-        let p2 = createPlayer(p2Info);
+        let p1 = new Player("Player 1", EntityId.PLAYER1);
+        let p2 = new Player("Player 2", EntityId.PLAYER2);
         
         MODEL = UrModel.create(p1, p2);
 
         setupBoard();
 
-        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, p1.id, toViewPieces(MODEL.players[p1.mask].pieces));
-        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, p2.id, toViewPieces(MODEL.players[p2.mask].pieces));
+        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, toViewPieces(MODEL.players[p1.mask].pieces));
+        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, toViewPieces(MODEL.players[p2.mask].pieces));
         await Promise.all([VIEW.p1Pieces.render(), VIEW.p2Pieces.render()]);
         VIEW.initialize(new UrHandlersImpl());
         console.debug("View initialized.");
@@ -541,31 +540,18 @@ namespace UrController {
         ENGINE.do(GameAction.Initialize);
     }
 
-    async function setupView(p1:Player, p2: Player) {
-        
-    }
-
     function setupBoard() {
         let loadPieces = (p:PlayerEntity) => {
-            let bucket = <Bucket>MODEL.board.tracks[p][0];
+            let startBucket = <Bucket>MODEL.board.tracks[p][0];
             MODEL.players[p].pieces.forEach(pc => {
-                bucket.occupants.add(pc);
-                pc.location = bucket;
+                startBucket.occupants.add(pc);
+                pc.location = startBucket;
             });
         };
         (<PlayerEntity[]>[EntityId.PLAYER1, EntityId.PLAYER2]).forEach(p => {
             loadPieces(p);
         });
         console.debug("Board setup completed: ", MODEL.board);
-    }
-
-    function buildPieces(info: PlayerInfo): Piece[] {
-        let pcs: Piece[] = [];
-        for (let i = 0; i < 7; i++) {
-            var pcid = UrUtils.PIECE_ID_PREFIX+info.id+i;
-            pcs.push(new Piece(pcid, info.mask));
-        }
-        return pcs;
     }
 }
 
