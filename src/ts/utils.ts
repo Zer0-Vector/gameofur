@@ -102,6 +102,12 @@ export namespace UrUtils {
     export const SPACE_ID_PREFIX: string = "s-";
     export const PIECE_ID_PREFIX: string = "pc-";
 
+    export const StringId = {
+        [EntityId.PLAYER1]: "a",
+        [EntityId.PLAYER2]: "b",
+        [EntityId.MIDDLE]: "m",
+    }
+
     export function isValidSpace(t: EntityId) {
         const PLAYER_MASK: number = EntityId.PLAYER1 + EntityId.PLAYER2;
         const LOCATION_MASK: number = EntityId.ONRAMP + EntityId.OFFRAMP + EntityId.MIDDLE + EntityId.START + EntityId.FINISH;
