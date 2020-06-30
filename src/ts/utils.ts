@@ -11,6 +11,8 @@ export enum EntityId {
     FINISH = 0x80
 }
 
+export type Maybe<T> = T | undefined;
+
 export type PlayerEntity = EntityId.PLAYER1 | EntityId.PLAYER2;
 export type OnboardSpaceEntity = EntityId.ONRAMP | EntityId.OFFRAMP | EntityId.MIDDLE;
 export type BucketEntity = EntityId.START | EntityId.FINISH;

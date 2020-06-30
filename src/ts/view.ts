@@ -1,4 +1,4 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe } from "./utils.js";
 import { Space } from "./model.js";
 
 interface Renderable<Options> {
@@ -143,31 +143,47 @@ export class Piece extends ARenderableUrUiElement<string> {
 
 class Pieces implements Renderable<undefined> {
     readonly owner: PlayerEntity;
-    readonly pieces: Piece[];
     readonly startPileId: string;
     readonly endPileId: string;
+    readonly _pieces: Map<string, Piece>;
 
     constructor(owner: PlayerEntity, startPileId: string, endPileId: string, pieces: Piece[]) {
         if (!UrUtils.isPlayer(owner)) {
             throw "Invalid player id: "+owner;
         }
         this.owner = owner;
-        this.pieces = pieces;
         this.startPileId = startPileId;
         this.endPileId = endPileId;
+        this._pieces = new Map(pieces.map(p => [p.id, p]));
     }
+    get pieces(): Piece[] {
+        return Array.from(this._pieces.values());
+    }
+    getPiece(id:string): Piece {
+        let piece: Maybe<Piece> = this._pieces.get(id);
+        if (piece === undefined) {
+            throw "Unknown piece id: "+id;
+        }
+        return piece as Piece;
+    }
+
+    tryGetPiece(id:string, piece: Maybe<Piece>): boolean {
+        piece = this._pieces.get(id);
+        return piece !== undefined;
+    }
+
     render(): Promise<void[]> {
         console.debug("Loading player ",this.owner," pieces to ", this.startPileId);
         return Promise.all(this.pieces.map(p => p.render(this.startPileId)));
     }
 }
 
-interface UiElement {
+interface Enableable {
     enable(): void;
     disable(): void;
 }
 
-class UiElementImpl implements UiElement {
+class UiElementImpl implements Enableable {
     id: string;
     constructor(id: string) {
         this.id = id;
@@ -180,9 +196,10 @@ class UiElementImpl implements UiElement {
         console.debug("Disabling "+this.id);
         $(this.id).prop("disabled", true);
     }
-
 }
 
+
+// TODO: extract behaviors to separate classes; bind with UI elements somehow
 namespace UrView {
     export let p1Pieces: Pieces;
     export let p2Pieces: Pieces;
