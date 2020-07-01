@@ -1,0 +1,75 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        :root {
+            --color-rosette: #E22D4E;	/* Main Secondary color (1) */
+            --color-rosette-lighter: #F57C91;
+            --color-rosette-light: #F0536F;
+            --color-rosette-dark: #C30D2D;
+            --color-rosette-darker: #9A011C;
+        }
+        #icon {
+            fill:var(--color-rosette-light);
+            stroke-width:1;
+            stroke:var(--color-rosette-dark);
+            opacity: 0.7;
+        }
+        path, circle {
+            stroke: black;
+        }
+        .ppink {
+            fill: var(--color-rosette-lighter);
+        }
+        .pblue {
+            fill: #5EBDF2;
+        }
+    </style>
+    <defs>
+        <rect id="urSpace" width="100" height="100" />
+        <ellipse id="rPetal" rx="5" ry="23" cx="50" cy="50"/>
+        <g id="rCross">
+            <use href="#rPetal" transform="translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(90 50 50) translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(180 50 50) translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(270 50 50) translate(0 -20)"/>
+        </g>
+        <g id="urRosette">
+            <use href="#rCross" />
+            <use href="#rCross" transform="rotate(30 50 50)" />
+            <use href="#rCross" transform="rotate(60 50 50)" />
+            <circle r="18" cx="50" cy="50" style="stroke-width:0" />
+        </g>
+        <path d="
+            M 50 45 
+            c 0 -10 -5 -10.25 -5 -20
+            0 -25 10 -25 10 0
+            M 50 45
+            c 0 -10 5 -10.25 5 -20" id="petal" />
+        <path d="
+            M 50 50
+            l -7.5 -17
+            c -16.75 -40 32 -40 14 0 Z" fill="none" id="outline" />
+    </defs>
+    <g transform="scale(0.9) translate(5.5 5.5)">    
+        <use href="#outline" />
+        <use href="#outline" transform="rotate(45 50 50)" />
+        <use href="#outline" transform="rotate(90 50 50)" />
+        <use href="#outline" transform="rotate(135 50 50)" />
+        <use href="#outline" transform="rotate(180 50 50)" />
+        <use href="#outline" transform="rotate(225 50 50)" />
+        <use href="#outline" transform="rotate(270 50 50)" />
+        <use href="#outline" transform="rotate(315 50 50)" />
+        <circle r="5" cx="50" cy="50" class="ppink" />
+        <g class="ppink">
+            <use href="#petal" />
+            <use href="#petal" transform="rotate(90 50 50)"  />
+            <use href="#petal" transform="rotate(180 50 50)" />
+            <use href="#petal" transform="rotate(270 50 50)" />
+        </g>
+        <g class="pblue">
+            <use href="#petal" transform="rotate(45 50 50)" />
+            <use href="#petal" transform="rotate(135 50 50)" />
+            <use href="#petal" transform="rotate(225 50 50)" />
+            <use href="#petal" transform="rotate(315 50 50)" />
+        </g>
+    </g>
+</svg>

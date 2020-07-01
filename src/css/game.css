@@ -155,6 +155,8 @@ h1 {
     border: var(--space-border-width) var(--space-border-color) solid;
     background-color: var(--color-mid-lane);
     position: absolute;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 #board div.space.r1 {
@@ -195,9 +197,30 @@ h1 {
 }
 
 #board div.space.rosette {
-    background-image: url('/images/rosette.png');
-    background-repeat: no-repeat;
-    background-position: center;
+    background-image: url('/images/bg/rosette.svg');
+}
+
+#board div.space.eyes {
+    background-image: url('/images/bg/eyes0.svg');
+}
+#board div.space.eyes.p2 {
+    background-image: url('/images/bg/eyes1.svg');
+}
+
+#board div.space.bigfivedots {
+    background-image: url('/images/bg/bigfivedots.svg');
+}
+
+#board div.space.maze {
+    background-image: url('/images/bg/maze.svg');
+}
+
+#board div.space.fourfivedots {
+    background-image: url('/images/bg/fourfivedots.svg');
+}
+
+#board div.space.middlefivedots {
+    background-image: url('/images/bg/middlefivedots.svg');
 }
 
 #gameArea {
