@@ -18,6 +18,7 @@ export type PlayerEntity = EntityId.PLAYER1 | EntityId.PLAYER2;
 export type OnboardSpaceEntity = EntityId.ONRAMP | EntityId.OFFRAMP | EntityId.MIDDLE;
 export type BucketEntity = EntityId.START | EntityId.FINISH;
 export type SpaceEntity = BucketEntity | OnboardSpaceEntity;
+export type SpaceColumn = PlayerEntity | EntityId.MIDDLE;
 
 export const PLAYER_MASK = EntityId.PLAYER1 + EntityId.PLAYER2;
 export const BUCKET_MASK = EntityId.START + EntityId.FINISH;
@@ -38,11 +39,27 @@ export abstract class Identifier {
         }
         return false;
     }
+    protected static parseError(input:string, exception?:any): string {
+        return "'" + input + "' is not a " + typeof this + (exception === undefined ? "" : ": "+exception);
+    }
 }
 
 export class DieId extends Identifier {
+    private static readonly PREFIX = "die";
     constructor(n:number) {
-        super("die", undefined, n);
+        super(DieId.PREFIX, undefined, n);
+    }
+    static from(id:string): DieId {
+        if (!id.startsWith(this.PREFIX)) {
+            throw this.parseError(id);
+        }
+        let n:number;
+        try {
+            n = parseInt(id.substring(this.PREFIX.length));
+        } catch (e) {
+            throw this.parseError(id, e);
+        }
+        return new SimpleId(id);
     }
 }
 
@@ -50,17 +67,70 @@ export class SimpleId extends Identifier {
     constructor(id:string) {
         super(id, undefined, undefined);
     }
+    static from(id:string): SimpleId {
+        return new SimpleId(id);
+    }
 }
 
 export class PieceId extends Identifier {
+    private static readonly PREFIX = "pc";
     constructor(owner:PlayerEntity, n:number) {
-        super("pc", UrUtils.StringId[owner], n)
+        super(PieceId.PREFIX, UrUtils.StringId[owner], n)
+    }
+    static from(id:string): PieceId {
+        if (!id.startsWith(this.PREFIX)) {
+            throw this.parseError(id);
+        }
+        let subtype = id.charAt(this.PREFIX.length);
+        let owner: PlayerEntity | undefined;
+        if (subtype === UrUtils.StringId[EntityId.PLAYER1]) {
+            owner = EntityId.PLAYER1;
+        } else if (subtype === UrUtils.StringId[EntityId.PLAYER2]) {
+            owner = EntityId.PLAYER2;
+        } else {
+            throw this.parseError(id);
+        }
+
+        let n: number;
+        try {
+            n = parseInt(id.substring(this.PREFIX.length + 1));
+        } catch (e) {
+            throw this.parseError(id, e);
+        }
+        return new SimpleId(id);
     }
 }
 
 export class SpaceId extends Identifier {
-    constructor(column:PlayerEntity|EntityId.MIDDLE, n:number) {
-        super("s", UrUtils.StringId[column], n);
+    private static readonly PREFIX = "s";
+    constructor(column:SpaceColumn, n:number) {
+        super(SpaceId.PREFIX, UrUtils.StringId[column], n);
+    }
+    static from(id:string): SpaceId {
+        if (!id.startsWith(this.PREFIX)) {
+            throw this.parseError(id);
+        }
+        
+        let subtype = id.charAt(this.PREFIX.length);
+        let column: SpaceColumn | undefined;
+        if (subtype === UrUtils.StringId[EntityId.PLAYER1]) {
+            column = EntityId.PLAYER1;
+        } else if (subtype === UrUtils.StringId[EntityId.PLAYER2]) {
+            column = EntityId.PLAYER2;
+        } else if (subtype === UrUtils.StringId[EntityId.MIDDLE]) {
+            column = EntityId.MIDDLE;
+        } else {
+            throw this.parseError(id);
+        }
+
+        let n: number;
+        try {
+            n = parseInt(id.substring(this.PREFIX.length + 1));
+        } catch (e) {
+            throw this.parseError(id, e);
+        }
+
+        return new SimpleId(id);
     }
 }
 
@@ -139,7 +209,7 @@ export interface UrHandlers {
     passTurn(): void;
     pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam): void; // TODO types
     startGame(): void;
-    pieceMoved(pid:string, sid:string): void;
+    pieceMoved(pid:PieceId, sid:SpaceId): void;
 }
 
 export type DieValue =  0 | 1;
@@ -162,9 +232,9 @@ export namespace UrUtils {
     }
 
     export const StringId = {
-        [EntityId.PLAYER1]: "a",
-        [EntityId.PLAYER2]: "b",
-        [EntityId.MIDDLE]: "m",
+        [EntityId.PLAYER1]: "A",
+        [EntityId.PLAYER2]: "B",
+        [EntityId.MIDDLE]: "M",
     }
 
     export function isValidSpace(t: EntityId) {

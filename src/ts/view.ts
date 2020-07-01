@@ -198,7 +198,7 @@ namespace UrView {
         newgame: new UiElementImpl('button#newgame'),
     }
 
-    let moveHander:(pid:string,sid:string)=>void;
+    let moveHander:(pid:PieceId,sid:SpaceId)=>void;
 
     export function initialize(handlers: UrHandlers) { // TODO fix type
         console.debug("Configuring roll/passTurn buttons.");
@@ -308,7 +308,7 @@ namespace UrView {
                         },
                         done: () => {
                             console.debug("Dblclick move animation: done");
-                            moveHander(piece.toString(), space.toString());
+                            moveHander(piece, space);
                         }
                     });
                 }
