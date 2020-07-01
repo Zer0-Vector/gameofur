@@ -222,7 +222,7 @@ let ACTIONS: ActionRepository = (() => {
                 id: GameAction = id;
                 run: (()=>Promise<void>) = () => {
                     return run().then(() => {
-                        console.info(GameAction[this.id]+" completed.");
+                        console.debug(GameAction[this.id]+" completed.");
                     })
                 };
             })();
@@ -397,7 +397,7 @@ class GameEngine {
     private _model: StateOwner;
     constructor(model: StateOwner) {
         this._model = model;
-        console.info("GameEngine initialized. state="+GameState[this._model.state]);
+        console.debug("GameEngine initialized. state="+GameState[this._model.state]);
     }
 
     private get currentState(): GameState {
@@ -438,7 +438,7 @@ class GameEngine {
         }).then((i:number):void => {
             console.debug("Finished transition loop after "+i+" iterations");
             console.assert(this.currentStateImpl.type === GameStateType.USER);
-            console.info("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
+            console.debug("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
         });
     }
 
@@ -451,7 +451,7 @@ class GameEngine {
 
         await ACTIONS[action].run();
 
-        console.info(GameState[this._model.state]+" --> "+GameState[nextState.id]);
+        console.debug(GameState[this._model.state]+" --> "+GameState[nextState.id]);
         this.currentState = nextState.id;
 
         // the previous assignment updates this getter's value.
@@ -486,21 +486,21 @@ namespace UrController {
                 of: $(event.target),
             });
             
-            let tid: string = $(event.target).attr('id') as string;
-            var pscid: string = $(ui.draggable).attr('id') as string;
+            let tid: SpaceId = SpaceId.from($(event.target).attr('id') as string);
+            var pscid: PieceId = PieceId.from($(ui.draggable).attr('id') as string);
             console.info(pscid+" dropped in "+tid);
             // TODO can we use PieceId/SpaceId here?
             this.pieceMoved(pscid, tid);
         }
 
-        pieceMoved(pieceId:string, spaceId:string) {
+        pieceMoved(pieceId:PieceId, spaceId:PieceId) {
             let index = parseInt(spaceId.toString().substring(2));
             console.assert(index >= 0);
             console.assert(index <= 15);
             MODEL.turn.endSpace = MODEL.currentTrack[index];
             console.debug("Set end space: ", MODEL.turn.endSpace, " @ ", index, MODEL.currentTrack);
             for (let modelPiece of MODEL.currentPlayer.pieces) {
-                if (pieceId === modelPiece.id.toString()) {
+                if (pieceId.equals(modelPiece.id)) {
                     MODEL.turn.piece = modelPiece;
                     console.debug("Set piece moved: ", modelPiece);
                     
