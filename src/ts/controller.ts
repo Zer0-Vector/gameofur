@@ -320,6 +320,7 @@ let ACTIONS: ActionRepository = (() => {
             await VIEW.returnPieceToStart(MODEL.turn.knockedPiece?.id as PieceId);
         })
         actionMaker(GameAction.PieceScored, async ()=>{
+            console.info(MODEL.currentPlayer.name + " scored!");
             MODEL.score[MODEL.turn.player]++;
         });
 
