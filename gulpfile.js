@@ -8,14 +8,16 @@ const SRC_DIR = './src';
 const SRC_NODE = SRC_DIR+'/*.js';
 const SRC_JS = SRC_DIR + '/scripts/**/*.js';
 const SRC_CSS = SRC_DIR + '/css/*.css';
-const SRC_SVG = SRC_DIR + '/images/**/*.svg';
-const SRC_PNG = SRC_DIR + '/images/**/*.png';
+const SRC_SVG = SRC_DIR + '/images/*.svg';
+const SRC_PNG = SRC_DIR + '/images/*.png';
+const SRC_BG_SVG = SRC_DIR + '/images/bg/*.svg'
 const SRC_HTML = SRC_DIR + '/html/**/*.html';
 const OUTPUT_DIR = './dist';
 const WWW_ROOT = OUTPUT_DIR + '/site';
 const WWW_JS = WWW_ROOT + '/scripts';
 const WWW_CSS = WWW_ROOT + '/css';
 const WWW_IMAGES = WWW_ROOT + '/images';
+const WWW_IMAGES_BG = WWW_IMAGES + '/bg';
 
 function copyFiles(srcPattern, destDir) {
     console.log("Deploying "+srcPattern+" into "+destDir);
@@ -61,6 +63,7 @@ function css() {
 
 function images() {
     copyFiles(SRC_PNG, WWW_IMAGES);
+    copyFiles(SRC_BG_SVG, WWW_IMAGES_BG);
     return gulp.src(SRC_SVG)
             .pipe(map(function (file, cb) {
                 let contents = file.contents.toString('utf8');
@@ -86,6 +89,7 @@ function watch() {
     gulp.watch(SRC_CSS, css);
     gulp.watch(SRC_SVG, images);
     gulp.watch(SRC_PNG, images);
+    gulp.watch(SRC_BG_SVG, images);
     gulp.watch(tsProject.config.include, ts);
 }
 

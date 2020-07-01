@@ -1,0 +1,26 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+    </style>
+    <defs>
+        <circle id="filled" r="2.5" cx="0" cy="0" fill="steelblue" stroke="black" />
+        <polygon id="jaggedBorder" stroke="black" fill="none" points="
+                0 8,    8 0,    22 14,  32 4,   50 22,  68 4,   78 14,  92 0,
+                100 8,  86 22,  96 32,  78 50,  96 68,  86 78,  100 92,
+                92 100, 78 86,  68 96,  50 78,  32 96,  22 86,  8 100,
+                0 92,   14 78,  4 68,   22 50,  4 32,   14 22" />
+        <g id="dots">
+            <use href="#filled" />
+            <use href="#filled" transform="translate(6 -6)"/>
+            <use href="#filled" transform="translate(-6 -6)"/>
+            <use href="#filled" transform="translate(6 6)"/>
+            <use href="#filled" transform="translate(-6 6)"/>
+            <use href="#jaggedBorder" transform="scale(0.475) translate(-50 -50)" stroke-width="2.105" />
+        </g>
+    </defs>
+    <line x1="50" x2="50" y1="0" y2="100" stroke="black" />
+    <line x1="0" x2="100" y1="50" y2="50" stroke="black" />
+    <use href="#dots" transform="translate(25 25)" />
+    <use href="#dots" transform="translate(75 25)" />
+    <use href="#dots" transform="translate(75 75)" />
+    <use href="#dots" transform="translate(25 75)" />
+</svg>
