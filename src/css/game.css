@@ -53,26 +53,33 @@
 
     --board-horiz-padding: 50px;
 
-    --startarea-top: var(--row4-top);
-    --startarea-left: calc(var(--board-horiz-padding) + var(--space-border-width) + 4px);
+    --startarea-top: var(--row5-top);
+    --startarea-left: calc(var(--board-horiz-padding) + calc(2 * var(--space-border-width)) + 4px + var(--space-width));
     
-    --finisharea-top: var(--row7-top);
+    --finisharea-top: var(--row6-top);
     --finisharea-left: var(--startarea-left);
 
     --z-layer-board: 5;
     --z-layer-pieces: calc(var(--z-layer-board) + 5); /* should always be on top */
     --z-layer-under-board: calc(var(--z-layer-board) - 5);
+
+    --piece-radius: 25px;
+    --piece-stroke-width: 1px;
+    --centered-piece-top: calc((var(--space-height) - var(--piece-radius)) / 2 - var(--piece-stroke-width) - 2 * var(--space-border-width));
+    --centered-piece-left: calc((var(--space-width) - var(--piece-radius)) / 2 - var(--piece-stroke-width) - 2 * var(--space-border-width));
+    --piece-stack-offset: calc(3 * var(--piece-stroke-width));
+}
+
+.piece {
+    stroke-width: var(--piece-stroke-width);
+    stroke: black;
 }
 
 .p1 .piece {
     fill: var(--color-p1-darker);
-    stroke-width: 1;
-    stroke: black;
 }
 .p2 .piece {
     fill: var(--color-p2-darker);
-    stroke-width: 1;
-    stroke: black;
 }
 .piece .pip {
     fill: white;
@@ -215,7 +222,7 @@ h1 {
 .startingArea {
     width: var(--space-width);
     height: var(--space-height);
-    border: var(--space-border-width) groove;
+    border: var(--space-border-width) dotted;
     position: absolute;
     top: var(--startarea-top);
 }
@@ -231,7 +238,7 @@ h1 {
     position: absolute;
     width: var(--space-width);
     height: var(--space-height);
-    border: var(--space-border-width) inset;
+    border: var(--space-border-width) dashed;
     top: var(--finisharea-top);
 }
 .finishArea.p1 {
@@ -243,19 +250,22 @@ h1 {
     left: calc(-1 * var(--startarea-left));
 }
 /* Pieces divs */
-.startingArea > div {
+.pieceHolder {
     position: absolute;
-    width: max-content;
-    height: max-content;
+    width: fit-content;
+    height: fit-content;
     padding: 0;
     margin: 0;
+    z-index: var(--z-layer-pieces);
+}
+
+.pieceHolder.ui-draggable-dragging { /* keep active piece on top */
+    z-index: calc(var(--z-layer-pieces) + 5);
 }
 
 .pieceHolder {
-    z-index: var(--z-layer-pieces);
-}
-.pieceHolder.ui-draggable-dragging { /* keep active piece on top */
-    z-index: calc(var(--z-layer-pieces) + 5);
+    top: var(--centered-piece-top);
+    left: var(--centered-piece-left);
 }
 
 #userArea {

@@ -1,5 +1,4 @@
 import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, DieId, SimpleId, PieceId, SpaceId } from "./utils.js";
-import { Space } from "./model.js";
 
 interface Renderable<RenderOptions> {
     render(renderOptions?:RenderOptions): Promise<void | void[]>;
@@ -101,7 +100,7 @@ class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
 
 // TODO this should export
 export class Piece implements Renderable<SimpleId>, Identifiable<PieceId> {
-    static readonly svgPath = 'images/piece.svg';
+    static readonly svgPath = 'images/piece5.svg';
     readonly owner: PlayerEntity;
     readonly id: PieceId;
 
