@@ -5,23 +5,6 @@ import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, Dic
 let VIEW = UrView;
 let MODEL: UrModel;
 
-class GameActionImpl {
-    private _doit: ()=>void;
-    private logMessage: ()=>void;
-    constructor(message: string | (()=>string), action:()=>void) {
-        this._doit = action;
-        if (typeof message === "string") {
-            this.logMessage = ()=>{console.info(message);};
-        } else {
-            this.logMessage = ()=>{console.info(message());};
-        }
-    }
-    public doit() {
-        this._doit();
-        this.logMessage();
-    }
-}
-
 type Repository<K extends number,V> = {[index in K]:V}
 type ActionRepository = Repository<GameAction, AGameAction>;
 type StateRepository = Repository<GameState, AGameState>;
@@ -459,7 +442,7 @@ namespace UrController {
             console.assert(index >= 0);
             console.assert(index <= 15);
             MODEL.turn.endSpace = MODEL.currentTrack[index];
-            console.debug("Set end space: ", MODEL.turn.endSpace, " @ ", index, MODEL.currentTrack);
+            console.debug("Set end space: ("+index+")", MODEL.turn.endSpace);
             for (let modelPiece of MODEL.currentPlayer.pieces) {
                 if (pieceId.equals(modelPiece.id)) {
                     MODEL.turn.piece = modelPiece;
@@ -496,8 +479,6 @@ namespace UrController {
         MODEL = UrModel.create(p1, p2);
 
         setupBoard();
-
-
 
         VIEW.p1Pieces = VIEW.initializePieces(p1.mask, MODEL.players[p1.mask].pieces.map(p => p.id), startBucket(p1.mask));
         VIEW.p2Pieces = VIEW.initializePieces(p2.mask, MODEL.players[p2.mask].pieces.map(p => p.id), startBucket(p2.mask));
