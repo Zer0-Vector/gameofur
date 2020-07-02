@@ -9,7 +9,7 @@
                 <use href="#square" transform="translate(27.5 0)" />
                 <use href="#square" transform="translate(27.5 27.5)" />
                 <use href="#square" transform="translate(0 27.5)" />
-                <circle r="5" fill="steelblue" stroke="black" cx="10" cy="10" id="dot" />
+                <circle r="5" fill="#5EBDF2" stroke="black" cx="10" cy="10" id="dot" />
                 <use href="#dot" transform="translate(27.5 0)" />
                 <use href="#dot" transform="translate(27.5 27.5)" />
             </g>

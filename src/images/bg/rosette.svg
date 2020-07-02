@@ -41,7 +41,7 @@
         <path d="
             M 50 45 
             c 0 -10 -5 -10.25 -5 -20
-            0 -25 10 -25 10 0
+              0 -25 10 -25 10 0
             M 50 45
             c 0 -10 5 -10.25 5 -20" id="petal" />
         <path d="
@@ -61,7 +61,7 @@
         <circle r="5" cx="50" cy="50" class="ppink" />
         <g class="ppink">
             <use href="#petal" />
-            <use href="#petal" transform="rotate(90 50 50)"  />
+            <use href="#petal" transform="rotate(90 50 50)" />
             <use href="#petal" transform="rotate(180 50 50)" />
             <use href="#petal" transform="rotate(270 50 50)" />
         </g>
