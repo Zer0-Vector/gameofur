@@ -3,7 +3,7 @@
     </style>
     <defs>
         <g id="both">
-            <circle r="7" cx="50" cy="50" stroke="black" fill="steelblue" />
+            <circle r="7" cx="50" cy="50" stroke="black" fill="#5EBDF2" />
             <circle r="13" cx="50" cy="50" fill="none" stroke="black" />
         </g>
     </defs>

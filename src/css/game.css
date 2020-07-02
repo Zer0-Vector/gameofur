@@ -26,7 +26,7 @@
     --color-mid-lane: rgb(127,127,127);
     --color-mid-move-candidate: rgb(96, 96, 96);
     --space-border-color: rgb(0,0,0);
-    --space-border-width: 7px;
+    --space-border-width: 4px;
 
     --pos-space-left-p1: 25;
 
@@ -65,18 +65,17 @@
 
     --piece-radius: 25px;
     --piece-stroke-width: 1px;
-    --centered-piece-top: calc((var(--space-height) - var(--piece-radius)) / 2 - var(--piece-stroke-width) - 2 * var(--space-border-width));
-    --centered-piece-left: calc((var(--space-width) - var(--piece-radius)) / 2 - var(--piece-stroke-width) - 2 * var(--space-border-width));
     --piece-stack-offset: calc(3 * var(--piece-stroke-width));
 }
 
 .piece {
     stroke-width: var(--piece-stroke-width);
     stroke: black;
+    filter: drop-shadow(3px 3px 3px #000)
 }
 
 .p1 .piece {
-    fill: var(--color-p1-darker);
+    fill: var(--color-p1-light);
 }
 .p2 .piece {
     fill: var(--color-p2-darker);
@@ -284,11 +283,6 @@ h1 {
 
 .pieceHolder.ui-draggable-dragging { /* keep active piece on top */
     z-index: calc(var(--z-layer-pieces) + 5);
-}
-
-.pieceHolder {
-    top: var(--centered-piece-top);
-    left: var(--centered-piece-left);
 }
 
 #userArea {

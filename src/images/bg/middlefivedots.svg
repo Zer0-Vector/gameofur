@@ -2,7 +2,7 @@
     <style>
     </style>
     <defs>
-        <circle id="filled" r="2.5" cx="0" cy="0" fill="steelblue" stroke="black" />
+        <circle id="filled" r="2.5" cx="0" cy="0" fill="#5EBDF2" stroke="black" />
         <polygon id="jaggedBorder" stroke="black" fill="none" points="
                 0 8,    8 0,    22 14,  32 4,   50 22,  68 4,   78 14,  92 0,
                 100 8,  86 22,  96 32,  78 50,  96 68,  86 78,  100 92,

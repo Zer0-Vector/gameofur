@@ -4,52 +4,61 @@
     <defs>
         <clipPath id="bottom-chop">
             <path d="
-                M 5 68
-                l 8 0
-                q 13 -9 26.5 0
-                l 8 0
+                M 10 70
+                l 5 -4.5
+                q 13 -9 27.5 0
+                l 5 4.5
                 l 0 -30
                 l -42.5 0" />
         </clipPath>
-    </defs>
-    <g stroke="black" fill="none" stroke-width="1">
-        <line x1="5" x2="5" y1="0" y2="100"  />
-        <line x1="95" x2="95" y1="0" y2="100"  />
-        <line x1="47.5" x2="47.5" y1="0" y2="100" />
-        <line x1="52.5" x2="52.5" y1="0" y2="100" />
-        <line x1="0" x2="100" y1="45" y2="45" />
-        <g id="topeyes">
-            <g id="top2">
-                <g id="topinner">
-                    <path d="
-                        M 5 20
-                        l 8 -7
-                        q 13 -9 26.5 0
-                        l 8 7" id="curve"/>
-                    <use href="#curve" transform="translate(47.5 0)" />
+    
+        <g stroke="black" fill="none" stroke-width="1" id="eyes0">
+            <line x1="10" x2="10" y1="0" y2="100"  />
+            <line x1="90" x2="90" y1="0" y2="100"  />
+            <line x1="47.5" x2="47.5" y1="0" y2="100" />
+            <line x1="52.5" x2="52.5" y1="0" y2="100" />
+            <line x1="0" x2="100" y1="45" y2="45" />
+            <g id="topeyes">
+                <g id="top2">
+                    <g id="topinner">
+                        <path d="
+                            M 10 22.5
+                            l 5 -4.5
+                            q 13 -9 27.5 0
+                            l 5 4.5" id="curve"/>
+                        <use href="#curve" transform="translate(42.5 0)" />
+                    </g>
+                    <use href="#topinner" transform="translate(0 -5)" />
                 </g>
-                <use href="#topinner" transform="translate(0 -5)" />
+                <use href="#top2" transform="scale(1 -1) translate(0 -45)" />
+                <circle r="5" cx="28" cy="22.5" fill="#5EBDF2" id="pupil" />
+                <use href="#pupil" transform="translate(42.5 0)" />
             </g>
-            <use href="#top2" transform="scale(1 -1) translate(0 -40)" />
-            <circle r="5" cx="26" cy="20" fill="steelblue" id="pupil" />
-            <use href="#pupil" transform="translate(47.5 0)" />
+            <use href="#topeyes" transform="translate(0 52.5)" />
+            <g id="top-boxes">
+                <rect width="7" height="8.75" x="10" y="45" id="box" />
+                <use href="#box" transform="translate(10.5 0)" />
+                <use href="#box" transform="translate(20.5 0)" />
+                <use href="#box" transform="translate(30.5 0)" />
+            </g>
+            <g id="bottom-boxes" clip-path="url(#bottom-chop)" >
+                <rect width="7" height="15" x="10" y="57" id="box2" />
+                <use href="#box2" transform="translate(10.5 0)" />
+                <use href="#box2" transform="translate(20.5 0)" />
+                <use href="#box2" transform="translate(30.5 0)" />
+            </g>
+            <g transform="translate(42.5)">
+                <use href="#top-boxes" />
+                <use href="#bottom-boxes" />
+            </g>
         </g>
-        <use href="#topeyes" transform="translate(0 60)" />
-        <g id="top-boxes">
-            <rect width="8.75" height="8.75" x="5" y="45" id="box" />
-            <use href="#box" transform="translate(11.25 0)" />
-            <use href="#box" transform="translate(22.5 0)" />
-            <use href="#box" transform="translate(33.75 0)" />
-        </g>
-        <g id="bottom-boxes" clip-path="url(#bottom-chop)" >
-            <rect width="8.75" height="15" x="5" y="56.25" id="box2" />
-            <use href="#box2" transform="translate(11.25 0)" />
-            <use href="#box2" transform="translate(22.5 0)" />
-            <use href="#box2" transform="translate(33.75 0)" />
-        </g>
-        <g transform="translate(47.5)">
-            <use href="#top-boxes" />
-            <use href="#bottom-boxes" />
-        </g>
-    </g>
+        <path d="
+                M 10 70
+                l 5 -4.5
+                q 13 -9 27.5 0
+                l 5 4.5
+                l 0 -30
+                l -42.5 0" fill="black" />
+    </defs>
+    <use href="#eyes0" />
 </svg>
