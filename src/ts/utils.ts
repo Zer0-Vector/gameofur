@@ -138,6 +138,14 @@ export interface Identifiable<T extends Identifier> {
     readonly id: T;
 }
 
+export interface Container<ElementID extends Identifier> {
+    occupants: ElementID[];
+}
+
+export interface Containable<ContainerID extends Identifier> {
+    location: ContainerID;
+}
+
 export enum GameState {
     Initial,
     PreGame,
@@ -207,7 +215,6 @@ export interface UrHandlers {
     newGame(): void;
     roll(): void;
     passTurn(): void;
-    pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam): void; // TODO types
     startGame(): void;
     pieceMoved(pid:PieceId, sid:SpaceId): void;
 }

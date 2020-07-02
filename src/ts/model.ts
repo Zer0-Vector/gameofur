@@ -1,4 +1,4 @@
-import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId} from './utils.js';
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId, GameAction} from './utils.js';
 
 export class TurnData {
     private static COUNTER = 1;
@@ -248,6 +248,20 @@ export class Board {
 
 export interface StateOwner {
     state: GameState;
+}
+
+export type EdgeGraph = {
+    [currentState in GameState]: GameStateModel<currentState>
+};
+
+export interface  GameStateModel<S extends GameState> {
+    state: S;
+    actions: GameAction[];
+    next(action: GameAction): GameState;
+}
+
+export interface GraphStateProvider extends StateOwner {
+    edges: EdgeGraph;
 }
 
 export class UrModel implements StateOwner {
