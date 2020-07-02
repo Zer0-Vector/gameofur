@@ -1,14 +1,14 @@
 import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, DieId, SimpleId, PieceId, SpaceId } from "./utils.js";
 
-interface Renderable<RenderOptions> {
-    render(renderOptions?:RenderOptions): Promise<void | void[]>;
+interface Renderable {
+    render(): Promise<void | void[]>;
 }
 
 interface Updateable<UpdateDescriptor> {
     update(update?:UpdateDescriptor): Promise<void>;
 }
 
-class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable<undefined> {
+class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -98,34 +98,44 @@ class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
     }
 }
 
-// TODO this should export
-export class Piece implements Renderable<SimpleId>, Identifiable<PieceId> {
+class Piece implements Renderable, Identifiable<PieceId> {
     static readonly svgPath = 'images/piece5.svg';
     readonly owner: PlayerEntity;
     readonly id: PieceId;
+    container: Identifier;
 
-    constructor(id: PieceId, owner: PlayerEntity) {
+    constructor(id: PieceId, owner: PlayerEntity, initialContainer: Identifier) {
         this.id = id;
         this.owner = owner;
+        this.container = initialContainer;
     }
 
-    render(parent: SimpleId): Promise<void> {
+    render(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            $(parent.selector).append($("<div id=\""+this.id+"\" class=\"pieceHolder\">").load(Piece.svgPath, (response, status, xhr) => {
-                if (status === "success") {
-                    console.debug("Loaded piece into "+this.id.selector+" under "+parent.selector);
-                    resolve();
-                } else {
-                    let reason = "Error loading "+Piece.svgPath+" into "+this.id.selector;
-                    console.error(reason);
-                    reject(reason);
-                } 
-            }));
+            $(this.container.selector).append(
+                $("<div id=\""+this.id+"\" class=\"pieceHolder\">")
+                    .load(Piece.svgPath, (response, status, xhr) => {
+                        if (status === "success") {
+                            console.debug("Loaded piece into "+this.id.selector+" under "+this.container.selector);
+                            $(this.id.selector).position({
+                                my: "center",
+                                at: "center",
+                                of: $(this.container.selector)
+                            });
+                            resolve();
+                        } else {
+                            let reason = "Error loading "+Piece.svgPath+" into "+this.id.selector;
+                            console.error(reason);
+                            reject(reason);
+                        } 
+                    }
+                )
+            );
         });
     }
 }
 
-class Pieces implements Renderable<undefined> {
+class Pieces implements Renderable {
     readonly owner: PlayerEntity;
     readonly startPileId: SpaceId;
     readonly endPileId: SpaceId;
@@ -158,7 +168,7 @@ class Pieces implements Renderable<undefined> {
 
     render(): Promise<void[]> {
         console.debug("Loading player ",this.owner," pieces to ", this.startPileId);
-        return Promise.all(this.pieces.map(p => p.render(this.startPileId)));
+        return Promise.all(this.pieces.map(p => p.render()));
     }
 }
 
@@ -249,7 +259,18 @@ namespace UrView {
         console.debug("Configuring drag/drop for spaces.");
         $('.space, .startingArea, .finishArea').droppable({
             disabled: true,
-            drop: (e,u) => handlers.pieceDropped(e,u)
+            drop: (event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) => {
+                ui.draggable.position({
+                    my: "center",
+                    at: "center",
+                    of: $(event.target),
+                });
+                
+                let tid: SpaceId = SpaceId.from($(event.target).attr('id') as string);
+                var pscid: PieceId = PieceId.from($(ui.draggable).attr('id') as string);
+                console.info(pscid+" dropped in "+tid);
+                handlers.pieceMoved(pscid, tid);
+            }
         });
         $('.space, .startingArea, .finishArea').droppable("option", "classes.ui-droppable-hover", "ur-piece-hover");
     }
@@ -293,25 +314,34 @@ namespace UrView {
         }).on("mouseleave", () => {
             $(space.selector).removeClass(LEGAL_MOVE_HOVER_CLASS);
         }).on("dblclick", (event) => {
+            Promise.resolve(movePiece(piece, space)).then(() => moveHander(piece, space));
+        });
+    }
+
+    export async function movePiece(piece:PieceId, space:SpaceId): Promise<void> {
+        return new Promise((resolve, reject) => {
             $(piece.selector).position({
                 my: "center",
                 at: "center",
                 of: $(space.selector),
                 using: (pos:any) => {
-                    console.debug("Animating target: ",$(piece.selector));
+                    console.debug("Animating: "+piece+" to "+space);
                     $(piece.selector).animate(pos, {
                         duration: 500,
-                        start: () => {
-                            // TODO FreezeBoard and Disable hover behaviors. This may require reworking state machine
-                            console.debug("Dblclick move animation: start");
+                        start: (promise) => {
+                            // TODO is it possible to use this promise?
+                            console.debug("Move animation: start");
                         },
                         done: () => {
-                            console.debug("Dblclick move animation: done");
-                            moveHander(piece, space);
-                        }
+                            console.debug("Move animation: done");
+                            resolve();
+                        },
+                        fail: () => {
+                            reject();
+                        },
                     });
                 }
-            })
+            });
         });
     }
 
@@ -320,18 +350,9 @@ namespace UrView {
         $(".space, .finishArea").removeClass(LEGAL_MOVE_HOVER_CLASS);
     }
 
-    export async function returnPieceToStart(piece:PieceId): Promise<void> {
-        return new Promise<void>((resovle, reject) => {
-            $(piece.selector).animate({"left":0, "top":0}, 750, "swing", () => {
-                console.debug("Updated left/top coords for "+piece.selector);
-                resovle();
-            });
-        });
-    }
-
-    export function initializePieces(mask: PlayerEntity, list: Piece[]) {
-        console.debug("initializePieces",mask, list);
-        return new Pieces(mask, new SpaceId(mask, 0), new SpaceId(mask, 15), list);
+    export function initializePieces(mask: PlayerEntity, list: PieceId[], start: SpaceId) {
+        console.debug("initializePieces", mask, list);
+        return new Pieces(mask, new SpaceId(mask, 0), new SpaceId(mask, 15), list.map(pid => new Piece(pid, mask, start)));
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
@@ -344,6 +365,4 @@ namespace UrView {
 
 }
 
-// TODO double-click to animate move to space
-
-export let VIEW = UrView;
+export default UrView;

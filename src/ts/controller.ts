@@ -1,21 +1,9 @@
 import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
-import * as View from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, SpaceId, PieceId } from './utils.js';
+import UrView from './view.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, SpaceId, PieceId, Maybe } from './utils.js';
 
-let VIEW = View.VIEW;
+let VIEW = UrView;
 let MODEL: UrModel;
-
-function toViewPieces(modelPieces: Piece[]) {
-    var result:View.Piece[] = [];
-    for (let p of modelPieces) {
-        result.push(toViewPiece(p));
-    }
-    return result;
-}
-
-function toViewPiece(modelPiece: Piece) {
-    return new View.Piece(modelPiece.id, modelPiece.owner);
-}
 
 class GameActionImpl {
     private _doit: ()=>void;
@@ -34,24 +22,6 @@ class GameActionImpl {
     }
 }
 
-type FuncOrVal<T> = T | (()=>T);
-
-class GameStateImpl {
-    id: GameState;
-    /**
-     * When defined, this state requires no user interaction.
-     * This transition action will be invoked immidiately after entering this state (causing another state change).
-     * 
-     * Conditionals should be implemented here where this method returns the desired GameAction.
-     */
-    action?: ()=>GameAction;
-    constructor(id:GameState, action?:()=>GameAction) {
-        this.id = id;
-        this.action = action;
-    }
-    
-}
-
 type Repository<K extends number,V> = {[index in K]:V}
 type ActionRepository = Repository<GameAction, AGameAction>;
 type StateRepository = Repository<GameState, AGameState>;
@@ -66,7 +36,7 @@ type OuterTransitionMethod = ((action: GameAction)=>AGameState)
 interface AGameState {
     id: GameState;
     type: GameStateType;
-    peekNext: OuterTransitionMethod;
+    peekNext: OuterTransitionMethod; // TODO convert this to enter state conditionals
     edges: GameAction[];
 }
 interface ATempState extends AGameState {
@@ -76,7 +46,7 @@ interface ATempState extends AGameState {
 
 type ConditionalAction = (()=>GameAction);
 type InnerTransitionMethod = ((action:GameAction)=>GameState|undefined);
-
+ 
 let STATES: StateRepository = (()=>{
     let rval: any = {};
     let buildTransitionMethod = (thiz:any, transition:InnerTransitionMethod):OuterTransitionMethod => ((action:GameAction) => {
@@ -211,6 +181,7 @@ interface AGameAction {
     id: GameAction;
     run(): Promise<void>;
 }
+
 let ACTIONS: ActionRepository = (() => {
         let rval: any = {};
 
@@ -222,11 +193,11 @@ let ACTIONS: ActionRepository = (() => {
                 id: GameAction = id;
                 run: (()=>Promise<void>) = () => {
                     return run().then(() => {
-                        console.debug(GameAction[this.id]+" completed.");
+                        console.debug(GameAction[this.id] + " completed.");
                     })
                 };
             })();
-            console.debug("Created action: "+GameAction[id]);
+            console.debug("Created action: " + GameAction[id]);
         }
         actionMaker(GameAction.Initialize, async ()=>{
             VIEW.buttons.starter.enable();
@@ -262,7 +233,6 @@ let ACTIONS: ActionRepository = (() => {
                 MODEL.turn.noLegalMoves = true;
             } else {
                 for (let move of legal) {
-                    let vp = toViewPiece(move.piece);
                     VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
                     VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
                 }
@@ -315,9 +285,12 @@ let ACTIONS: ActionRepository = (() => {
         });
         actionMaker(GameAction.KnockoutOpponent, async () => {
             console.debug("Returning opponent piece to start.");
-            console.assert(MODEL.turn.knockedPiece !== undefined);
-            console.assert(MODEL.turn.knockedPiece?.owner === UrUtils.getOpponent(MODEL.turn.player));
-            await VIEW.returnPieceToStart(MODEL.turn.knockedPiece?.id as PieceId);
+            if (MODEL.turn.knockedPiece === undefined) {
+                throw "No knocked piece in the model to move.";
+            }
+            console.assert(MODEL.turn.knockedPiece.owner === UrUtils.getOpponent(MODEL.turn.player));
+            
+            await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id);
         })
         actionMaker(GameAction.PieceScored, async ()=>{
             console.info(MODEL.currentPlayer.name + " scored!");
@@ -348,8 +321,6 @@ let ACTIONS: ActionRepository = (() => {
         return rval as ActionRepository;
     })();
 //#endregion
-
-// TODO refactor to use callbacks
 
 class MoveComputer {
     private readonly pieces: Piece[];
@@ -412,6 +383,11 @@ class GameEngine {
         return STATES[this.currentState];
     }
 
+    private peekNext(action: GameAction): Maybe<AGameState> {
+        return this.currentStateImpl.peekNext(action);
+        // return this._model.edges[this.currentState].transitions[action];
+    }
+
     async do(currentAction: GameAction): Promise<void> {
         let loop = async (init:{count:number, next:GameAction}, fn:(action:GameAction)=>Promise<GameAction|undefined>): Promise<number> => {
             const next = await fn(init.next);
@@ -445,7 +421,7 @@ class GameEngine {
 
     private async doTransition(action: GameAction): Promise<AGameState> {
         console.debug(GameState[this.currentState]+".doTransition: "+GameAction[action]);
-        let nextState = this.currentStateImpl.peekNext(action);
+        let nextState = this.peekNext(action);
         if (nextState === undefined) {
             return Promise.reject("Transition from "+GameState[this.currentState]+" via "+GameAction[action]+" did not return a state.");
         }
@@ -477,22 +453,6 @@ namespace UrController {
         startGame() {
             ENGINE.do(GameAction.StartGame);
         }
-    
-        pieceDropped(event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) {
-            // snap to center
-            // TODO all calls to jquery should be in the VIEW
-            ui.draggable.position({
-                my: "center",
-                at: "center",
-                of: $(event.target),
-            });
-            
-            let tid: SpaceId = SpaceId.from($(event.target).attr('id') as string);
-            var pscid: PieceId = PieceId.from($(ui.draggable).attr('id') as string);
-            console.info(pscid+" dropped in "+tid);
-            // TODO can we use PieceId/SpaceId here?
-            this.pieceMoved(pscid, tid);
-        }
 
         pieceMoved(pieceId:PieceId, spaceId:PieceId) {
             let index = parseInt(spaceId.toString().substring(2));
@@ -514,7 +474,10 @@ namespace UrController {
         }
     }
 
-    type PlayerInfo = {mask:PlayerEntity,id:string,name:string};
+    function startBucket(player: PlayerEntity) {
+        return MODEL.board.tracks[player][0].id;
+    }
+    
     export async function initialize() {
         let p1Info = {
             mask: EntityId.PLAYER1 as PlayerEntity,
@@ -534,8 +497,10 @@ namespace UrController {
 
         setupBoard();
 
-        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, toViewPieces(MODEL.players[p1.mask].pieces));
-        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, toViewPieces(MODEL.players[p2.mask].pieces));
+
+
+        VIEW.p1Pieces = VIEW.initializePieces(p1.mask, MODEL.players[p1.mask].pieces.map(p => p.id), startBucket(p1.mask));
+        VIEW.p2Pieces = VIEW.initializePieces(p2.mask, MODEL.players[p2.mask].pieces.map(p => p.id), startBucket(p2.mask));
         await Promise.all([VIEW.p1Pieces.render(), VIEW.p2Pieces.render()]);
         VIEW.initialize(new UrHandlersImpl());
         console.debug("View initialized.");
@@ -546,14 +511,14 @@ namespace UrController {
 
     function setupBoard() {
         let loadPieces = (p:PlayerEntity) => {
-            let startBucket = <Bucket>MODEL.board.tracks[p][0];
+            let startBucket = MODEL.board.tracks[p][0] as Bucket;
             MODEL.players[p].pieces.forEach(pc => {
                 startBucket.occupants.add(pc);
                 pc.location = startBucket;
             });
         };
-        (<PlayerEntity[]>[EntityId.PLAYER1, EntityId.PLAYER2]).forEach(p => {
-            loadPieces(p);
+        ([EntityId.PLAYER1, EntityId.PLAYER2]).forEach(p => {
+            loadPieces(p as PlayerEntity);
         });
         console.debug("Board setup completed: ", MODEL.board);
     }
