@@ -113,7 +113,7 @@ class Piece implements Renderable, Identifiable<PieceId> {
     render(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             $(this.container.selector).append(
-                $("<div id=\""+this.id+"\" class=\"pieceHolder\">")
+                $("<div id=\""+this.id+"\" class=\"pieceHolder p"+this.owner+"\">")
                     .load(Piece.svgPath, (response, status, xhr) => {
                         if (status === "success") {
                             console.debug("Loaded piece into "+this.id.selector+" under "+this.container.selector);
@@ -139,7 +139,7 @@ class Pieces implements Renderable {
     readonly owner: PlayerEntity;
     readonly startPileId: SpaceId;
     readonly endPileId: SpaceId;
-    readonly _pieces: Map<PieceId, Piece>;
+    pieces: Map<PieceId, Piece>;
 
     constructor(owner: PlayerEntity, startPileId: SpaceId, endPileId: SpaceId, pieces: Piece[]) {
         if (!UrUtils.isPlayer(owner)) {
@@ -148,27 +148,12 @@ class Pieces implements Renderable {
         this.owner = owner;
         this.startPileId = startPileId;
         this.endPileId = endPileId;
-        this._pieces = new Map(pieces.map(p => [p.id, p]));
-    }
-    get pieces(): Piece[] {
-        return Array.from(this._pieces.values());
-    }
-    getPiece(id:PieceId): Piece {
-        let piece: Maybe<Piece> = this._pieces.get(id);
-        if (piece === undefined) {
-            throw "Unknown piece id: "+id;
-        }
-        return piece as Piece;
-    }
-
-    tryGetPiece(id:PieceId, piece: Maybe<Piece>): boolean {
-        piece = this._pieces.get(id);
-        return piece !== undefined;
+        this.pieces = new Map(pieces.map(p => [p.id, p]));
     }
 
     render(): Promise<void[]> {
         console.debug("Loading player ",this.owner," pieces to ", this.startPileId);
-        return Promise.all(this.pieces.map(p => p.render()));
+        return Promise.all(Array.from(this.pieces.values()).map(p => p.render()));
     }
 }
 
@@ -193,6 +178,15 @@ class UiElementImpl implements Enableable {
 }
 
 
+function initializeDraggable(selector:JQuery<HTMLElement>, 
+    options:JQueryUI.DraggableOptions = {
+        disabled: true, 
+        revert: "invalid",
+        revertDuration: 250,
+    }) {
+        selector.draggable(options);
+}
+
 // TODO: extract behaviors to separate classes; bind with UI elements somehow
 namespace UrView {
     export let p1Pieces: Pieces;
@@ -205,6 +199,15 @@ namespace UrView {
         passer: new UiElementImpl('button#passer'),
         starter: new UiElementImpl('button#starter'),
         newgame: new UiElementImpl('button#newgame'),
+    }
+
+    // TODO consodidate into map
+    export function getPiece(id: PieceId) {
+        let rval:Maybe<Piece> = p1Pieces.pieces.get(id);
+        if (rval !== undefined) {
+            return rval;
+        }
+        return p2Pieces.pieces.get(id) as Piece;
     }
 
     let moveHander:(pid:PieceId,sid:SpaceId)=>void;
@@ -250,11 +253,7 @@ namespace UrView {
         
         // dnd spaces and piecces are disabled first
         console.debug("Configuring drag/drop for pieces.");
-        $('.startingArea > div').draggable({
-            disabled: true, 
-            revert: "invalid",
-            revertDuration: 250,
-        });
+        initializeDraggable($('.startingArea > div'));
         
         console.debug("Configuring drag/drop for spaces.");
         $('.space, .startingArea, .finishArea').droppable({
@@ -334,7 +333,12 @@ namespace UrView {
                         },
                         done: () => {
                             console.debug("Move animation: done");
-                            resolve();
+                            let p = UrView.getPiece(piece);
+                            $(p.id.selector).remove();
+                            p.container = space;
+                            p.render().then(() => {
+                                initializeDraggable($(p.id.selector));
+                            }).then(resolve);
                         },
                         fail: () => {
                             reject();
@@ -346,7 +350,7 @@ namespace UrView {
     }
 
     export function removeLegalMoveBehavior() {
-        $(".startingArea > div").off("mouseenter mouseleave dblclick");
+        $(".pieceHolder").off("mouseenter mouseleave dblclick");
         $(".space, .finishArea").removeClass(LEGAL_MOVE_HOVER_CLASS);
     }
 
