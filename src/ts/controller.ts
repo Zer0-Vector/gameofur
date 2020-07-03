@@ -1,6 +1,6 @@
 import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
 import UrView from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, SpaceId, PieceId, Maybe } from './utils.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, Maybe, Identifier } from './utils.js';
 
 let VIEW = UrView;
 let MODEL: UrModel;
@@ -212,18 +212,24 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.EnableLegalMoves, async () => {
             // TODO extract this to class MoveComputer
             let legal = new MoveComputer(MODEL.turn.player, MODEL.currentPlayer.pieces, MODEL.currentTrack).compute(MODEL.turn.rollValue as DiceValue);
-            if (legal.length === 0) {
+            if (legal.size === 0) {
                 MODEL.turn.noLegalMoves = true;
             } else {
-                for (let move of legal) {
-                    VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
-                    VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
+                for (let psc of MODEL.currentPlayer.pieces) {
+                    let move = legal.get(psc.id);
+                    if (move === undefined) {
+                        VIEW.applyNoMovesStyles(psc.id);
+                    } else {
+                        VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
+                        VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
+                    }
                 }
             }
         });
         actionMaker(GameAction.MovePiece, async () => {
             console.debug("Updating model with new location");
             VIEW.removeLegalMoveBehavior();
+            VIEW.removeNoMovesStyles();
             let piece:Piece = MODEL.turn.piece as Piece;
             let start:Space = MODEL.turn.startSpace as Space;
             let end:Space = MODEL.turn.endSpace as Space;
@@ -273,7 +279,7 @@ let ACTIONS: ActionRepository = (() => {
             }
             console.assert(MODEL.turn.knockedPiece.owner === UrUtils.getOpponent(MODEL.turn.player));
             
-            await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id);
+            await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id, false);
         })
         actionMaker(GameAction.PieceScored, async ()=>{
             console.info(MODEL.currentPlayer.name + " scored!");
@@ -315,12 +321,12 @@ class MoveComputer {
         this.player = whosTurn;
     }
 
-    compute(roll:DiceValue): Move[] {
+    compute(roll:DiceValue): Map<Identifier, Move> {
         if (roll === 0) {
-            return [];
+            return new Map();
         }
 
-        let legal: Move[] = [];
+        let legal: Map<Identifier, Move> = new Map();
         for (let p of this.pieces) {
             let index = p.location.distanceFromStart + roll;
             if (index >= this.track.length) {
@@ -338,7 +344,7 @@ class MoveComputer {
             }
             // passed the test. This move is legal.
             console.debug("Found legal move: "+p.id+": "+p.location.name+" to "+candidate.name);
-            legal.push({
+            legal.set(p.id, {
                 piece: p,
                 space: candidate,
                 id: p.id+"_"+candidate.distanceFromStart,
@@ -437,7 +443,7 @@ namespace UrController {
             ENGINE.do(GameAction.StartGame);
         }
 
-        pieceMoved(pieceId:PieceId, spaceId:PieceId) {
+        pieceMoved(pieceId:Identifier, spaceId:Identifier) {
             let index = parseInt(spaceId.toString().substring(2));
             console.assert(index >= 0);
             console.assert(index <= 15);
@@ -464,12 +470,12 @@ namespace UrController {
     export async function initialize() {
         let p1Info = {
             mask: EntityId.PLAYER1 as PlayerEntity,
-            id: UrUtils.StringId[EntityId.PLAYER1],
+            id: UrUtils.toIdentifierPart(EntityId.PLAYER1),
             name: "Player 1"
         }
         let p2Info = {
             mask: EntityId.PLAYER2 as PlayerEntity,
-            id: UrUtils.StringId[EntityId.PLAYER2],
+            id: UrUtils.toIdentifierPart(EntityId.PLAYER2),
             name: "Player 2"
         }
 
