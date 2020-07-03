@@ -80,7 +80,7 @@ export class Space implements Identifiable<SpaceId> {
     distanceFromStart: number; // index into player track, Board.tracks[this.type & PLAYER_MASK]
     private _occupant?: Piece = undefined;
     constructor(n: number, type: EntityId, distanceFromStart: number) {
-        this.id = new SpaceId(type & (PLAYER_MASK + EntityId.MIDDLE), distanceFromStart);
+        this.id = SpaceId.get(type & (PLAYER_MASK + EntityId.MIDDLE), distanceFromStart);
         UrUtils.isValidSpace(type);
         this.type = type;
         this.distanceFromStart = distanceFromStart;
@@ -143,7 +143,7 @@ export class Piece implements Identifiable<PieceId> {
             throw "Invalid player id: "+owner;
         }
         this.owner = owner;
-        this.id = new PieceId(owner, n);
+        this.id = PieceId.get(owner, n);
         this._locationId = UrUtils.getSpaceId(owner | EntityId.START, 0);
     }
     get location() {

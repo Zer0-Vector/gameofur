@@ -1,4 +1,94 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, DieId, SimpleId, PieceId, SpaceId } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable, DieId, SpaceId, PieceId, SimpleId, AName, Containable, BOARD } from "./utils.js";
+
+//#region Selector classes
+abstract class JQuerySelectable implements Selectable {
+    abstract selector: string;
+    get jquery() {
+        return $(this.selector);
+    }
+}
+
+abstract class ACssClass extends JQuerySelectable {
+    protected constructor(toString:string) {
+        super();
+        this.toString = () => toString;
+    }
+    addTo(s:Selectable) {
+        return $(s.selector).addClass(this.toString());
+    }
+    removeFrom(s:Selectable) {
+        return $(s.selector).removeClass(this.toString());
+    }
+}
+
+class CssClass extends ACssClass {
+    readonly selector: string;
+    constructor(name:string) {
+        super(name);
+        this.selector = "."+name;
+    }
+}
+
+class CssClasses extends ACssClass {
+    readonly selector: string;
+    readonly classes: CssClass[];
+    constructor(...classes:CssClass[]) {
+        super(classes.map(c => c.toString()).join(" "));
+        this.selector = classes.map(c => c.selector).join(", ");
+        this.classes = classes;
+    }
+}
+
+abstract class SelectableId<ID extends Identifier> extends JQuerySelectable implements Identifiable<ID> {
+    readonly abstract id: ID;
+    constructor(id:string) {
+        super();
+        this.toString = () => id;
+    }
+    get selector() {
+        return this.id.selector;
+    }
+}
+
+class SimpleSelectableId extends SelectableId<SimpleId> {
+    id: SimpleId;
+    constructor(id:string) {
+        super(id);
+        this.id = SimpleId.get(id);
+    }
+}
+//#endregion
+
+namespace Selectors {
+    export const AllPieceContainers = new CssClass("pieceHolder");
+    export const PieceInMotion = new CssClass("ur-piece-in-motion");
+    export const PieceHover = new CssClass("ur-piece-hover");
+    export const AllSpaces = new CssClass("space");
+    export const StartingAreas = new CssClass("startingArea");
+    export const FinishAreas = new CssClass("finishArea");
+    export const DropTargets = new CssClasses(FinishAreas, AllSpaces);
+    export const NoLegalMoves = new CssClass("ur-no-moves");
+    export const LegalMoveHover = new CssClass("ur-legal-move-hover");
+    export const SpaceOccupied = new CssClass("ur-occupied");
+    export const MoveTarget = new CssClass("ur-move-target");
+
+    export const TurnIndicator = new SimpleSelectableId("turnIndicator");
+    export const InputArea = new SimpleSelectableId("inputArea");
+    export const DiceFeedback = new (class extends JQuerySelectable {
+        selector: string = InputArea.selector + " > p";
+    })();
+
+    export const PlayerClasses = new CssClasses(
+        new CssClass("p1"),
+        new CssClass("p2")
+        );
+
+    export const DieRotationClasses = new CssClasses(
+        new CssClass("r120"), 
+        new CssClass("r240")
+        );
+    export const GameArea = new SimpleSelectableId("gameArea");
+}
 
 interface Renderable {
     render(): Promise<void | void[]>;
@@ -8,7 +98,7 @@ interface Updateable<UpdateDescriptor> {
     update(update?:UpdateDescriptor): Promise<void>;
 }
 
-class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable {
+class Die extends SelectableId<DieId> implements Updateable<DieValue>, Renderable {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -17,40 +107,47 @@ class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable {
     }
 
     static getNew(n:number):Die {
-        return new Die(n);
+        if (n > 3 || n < 0) throw "Invlid Die id number: "+n;
+        return new Die(DieId.get(n));
     }
 
     id: DieId;    
     currentView: DieValue = 0;
     
-    private constructor(n:number) {
-        if (n > 3 || n < 0) throw "Invlid Die id number: "+n;
-        this.id = new DieId(n);
+    private constructor(id:DieId) {
+        super(id.toString());
+        this.id = id;
     }
 
     get svg(): string {
         return Die.svgMap[this.currentView];
     }
 
-    async render(): Promise<void> {
+    render(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            $(this.id.selector).load(this.svg, (response, status, xhr) => {
+            Selectors.DieRotationClasses.removeFrom(this);
+            this.jquery.load(this.svg, (response, status, xhr) => {
                 if (status === "success") {                    
-                    console.debug("Loaded view",this.currentView,"into",this.id.selector);
+                    console.debug("Loaded view",this.currentView,"into",this.selector);
                     resolve();
                 } else {
-                    let reason = "Error loading "+this.svg+" into "+this.id.selector;
+                    let reason = "Error loading "+this.svg+" into "+this.selector;
                     console.error(reason);
                     reject(reason);
                 }
             });
         });
-    }    
+    }
     
     async update(view: DieValue): Promise<void> {
-        let orientation = Math.floor(Math.random() * 3) * 120; // TODO
+        let orientation = Math.floor(Math.random() * 3); // TODO
         this.currentView = view;
-        return this.render();
+        if (orientation < 2) { // 2 === no rotation
+            await this.render();
+            Selectors.DieRotationClasses.classes[orientation].addTo(this);
+        } else {
+            return this.render();
+        }
     }
 
     clear() {
@@ -61,7 +158,7 @@ class Die implements Updateable<DieValue>, Identifiable<DieId>, Renderable {
 class RollInfo implements Updateable<DiceValue>, Identifiable<SimpleId> {
     readonly id: SimpleId;
     constructor() {
-        this.id = new SimpleId("rollInfo");
+        this.id = SimpleId.get("rollInfo");
     }
     async update(update: DiceValue): Promise<void> {
         $(this.id.selector).html("You rolled: <em class=\"rollValue\">"+update+"</em>");
@@ -75,7 +172,7 @@ class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
     readonly id: SimpleId;
     readonly dice: [Die, Die, Die, Die];
     constructor() {
-        this.id = new SimpleId("diceCup");
+        this.id = SimpleId.get("diceCup");
         this.dice = [
             Die.getNew(0),
             Die.getNew(1),
@@ -98,36 +195,36 @@ class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
     }
 }
 
-class Piece implements Renderable, Identifiable<PieceId> {
+class Piece implements Renderable, Identifiable<PieceId>, Containable<SpaceId> {
     static readonly svgPath = 'images/piece5.svg';
     readonly owner: PlayerEntity;
     readonly id: PieceId;
-    container: Identifier;
+    location: SpaceId;
 
-    constructor(id: PieceId, owner: PlayerEntity, initialContainer: Identifier) {
+    constructor(id: PieceId, owner: PlayerEntity, initialContainer: SpaceId) {
         this.id = id;
         this.owner = owner;
-        this.container = initialContainer;
+        this.location = initialContainer;
     }
 
     render(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            $(this.container.selector).append(
+            $(this.location.selector).append(
                 $("<div id=\""+this.id+"\" class=\"pieceHolder p"+this.owner+"\">")
                     .load(Piece.svgPath, (response, status, xhr) => {
                         if (status === "success") {
-                            console.debug("Loaded piece into "+this.id.selector+" under "+this.container.selector);
+                            console.debug("Loaded piece into "+this.id.selector+" under "+this.location.selector);
                             $(this.id.selector).position({
                                 my: "center",
                                 at: "center",
-                                of: $(this.container.selector)
+                                of: $(this.location.selector)
                             });
                             resolve();
                         } else {
                             let reason = "Error loading "+Piece.svgPath+" into "+this.id.selector;
                             console.error(reason);
                             reject(reason);
-                        } 
+                        }
                     }
                 )
             );
@@ -162,18 +259,23 @@ interface Enableable {
     disable(): void;
 }
 
-class UiElementImpl implements Enableable {
-    id: string;
+class HtmlButton extends JQuerySelectable implements Enableable, Identifiable<SimpleId>, Selectable {
+    id: SimpleId;
     constructor(id: string) {
-        this.id = id;
+        super();
+        this.id = SimpleId.get(id);
+        this.toString = () => id;
+    }
+    get selector() {
+        return "button"+this.id.selector;
     }
     enable(): void {
         console.debug("Enabling "+this.id);
-        $(this.id).prop("disabled", false);
+        this.jquery.prop("disabled", false);
     }
     disable(): void {
         console.debug("Disabling "+this.id);
-        $(this.id).prop("disabled", true);
+        this.jquery.prop("disabled", true);
     }
 }
 
@@ -195,10 +297,10 @@ namespace UrView {
     export let rollInfo: RollInfo = new RollInfo();
 
     export const buttons = {
-        roller: new UiElementImpl('button#roller'),
-        passer: new UiElementImpl('button#passer'),
-        starter: new UiElementImpl('button#starter'),
-        newgame: new UiElementImpl('button#newgame'),
+        roller: new HtmlButton('roller'),
+        passer: new HtmlButton('passer'),
+        starter: new HtmlButton('starter'),
+        newgame: new HtmlButton('newgame'),
     }
 
     // TODO consodidate into map
@@ -215,10 +317,10 @@ namespace UrView {
     export function initialize(handlers: UrHandlers) { // TODO fix type
         console.debug("Configuring roll/passTurn buttons.");
         
-        $(buttons.roller.id).on('click', handlers.roll);
-        $(buttons.passer.id).on('click', handlers.passTurn);
-        $(buttons.starter.id).on('click', handlers.startGame);
-        $(buttons.newgame.id).on('click', handlers.newGame);
+        buttons.roller.jquery.on('click', handlers.roll);
+        buttons.passer.jquery.on('click', handlers.passTurn);
+        buttons.starter.jquery.on('click', handlers.startGame);
+        buttons.newgame.jquery.on('click', handlers.newGame);
         moveHander = handlers.pieceMoved;
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
@@ -256,31 +358,26 @@ namespace UrView {
         initializeDraggable($('.startingArea > div'));
         
         console.debug("Configuring drag/drop for spaces.");
-        $('.space, .startingArea, .finishArea').droppable({
+        Selectors.DropTargets.jquery.droppable({
             disabled: true,
-            drop: (event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) => {
-                ui.draggable.position({
-                    my: "center",
-                    at: "center",
-                    of: $(event.target),
-                });
-                
+            drop: async (event: JQueryEventObject, ui: JQueryUI.DroppableEventUIParam) => {
                 let tid: SpaceId = SpaceId.from($(event.target).attr('id') as string);
                 var pscid: PieceId = PieceId.from($(ui.draggable).attr('id') as string);
                 console.info(pscid+" dropped in "+tid);
+                await relocatePiece(pscid, tid, true);
                 handlers.pieceMoved(pscid, tid);
             }
         });
-        $('.space, .startingArea, .finishArea').droppable("option", "classes.ui-droppable-hover", "ur-piece-hover");
+        Selectors.DropTargets.jquery.droppable("option", "classes.ui-droppable-hover", Selectors.PieceHover.toString());
     }
 
     export function disableDnD() {
         console.debug("Disabling all drag and drop");
-        $(".startingArea > div").draggable("option", {
+        Selectors.AllPieceContainers.jquery.draggable("option", {
             disabled: true,
             scope: undefined,
         });
-        $(".space, .startingArea, .finishArea").droppable({
+        Selectors.DropTargets.jquery.droppable({
             disabled: true,
             scope: undefined,
         });
@@ -306,18 +403,44 @@ namespace UrView {
         dropControl(space, enabled, scope);
     }
 
-    const LEGAL_MOVE_HOVER_CLASS = "ur-legal-move-hover";
     export function applyLegalMoveBehavior(piece:PieceId, space:SpaceId) {
-        $(piece.selector).on("mouseenter", () => {
-            $(space.selector).addClass(LEGAL_MOVE_HOVER_CLASS);
+        console.debug("Legal move behavior for "+piece+" and "+space);
+        $(piece.selector).on("mouseenter mouseover", () => {
+            // FIXME when this is registered and the mouse is already over the element, the event does not trigger.
+            Selectors.LegalMoveHover.addTo(space);
         }).on("mouseleave", () => {
-            $(space.selector).removeClass(LEGAL_MOVE_HOVER_CLASS);
+            Selectors.LegalMoveHover.removeFrom(space);
         }).on("dblclick", (event) => {
-            Promise.resolve(movePiece(piece, space)).then(() => moveHander(piece, space));
+            Promise.resolve(moveAlongPath(piece, space)).then(() => moveHander(piece, space));
         });
     }
 
-    export async function movePiece(piece:PieceId, space:SpaceId): Promise<void> {
+    export function applyNoMovesStyles(piece: PieceId) {
+        console.debug("Apply no moves styles: "+piece)
+        Selectors.NoLegalMoves.addTo(piece);
+    }
+    
+    export function removeNoMovesStyles() {
+        console.debug("Remove no moves styles from all pieces");
+        Selectors.NoLegalMoves.removeFrom(Selectors.AllPieceContainers);
+    }
+
+    const AllTurns = {
+        [EntityId.PLAYER1]: [
+            SpaceId.get(EntityId.PLAYER1, 4), 
+            SpaceId.get(EntityId.MIDDLE, 5),
+            SpaceId.get(EntityId.MIDDLE, 12),
+            SpaceId.get(EntityId.PLAYER1, 13), 
+        ],
+        [EntityId.PLAYER2]: [
+            SpaceId.get(EntityId.PLAYER2, 4),
+            SpaceId.get(EntityId.MIDDLE, 5),
+            SpaceId.get(EntityId.MIDDLE, 12),
+            SpaceId.get(EntityId.PLAYER2, 13),
+        ],
+    };
+
+    export async function movePiece(piece:PieceId, space:SpaceId, updateSpaceClass:boolean=true, starting:boolean=true, ending:boolean=true): Promise<void> {
         return new Promise((resolve, reject) => {
             $(piece.selector).position({
                 my: "center",
@@ -330,18 +453,23 @@ namespace UrView {
                         start: (promise) => {
                             // TODO is it possible to use this promise?
                             console.debug("Move animation: start");
+                            if (starting) {
+                                Selectors.PieceInMotion.addTo(piece);
+                            }
                         },
-                        done: () => {
+                        done: async () => {
                             console.debug("Move animation: done");
-                            let p = UrView.getPiece(piece);
-                            $(p.id.selector).remove();
-                            p.container = space;
-                            p.render().then(() => {
-                                initializeDraggable($(p.id.selector));
-                            }).then(resolve);
+                            if (ending) {
+                                await relocatePiece(piece, space, updateSpaceClass).then(resolve);
+                            }
                         },
                         fail: () => {
                             reject();
+                        },
+                        always: () => {
+                            if (ending) {
+                                Selectors.PieceInMotion.removeFrom(piece);
+                            }
                         },
                     });
                 }
@@ -349,24 +477,66 @@ namespace UrView {
         });
     }
 
+    async function moveAlongPath(piece: PieceId, space:SpaceId): Promise<void> {
+        let path = getPath(AllTurns[piece.owner], UrView.getPiece(piece).location, space)
+        console.debug("Move path: ["+path.join(", ")+"]");
+        const last = () => { Selectors.MoveTarget.removeFrom(space); };
+        Selectors.MoveTarget.addTo(space);
+        if (path.length === 0) {
+            await movePiece(piece, space).then(last);
+        } else {
+            await movePiece(piece, path[0]);
+            for (let i = 1; i < path.length; i++) {
+                await movePiece(piece, path[i]);
+            }
+            return movePiece(piece, space).then(last);
+        }
+    }    
+
+    function getPath(turns:SpaceId[], source:SpaceId, destination:SpaceId): SpaceId[] {
+        if (destination.trackId < source.trackId) {
+            throw "There is no path from "+source+" to "+destination;
+        }
+        if (source.trackId === destination.trackId || destination.trackId - source.trackId === 1 ) {
+            return [];
+        }
+        return turns.filter(turn => {
+            return turn.trackId > source.trackId && turn.trackId < destination.trackId;
+        });
+    }
+
+    async function relocatePiece(piece: PieceId, space: SpaceId, updateSpaceClass:boolean): Promise<void> {
+        removeLegalMoveBehavior();
+        let p = UrView.getPiece(piece);
+        if (updateSpaceClass) {
+            Selectors.SpaceOccupied.removeFrom(p.location);
+        }
+        p.location = space;
+        let previousRender = $(p.id.selector).removeAttr("id");
+        await p.render();
+        previousRender.remove();
+        if (space.trackId > 0) {
+            Selectors.SpaceOccupied.addTo(space);
+        }
+        initializeDraggable($(p.id.selector));
+    }
+
     export function removeLegalMoveBehavior() {
-        $(".pieceHolder").off("mouseenter mouseleave dblclick");
-        $(".space, .finishArea").removeClass(LEGAL_MOVE_HOVER_CLASS);
+        Selectors.AllPieceContainers.jquery.off("mouseenter mouseleave mouseover dblclick");
+        Selectors.LegalMoveHover.removeFrom(Selectors.DropTargets);
     }
 
     export function initializePieces(mask: PlayerEntity, list: PieceId[], start: SpaceId) {
         console.debug("initializePieces", mask, list);
-        return new Pieces(mask, new SpaceId(mask, 0), new SpaceId(mask, 15), list.map(pid => new Piece(pid, mask, start)));
+        return new Pieces(mask, SpaceId.get(mask, 0), SpaceId.get(mask, 15), list.map(pid => new Piece(pid, mask, start)));
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
         var message = name+"'s Turn";
-        var c = (p === EntityId.PLAYER1) ? "p1" : "p2";
-        $('#turnIndiator').attr("class", c).html(message);
+        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
         dice.clear();
-        $('#inputArea > p').html("Roll the dice");
+        Selectors.DiceFeedback.jquery.html("Roll the dice");
     }
-
 }
 
 export default UrView;

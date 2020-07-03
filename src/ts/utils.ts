@@ -25,125 +25,120 @@ export const BUCKET_MASK = EntityId.START + EntityId.FINISH;
 export const ONBOARD_MASK = EntityId.ONRAMP + EntityId.OFFRAMP + EntityId.MIDDLE;
 export const SPACE_MASK = ONBOARD_MASK + BUCKET_MASK;
 
-export abstract class Identifier {
-    protected constructor(type:string, subtype:Maybe<string>, number: Maybe<number>) {
-        const id = type + (subtype === undefined ? "" : subtype.toUpperCase()) + (number === undefined ? "" : number);
-        this.toString = () => id;
+export abstract class AName {
+    protected constructor(name:string) {
+        this.toString = () => name;
+    }
+}
+
+export interface Selectable {
+    readonly selector: string;
+}
+
+export abstract class Identifier extends AName implements Selectable {
+    protected static REPO = new Map<string, Identifier>();
+
+    protected constructor(id:string) {
+        super(id);
+        if (!Identifier.REPO.has(id)) {
+            Identifier.REPO.set(id, this);
+        }
     }
     get selector(): string {
         return "#"+this.toString();
     }
-    equals(obj:any): boolean {
+
+    equals(obj:Identifier): boolean {
         if (obj instanceof Identifier) {
-            return this.toString() === (obj as Identifier).toString();
+            return this.toString() === obj.toString();
         }
         return false;
     }
-    protected static parseError(input:string, exception?:any): string {
-        return "'" + input + "' is not a " + typeof this + (exception === undefined ? "" : ": "+exception);
+
+    protected static checkValid(regex:RegExp, input:string) {
+        let rval = regex.exec(input);
+        if (rval === null) {
+            throw "'"+input+"' is not a valid "+typeof this;
+        }
+        return rval;
+    }
+
+    protected static getOrCreate<T extends Identifier>(id:string, create:()=>T): T {
+        return this.REPO.get(id) as T || create();
     }
 }
 
 export class DieId extends Identifier {
-    private static readonly PREFIX = "die";
-    constructor(n:number) {
-        super(DieId.PREFIX, undefined, n);
+    public static get(n:number) {
+        const id = "die"+n;
+        return this.getOrCreate(id, () => new DieId(id));
     }
-    static from(id:string): DieId {
-        if (!id.startsWith(this.PREFIX)) {
-            throw this.parseError(id);
-        }
-        let n:number;
-        try {
-            n = parseInt(id.substring(this.PREFIX.length));
-        } catch (e) {
-            throw this.parseError(id, e);
-        }
-        return new SimpleId(id);
+
+    public static from(id:string) {
+        let matches = this.checkValid(/^die(\d+)$/, id);
+        return this.get(parseInt(matches[1]));
     }
 }
 
 export class SimpleId extends Identifier {
-    constructor(id:string) {
-        super(id, undefined, undefined);
-    }
-    static from(id:string): SimpleId {
-        return new SimpleId(id);
+    public static get(id:string) {
+        return this.getOrCreate(id, () => new SimpleId(id));
     }
 }
 
 export class PieceId extends Identifier {
-    private static readonly PREFIX = "pc";
-    constructor(owner:PlayerEntity, n:number) {
-        super(PieceId.PREFIX, UrUtils.StringId[owner], n)
+    readonly owner:PlayerEntity;
+    private constructor(id:string, owner:PlayerEntity) {
+        super(id);
+        this.owner = owner
     }
-    static from(id:string): PieceId {
-        if (!id.startsWith(this.PREFIX)) {
-            throw this.parseError(id);
-        }
-        let subtype = id.charAt(this.PREFIX.length);
-        let owner: PlayerEntity | undefined;
-        if (subtype === UrUtils.StringId[EntityId.PLAYER1]) {
-            owner = EntityId.PLAYER1;
-        } else if (subtype === UrUtils.StringId[EntityId.PLAYER2]) {
-            owner = EntityId.PLAYER2;
-        } else {
-            throw this.parseError(id);
-        }
+    public static get(owner:PlayerEntity, n:number) {
+        const id = "pc"+UrUtils.toIdentifierPart(owner)+n;
+        return this.getOrCreate(id, () => new PieceId(id, owner));
+    }
 
-        let n: number;
-        try {
-            n = parseInt(id.substring(this.PREFIX.length + 1));
-        } catch (e) {
-            throw this.parseError(id, e);
-        }
-        return new SimpleId(id);
+    public static from(id:string) {
+        const matches = this.checkValid(/^pc([AB])(\d+)$/, id);
+        return this.get(UrUtils.toEntityId(matches[1]) as PlayerEntity, parseInt(matches[2]));
     }
 }
 
 export class SpaceId extends Identifier {
-    private static readonly PREFIX = "s";
-    constructor(column:SpaceColumn, n:number) {
-        super(SpaceId.PREFIX, UrUtils.StringId[column], n);
+    readonly trackId: number;
+
+    private constructor(id:string, trackId:number) {
+        super(id);
+        this.trackId = trackId;
     }
-    static from(id:string): SpaceId {
-        if (!id.startsWith(this.PREFIX)) {
-            throw this.parseError(id);
-        }
-        
-        let subtype = id.charAt(this.PREFIX.length);
-        let column: SpaceColumn | undefined;
-        if (subtype === UrUtils.StringId[EntityId.PLAYER1]) {
-            column = EntityId.PLAYER1;
-        } else if (subtype === UrUtils.StringId[EntityId.PLAYER2]) {
-            column = EntityId.PLAYER2;
-        } else if (subtype === UrUtils.StringId[EntityId.MIDDLE]) {
-            column = EntityId.MIDDLE;
-        } else {
-            throw this.parseError(id);
-        }
+    public static get(column:SpaceColumn, n:number) {
+        const id = "s" + UrUtils.toIdentifierPart(column) + n;
+        return this.getOrCreate(id, () => new SpaceId(id, n));
+    }
 
-        let n: number;
-        try {
-            n = parseInt(id.substring(this.PREFIX.length + 1));
-        } catch (e) {
-            throw this.parseError(id, e);
-        }
-
-        return new SimpleId(id);
+    public static from(id: string) {
+        const matches = this.checkValid(/^s([ABM])(\d+)$/, id);
+        const column = (() => {
+            switch(matches[1]) {
+                case 'A': return EntityId.PLAYER1;
+                case 'B': return EntityId.PLAYER2;
+                case 'M': return EntityId.MIDDLE;
+                default: throw "'"+id+"' is not a SpaceId";
+            }
+        })();
+        return this.get(column, parseInt(matches[2]))
     }
 }
 
-export interface Identifiable<T extends Identifier> {
-    readonly id: T;
+export interface Identifiable<ID extends Identifier> {
+    readonly id: ID;
 }
 
-export interface Container<ElementID extends Identifier> {
-    occupants: ElementID[];
+export interface Container<ContainableType extends Identifier> {
+    occupants: ContainableType[];
 }
 
-export interface Containable<ContainerID extends Identifier> {
-    location: ContainerID;
+export interface Containable<ContainerType extends Identifier> {
+    location: ContainerType;
 }
 
 export enum GameState {
@@ -216,7 +211,7 @@ export interface UrHandlers {
     roll(): void;
     passTurn(): void;
     startGame(): void;
-    pieceMoved(pid:PieceId, sid:SpaceId): void;
+    pieceMoved(piece:Identifier, space:Identifier): void;
 }
 
 export type DieValue =  0 | 1;
@@ -228,20 +223,37 @@ export namespace UrUtils {
     export const PIECE_ID_PREFIX: string = "pc-";
 
     export function getPieceId(player: PlayerEntity, n:number) {
-        return PIECE_ID_PREFIX + StringId[player] + n;
+        return PIECE_ID_PREFIX + toIdentifierPart(player) + n;
+    }
+
+    export function asSelectable(s:string): Selectable {
+        return new (class implements Selectable {
+            selector: string = s;
+        })();
     }
 
     export function getSpaceId(space: SpaceEntity, n:number) {
         isValidSpace(space);
         let mask = PLAYER_MASK + EntityId.MIDDLE;
-        let index: (PlayerEntity | EntityId.MIDDLE) = space & mask;
-        return SPACE_ID_PREFIX + StringId[index] + n;
+        let index: SpaceColumn = space & mask;
+        return SPACE_ID_PREFIX + toIdentifierPart(index) + n;
     }
 
-    export const StringId = {
-        [EntityId.PLAYER1]: "A",
-        [EntityId.PLAYER2]: "B",
-        [EntityId.MIDDLE]: "M",
+    export function toIdentifierPart(entityId:SpaceColumn) {
+        switch(entityId) {
+            case EntityId.PLAYER1: return 'A';
+            case EntityId.PLAYER2: return 'B';
+            case EntityId.MIDDLE: return 'M';
+            default: return undefined;
+        }
+    }
+    export function toEntityId(idPart:string) {
+        switch(idPart) {
+            case 'A': return EntityId.PLAYER1;
+            case 'B': return EntityId.PLAYER2;
+            case 'M': return EntityId.MIDDLE;
+            default: return undefined;
+        }
     }
 
     export function isValidSpace(t: EntityId) {
@@ -295,4 +307,26 @@ export namespace UrUtils {
         return (player ^ PLAYER_MASK) & PLAYER_MASK;
     }
 }
+class BoardSkeleton {
+    readonly track = {
+        [EntityId.PLAYER1]: new Array<SpaceId>(16),
+        [EntityId.PLAYER2]: new Array<SpaceId>(16),
+    }
+    constructor() {
+        let i = 0;
+        for (; i < 5; i++) {
+            this.track[EntityId.PLAYER1][i] = SpaceId.get(EntityId.PLAYER1, i);
+            this.track[EntityId.PLAYER2][i] = SpaceId.get(EntityId.PLAYER2, i);
+        }
+        for (; i < 13; i++) {
+            this.track[EntityId.PLAYER1][i] = SpaceId.get(EntityId.MIDDLE, i);
+            this.track[EntityId.PLAYER2][i] = SpaceId.get(EntityId.MIDDLE, i);
+        }
+        for (; i < 16; i++) {
+            this.track[EntityId.PLAYER1][i] = SpaceId.get(EntityId.PLAYER1, i);
+            this.track[EntityId.PLAYER2][i] = SpaceId.get(EntityId.PLAYER2, i);
+        }
+    }
+}
+export const BOARD = new BoardSkeleton();
 
