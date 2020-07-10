@@ -394,7 +394,7 @@ class GameEngine {
         };
 
         await loop({count:1, next:currentAction}, async (action:GameAction):Promise<GameAction|undefined> => {
-            const dstState = await this.doTransition((action as GameAction));
+            const dstState = await this.doTransition(action);
             switch (dstState.type) {
                 case GameStateType.TEMP:
                 case GameStateType.FORK:
