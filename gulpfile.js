@@ -28,9 +28,9 @@ function copyFiles(srcPattern, destDir) {
 var tsProject = gtsc.createProject('tsconfig.json');
 async function info() {
     console.log("Sources");
-    console.log("-----------------------")
+    console.log("-----------------------");
     console.log("node: ",SRC_NODE);
-    console.log("ts:   ",tsProject.config.include)
+    console.log("ts:   ",tsProject.config.include);
 }
 
 function node() {
@@ -75,8 +75,7 @@ function images() {
                 file.contents = Buffer.from(contents, 'utf8');
                 cb(null, file);
             }))
-            .pipe(decomment({trim:true}))
-            .pipe(gulp.dest(WWW_IMAGES));
+            .pipe(decomment({trim:true})).pipe(gulp.dest(WWW_IMAGES));
 }
 
 async function clean() {
