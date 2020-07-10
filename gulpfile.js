@@ -91,6 +91,7 @@ function watch() {
     gulp.watch(SRC_PNG, images);
     gulp.watch(SRC_BG_SVG, images);
     gulp.watch(tsProject.config.include, ts);
+    gulp.watch("tsconfig.json", ts);
 }
 
 exports.clean = clean;
