@@ -1,168 +1,34 @@
 import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
 import UrView from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, Maybe, Identifier, StateRepository, GameStateType, AGameState, ActionRepository, TransitionRepository, OuterTransitionMethod, ATempState, AGameAction, Repository } from './utils.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, Identifier, ActionRepository, TransitionRepository, AGameAction, Repository } from './utils.js';
 
 let VIEW = UrView;
 let MODEL: UrModel;
 
 
 //#region States
-
-type ConditionalAction = (()=>GameAction);
-type InnerTransitionMethod = ((action:GameAction)=>GameState|undefined);
- 
-let STATES: StateRepository = (()=>{
-    let rval: any = {};
-    let buildTransitionMethod = (thiz:any, transition:InnerTransitionMethod):OuterTransitionMethod => ((action:GameAction) => {
-        let t = transition(action);
-        if (t === undefined) throw "Cannot transition from "+GameState[thiz.id]+" through "+GameAction[action];
-        else return rval[t];
-    });
-    let buildState = (id:GameState, type:GameStateType, transition:InnerTransitionMethod, edges:GameAction[], condition?:ConditionalAction):void => {
-        switch (type) {
-            case GameStateType.TERMINAL:
-                if (condition !== undefined) {
-                    console.warn("Building a USER state, but a condition was still given:", condition);
-                }
-                rval[id] = new (class implements AGameState {
-                    id = id;
-                    type = type;
-                    peekNext = buildTransitionMethod(this, transition);
-                    edges = edges;
-                })();
-                break;
-            case GameStateType.EPHEMERAL:
-                console.assert(edges.length === 1);
-
-                rval[id] = new (class implements ATempState {
-                    id = id;
-                    type = type;
-                    peekNext = buildTransitionMethod(this, transition);
-                    action = edges[0];
-                    edges = edges;
-                })();
-                break;
-            case GameStateType.CONDITIONAL:
-                console.assert(edges.length > 0 && condition !== undefined);
-
-                rval[id] = new (class implements ATempState {
-                    id = id;
-                    type = type;
-                    peekNext = buildTransitionMethod(this, transition);
-                    get action() {
-                        return (condition as ConditionalAction)();
-                    }
-                    edges = edges;
-                })();
-                break;
-        }
-        console.debug("Created GameState "+GameState[id]);
-    };
-    let buildSimpleState = (id:GameState, op:GameAction, next: GameState, instant:boolean = false) => {
-        let transition = (a:GameAction) => {
-            if (a === op) return next;
-            else return undefined;
-        }
-        if (instant) {
-            buildState(id, GameStateType.EPHEMERAL, transition, [op]);
-        } else {
-            buildState(id, GameStateType.TERMINAL, transition, [op]);
-        }
-    };
-    let buildForkState = (id:GameState, condition:ConditionalAction, choices:{[op in GameAction]?:GameState}) => {
-        buildState(id, GameStateType.CONDITIONAL, (a:GameAction) => choices[a], Object.keys(choices).map(e => parseInt(e)), condition);
-    };
-
-    buildSimpleState(GameState.Initial, GameAction.Initialize, GameState.PreGame);
-    buildSimpleState(GameState.PreGame, GameAction.StartGame, GameState.PlayersReady);
-    buildSimpleState(GameState.PlayersReady, GameAction.SetupGame, GameState.TurnStart, true);
-    buildSimpleState(GameState.TurnStart, GameAction.StartingTurn, GameState.PreRoll, true); // TODO can this state be cut?
-    buildSimpleState(GameState.PreRoll, GameAction.ThrowDice, GameState.Rolled);
-    buildSimpleState(GameState.Rolled, GameAction.EnableLegalMoves, GameState.PreMove, true);
-    // buildForkState(GameState.Rolled, 
-    //     ()=>{ return (MODEL.turn.rollValue === 0) ? GameAction.TurnEnding : GameAction.EnableLegalMoves },
-    //     {
-    //         [GameAction.TurnEnding]: GameState.EndTurn,
-    //         [GameAction.EnableLegalMoves]: GameState.PreMove
-    //     });
-    buildForkState(GameState.PreMove, 
-        ()=>{ 
-            if (MODEL.turn.noLegalMoves) {
-                console.debug("No legal moves");
-                // TODO this should have it's own transition for updating the view.
-                return GameAction.TurnEnding;
-            } else {
-                return GameAction.MovesAvailable;
-            }
-        },
-        {
-            [GameAction.TurnEnding]: GameState.EndTurn,
-            [GameAction.MovesAvailable]: GameState.ReadyToMove,
-        });
-    buildSimpleState(GameState.ReadyToMove, GameAction.MovePiece, GameState.PieceDropped);
-    buildSimpleState(GameState.PieceDropped, GameAction.FreezeBoard, GameState.Moved, true);
-    buildForkState(GameState.Moved, 
-        ()=> {
-            if (MODEL.turn.rosette) return GameAction.RosetteBonus;
-            if (MODEL.turn.knockout) return GameAction.KnockoutOpponent;
-            if (MODEL.turn.scored) return GameAction.PieceScored;
-            return GameAction.MoveFinished;
-        },
-        {
-            [GameAction.RosetteBonus]: GameState.PostMove,
-            [GameAction.KnockoutOpponent]: GameState.PostMove,
-            [GameAction.MoveFinished]: GameState.PostMove,
-            [GameAction.PieceScored]: GameState.CheckScore,
-        });
-    buildSimpleState(GameState.PostMove, GameAction.TurnEnding, GameState.EndTurn, true);
-    buildForkState(GameState.CheckScore,
-        () => {
-            console.info("Score: "+MODEL.score[EntityId.PLAYER1]+" - "+MODEL.score[EntityId.PLAYER2]);
-            let playerPieces = MODEL.currentPlayer.pieces;
-            for (let p of playerPieces) {
-                if ((p.location.type & EntityId.FINISH) === 0) {
-                    return GameAction.TurnEnding; // found piece not finished
-                }
-            }
-            return GameAction.AllFinished;
-        },
-        {
-            [GameAction.TurnEnding]: GameState.EndTurn,
-            [GameAction.AllFinished]: GameState.GameOver,
-        });
-    buildSimpleState(GameState.EndTurn, GameAction.PassTurn, GameState.TurnStart);
-    buildSimpleState(GameState.GameOver, GameAction.ShowWinner, GameState.PostGame, true);
-    buildSimpleState(GameState.PostGame, GameAction.NewGame, GameState.PlayersReady);
-
-    return rval as StateRepository;
-})();
-
-function simple(action:GameAction) {
-    return new NonTerminalState(action);
-}
-
 interface EphemeralState {
-    todo: GameAction;
+    nextAction: GameAction;
 }
 
 class NonTerminalState implements EphemeralState {
-    todo: GameAction;
-    constructor(action:GameAction) {
-        this.todo = action;
+    nextAction: GameAction;
+    constructor(nextAction:GameAction) {
+        this.nextAction = nextAction;
     }
 }
 
 abstract class JunctionState implements EphemeralState {
-    get todo() {
+    get nextAction() {
         return this.computeNext();
     }
     protected abstract computeNext(): GameAction;
 }
 
 const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
-    [GameState.PlayersReady]: simple(GameAction.SetupGame),
-    [GameState.TurnStart]: simple(GameAction.StartingTurn),
-    [GameState.Rolled]: simple(GameAction.EnableLegalMoves),
+    [GameState.PlayersReady]: new NonTerminalState(GameAction.SetupGame),
+    [GameState.TurnStart]: new NonTerminalState(GameAction.StartingTurn),
+    [GameState.Rolled]: new NonTerminalState(GameAction.EnableLegalMoves),
     [GameState.PreMove]: new (class extends JunctionState {
         protected computeNext(): GameAction {
             if (MODEL.turn.noLegalMoves) {
@@ -174,7 +40,7 @@ const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
             }
         }
     })(),
-    [GameState.PieceDropped]: simple(GameAction.FreezeBoard),
+    [GameState.PieceDropped]: new NonTerminalState(GameAction.FreezeBoard),
     [GameState.Moved]: new (class extends JunctionState {
         protected computeNext(): GameAction {
             if (MODEL.turn.rosette) return GameAction.RosetteBonus;
@@ -183,7 +49,7 @@ const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
             return GameAction.MoveFinished;
         }
     })(),
-    [GameState.PostMove]: simple(GameAction.TurnEnding),
+    [GameState.PostMove]: new NonTerminalState(GameAction.TurnEnding),
     [GameState.CheckScore]: new (class extends JunctionState {
         protected computeNext(): GameAction {
             console.info("Score: "+MODEL.score[EntityId.PLAYER1]+" - "+MODEL.score[EntityId.PLAYER2]);
@@ -196,7 +62,7 @@ const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
             return GameAction.AllFinished;
         }
     })(),
-    [GameState.GameOver]: simple(GameAction.ShowWinner),
+    [GameState.GameOver]: new NonTerminalState(GameAction.ShowWinner),
 }
 
 //#endregion
@@ -460,22 +326,6 @@ class GameEngine {
         console.debug("GameEngine initialized. state="+GameState[this._model.state]);
     }
 
-    private get currentState(): GameState {
-        return this._model.state;
-    }
-    private set currentState(id: GameState) {
-        this._model.state = id;
-    }
-
-    private get currentStateImpl(): AGameState {
-        return STATES[this.currentState];
-    }
-
-    private peekNext(action: GameAction): Maybe<AGameState> {
-        return this.currentStateImpl.peekNext(action);
-        // return this._model.edges[this.currentState].transitions[action];
-    }
-
     private async loop(init:{count:number, next:GameAction}): Promise<number> {
         const next = await this.executeTransition(init.next);
         if (next === undefined) {
@@ -486,36 +336,23 @@ class GameEngine {
     }
 
     private async executeTransition(action:GameAction): Promise<GameAction|undefined> {
-        console.debug(GameState[this.currentState]+".doTransition: "+GameAction[action]);
-        const dstState = this.peekNext(action);
+        console.debug(GameState[this._model.state]+".doTransition: "+GameAction[action]);
+        const dstState = TRANSITIONS[this._model.state][action];
         if (dstState === undefined) {
-            return Promise.reject("Transition from "+GameState[this.currentState]+" via "+GameAction[action]+" did not return a state.");
+            return Promise.reject("Transition from "+GameState[this._model.state]+" via "+GameAction[action]+" is undefined.");
         }
 
         await ACTIONS[action].run();
 
-        console.debug(GameState[this._model.state]+" --> "+GameState[dstState.id]);
-        this.currentState = dstState.id;
+        console.debug(GameState[this._model.state]+" --> "+GameState[dstState]);
+        this._model.state = dstState;
 
-        switch (dstState.type) {
-            case GameStateType.TERMINAL:
-                return undefined;
-            default:
-                let nextAction = (dstState as ATempState).action;
-                if (nextAction === undefined) {
-                    return Promise.reject("Got undefined action from a " + dstState.type + " state: " + dstState);
-                }
-                return nextAction;
-        }
+        return EPHEMERAL_STATES[this._model.state]?.nextAction;
     }
 
     async do(currentAction: GameAction): Promise<void> {
-        await this.loop({count:1, next:currentAction})
-            .then((i:number):void => {
-                console.debug("Finished transition loop after "+i+" iterations");
-                console.assert(this.currentStateImpl.type === GameStateType.TERMINAL);
-                console.debug("Waiting on "+GameAction[this.currentStateImpl.edges[0]]);
-            });
+        // TODO It'd be nice to know what action is pending.
+        await this.loop({count:1, next:currentAction});
     }
 
 }
@@ -563,16 +400,6 @@ namespace UrController {
     }
     
     export async function initialize() {
-        let p1Info = {
-            mask: EntityId.PLAYER1 as PlayerEntity,
-            id: UrUtils.toIdentifierPart(EntityId.PLAYER1),
-            name: "Player 1"
-        }
-        let p2Info = {
-            mask: EntityId.PLAYER2 as PlayerEntity,
-            id: UrUtils.toIdentifierPart(EntityId.PLAYER2),
-            name: "Player 2"
-        }
 
         let p1 = new Player("Player 1", EntityId.PLAYER1);
         let p2 = new Player("Player 2", EntityId.PLAYER2);
