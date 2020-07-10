@@ -1,4 +1,4 @@
-import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId, GameAction} from './utils.js';
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId, GameAction, AStateOwner} from './utils.js';
 
 export class TurnData {
     private static COUNTER = 1;
@@ -246,7 +246,7 @@ export class Board {
     }
 }
 
-export interface StateOwner {
+export interface StateOwner extends AStateOwner<GameState> {
     state: GameState;
 }
 
