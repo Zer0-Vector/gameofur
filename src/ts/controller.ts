@@ -97,12 +97,13 @@ let STATES: StateRepository = (()=>{
     buildSimpleState(GameState.PlayersReady, GameAction.SetupGame, GameState.TurnStart, true);
     buildSimpleState(GameState.TurnStart, GameAction.StartingTurn, GameState.PreRoll, true); // TODO can this state be cut?
     buildSimpleState(GameState.PreRoll, GameAction.ThrowDice, GameState.Rolled);
-    buildForkState(GameState.Rolled, 
-        ()=>{ return (MODEL.turn.rollValue === 0) ? GameAction.TurnEnding : GameAction.EnableLegalMoves },
-        {
-            [GameAction.TurnEnding]: GameState.EndTurn,
-            [GameAction.EnableLegalMoves]: GameState.PreMove
-        });
+    buildSimpleState(GameState.Rolled, GameAction.EnableLegalMoves, GameState.PreMove, true);
+    // buildForkState(GameState.Rolled, 
+    //     ()=>{ return (MODEL.turn.rollValue === 0) ? GameAction.TurnEnding : GameAction.EnableLegalMoves },
+    //     {
+    //         [GameAction.TurnEnding]: GameState.EndTurn,
+    //         [GameAction.EnableLegalMoves]: GameState.PreMove
+    //     });
     buildForkState(GameState.PreMove, 
         ()=>{ 
             if (MODEL.turn.noLegalMoves) {
