@@ -312,6 +312,17 @@ namespace UrView {
         return p2Pieces.pieces.get(id) as Piece;
     }
 
+    function getPieces(player: PlayerEntity) {
+        switch (player) {
+            case EntityId.PLAYER1:
+                return p1Pieces;
+            case EntityId.PLAYER2:
+                return p2Pieces;
+            default:
+                throw "Not a player id: "+player;
+        }
+    }
+
     let moveHander:(pid:PieceId,sid:SpaceId)=>void;
 
     export function initialize(handlers: UrHandlers) { // TODO fix type
@@ -536,6 +547,32 @@ namespace UrView {
         Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
         dice.clear();
         Selectors.DiceFeedback.jquery.html("Roll the dice");
+    }
+
+    export function showWinnder(p: PlayerEntity, name: String) {
+        let message = name+ " Wins!";
+        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
+        dice.clear();
+        Selectors.DiceFeedback.jquery.empty();
+    }
+
+
+    export async function startWinnerAnimation(winner: PlayerEntity) {
+        removeNoMovesStyles();
+        let loserPieces = Array.from(getPieces(UrUtils.getOpponent(winner)).pieces.values());
+
+        for (let i = 0; i < loserPieces.length; i++) {
+            let lp = loserPieces[i]
+            let left = Math.floor((Math.random() - 0.5) * 500);
+            let operator = left >= 0 ? '+=' : '-=';
+            $(lp.id.selector).animate({
+                top: '+=1000',
+                left: operator + Math.abs(left) 
+            }, {
+                duration: 1500,
+                easing: "easeInExpo",
+            });
+        }
     }
 }
 

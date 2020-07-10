@@ -311,6 +311,8 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.ShowWinner, async () => {
             console.info("** "+MODEL.currentPlayer.name.toUpperCase()+" WINS! **");
             VIEW.removeNoMovesStyles();
+            VIEW.showWinnder(MODEL.currentPlayer.mask, MODEL.currentPlayer.name);
+            VIEW.startWinnerAnimation(MODEL.currentPlayer.mask);
         });
         return rval as ActionRepository;
     })();
