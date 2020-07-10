@@ -422,7 +422,7 @@ namespace UrView {
         }).on("mouseleave", () => {
             Selectors.LegalMoveHover.removeFrom(space);
         }).on("dblclick", (event) => {
-            Promise.resolve(moveAlongPath(piece, space)).then(() => moveHander(piece, space));
+            Promise.resolve(moveAlongPath(piece, space, 300)).then(() => moveHander(piece, space));
         });
     }
 
@@ -451,7 +451,7 @@ namespace UrView {
         ],
     };
 
-    export async function movePiece(piece:PieceId, space:SpaceId, updateSpaceClass:boolean=true, starting:boolean=true, ending:boolean=true): Promise<void> {
+    export async function movePiece(piece:PieceId, space:SpaceId, durationMs:number, updateSpaceClass:boolean=true, starting:boolean=true, ending:boolean=true): Promise<void> {
         return new Promise((resolve, reject) => {
             $(piece.selector).position({
                 my: "center",
@@ -460,7 +460,7 @@ namespace UrView {
                 using: (pos:any) => {
                     console.debug("Animating: "+piece+" to "+space);
                     $(piece.selector).animate(pos, {
-                        duration: 500,
+                        duration: durationMs,
                         start: (promise) => {
                             // TODO is it possible to use this promise?
                             console.debug("Move animation: start");
@@ -471,6 +471,7 @@ namespace UrView {
                         done: async () => {
                             console.debug("Move animation: done");
                             if (ending) {
+                                Selectors.PieceInMotion.removeFrom(piece);
                                 await relocatePiece(piece, space, updateSpaceClass).then(resolve);
                             }
                         },
@@ -488,19 +489,22 @@ namespace UrView {
         });
     }
 
-    async function moveAlongPath(piece: PieceId, space:SpaceId): Promise<void> {
+    async function moveAlongPath(piece: PieceId, space:SpaceId, totalDurationMs:number): Promise<void> {
         let path = getPath(AllTurns[piece.owner], UrView.getPiece(piece).location, space)
         console.debug("Move path: ["+path.join(", ")+"]");
-        const last = () => { Selectors.MoveTarget.removeFrom(space); };
+        const doLast = () => { 
+            Selectors.MoveTarget.removeFrom(space);
+        };
         Selectors.MoveTarget.addTo(space);
         if (path.length === 0) {
-            await movePiece(piece, space).then(last);
+            await movePiece(piece, space, totalDurationMs).then(doLast);
         } else {
-            await movePiece(piece, path[0]);
+            let duration = totalDurationMs / (path.length + 1);
+            await movePiece(piece, path[0], duration);
             for (let i = 1; i < path.length; i++) {
-                await movePiece(piece, path[i]);
+                await movePiece(piece, path[i], duration);
             }
-            return movePiece(piece, space).then(last);
+            return movePiece(piece, space, duration).then(doLast);
         }
     }    
 
@@ -525,6 +529,7 @@ namespace UrView {
         p.location = space;
         let previousRender = $(p.id.selector).removeAttr("id");
         await p.render();
+        $(p.id.selector).attr("class", previousRender.attr("class") as string);
         previousRender.remove();
         if (space.trackId > 0) {
             Selectors.SpaceOccupied.addTo(space);

@@ -283,7 +283,7 @@ let ACTIONS: ActionRepository = (() => {
             }
             console.assert(MODEL.turn.knockedPiece.owner === UrUtils.getOpponent(MODEL.turn.player));
             
-            await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id, false);
+            await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id, 300, false);
         })
         actionMaker(GameAction.PieceScored, async ()=>{
             console.info(MODEL.currentPlayer.name + " scored!");
@@ -354,7 +354,7 @@ class MoveComputer {
             legal.set(p.id, {
                 piece: p,
                 space: candidate,
-                id: p.id+"_"+candidate.distanceFromStart,
+                id: "move"+candidate.distanceFromStart,
             });
         }
         return legal;
