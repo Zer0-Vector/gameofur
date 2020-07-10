@@ -68,17 +68,8 @@
     --piece-stack-offset: calc(3 * var(--piece-stroke-width));
 }
 
-.startingArea .pieceHolder .piece, 
-#board .piece,
-.startingArea .pieceHolder ~ .pieceHolder.ur-piece-in-motion .piece {
-    filter: drop-shadow(3px 3px 3px #000);
-}
-
-.startingArea .pieceHolder ~ .pieceHolder .piece {
-    filter: none;
-}
-
 .piece {
+    filter: drop-shadow(3px 3px 3px #000);
     stroke-width: var(--piece-stroke-width);
     stroke: black;
 }
@@ -135,6 +126,7 @@ html {
 body {
     margin: 25px;
     text-align: center;
+    overflow: hidden;
 }
 
 body > div {
@@ -177,7 +169,7 @@ h1 {
     z-index: var(--z-layer-board);
 }
 
-#board div.space {
+.space {
     width: var(--space-width);
     height: var(--space-height);
     border: var(--space-border-width) var(--space-border-color) solid;
@@ -187,67 +179,71 @@ h1 {
     background-position: center;
 }
 
-#board div.space.r1 {
+.space.r1 {
     top: var(--row1-top);
 }
-#board div.space.r2 {
+.space.r2 {
     top: var(--row2-top);
 }
-#board div.space.r3 {
+.space.r3 {
     top: var(--row3-top);
 }
-#board div.space.r4 {
+.space.r4 {
     top: var(--row4-top);
 }
-#board div.space.r5 {
+.space.r5 {
     top: var(--row5-top);
 }
-#board div.space.r6 {
+.space.r6 {
     top: var(--row6-top);
 }
-#board div.space.r7 {
+.space.r7 {
     top: var(--row7-top);
 }
-#board div.space.r8 {
+.space.r8 {
     top: var(--row8-top);
 }
 
-#board div.space.p1 {
+.space.p1 {
     background-color: var(--color-p1-lighter);
+}
+.space.c1 {
     left: var(--col1-left);
 }
-#board div.space.middle {
+.space.c2 {
     left: var(--col2-left);
 }
-#board div.space.p2 {
+.space.p2 {
     background-color: var(--color-p2-lighter);
+}
+.space.c3 {
     left: var(--col3-left);
 }
 
-#board div.space.rosette {
+.space.rosette {
     background-image: url('/images/bg/rosette.svg');
 }
 
-#board div.space.eyes {
+.space.eyes {
     background-image: url('/images/bg/eyes0.svg');
 }
-#board div.space.eyes.p2 {
+.space.eyes.p2 {
     background-image: url('/images/bg/eyes1.svg');
 }
 
-#board div.space.bigfivedots {
+.space.bigfivedots {
     background-image: url('/images/bg/bigfivedots.svg');
 }
 
-#board div.space.maze {
+.space.maze {
     background-image: url('/images/bg/maze.svg');
 }
 
-#board div.space.fourfivedots {
+.space.fourfivedots {
     background-image: url('/images/bg/fourfivedots.svg');
 }
 
-#board div.space.middlefivedots {
+.space.middlefivedots {
     background-image: url('/images/bg/middlefivedots.svg');
 }
 
@@ -270,39 +266,42 @@ h1 {
     z-index: var(--z-layer-bottom);
 }
 
-.startingArea {
-    width: var(--space-width);
-    height: var(--space-height);
-    border: var(--space-border-width) dotted;
-    position: absolute;
-    top: var(--startarea-top);
+.space {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.startingArea.p1 {
-    border-color: var(--color-p1);
-    left: var(--startarea-left);
+
+.space.bucket {
+    background: unset;
+    border: unset;
+    min-width: calc(var(--space-width) + 2 * var(--space-border-width));
+    width: fit-content;
+    height: calc(var(--space-height) + var(--space-border-width));
 }
-.startingArea.p2 {
-    border-color: var(--color-p2);
-    left: calc(-1 * var(--startarea-left));
+
+.space.bucket .pieceHolder {
+    padding: 0 5px;
 }
-.finishArea {
-    position: absolute;
-    width: var(--space-width);
-    height: var(--space-height);
-    border: var(--space-border-width) dashed;
-    top: var(--finisharea-top);
+
+.space.bucket.c1 {
+    justify-content: right;
+    flex-direction: row-reverse;
+    left: unset;
+    right: var(--col3-left);
 }
-.finishArea.p1 {
-    border-color: var(--color-p1-lighter);
-    left: var(--startarea-left);
+
+.space.bucket.c3 {
+    justify-content: left;
+    flex-direction: row;
 }
-.finishArea.p2 {
-    border-color: var(--color-p2-lighter);
-    left: calc(-1 * var(--startarea-left));
+
+.space.startingArea {
+    border-bottom: var(--space-border-color) dashed var(--space-border-width);
 }
+
 /* Pieces divs */
 .pieceHolder {
-    position: absolute;
     width: fit-content;
     height: fit-content;
     padding: 0;
@@ -310,7 +309,9 @@ h1 {
     z-index: var(--z-layer-pieces);
 }
 
-.pieceHolder.ui-draggable-dragging { /* keep active piece on top */
+.pieceHolder.ui-draggable-dragging,
+.pieceHolder.ur-piece-in-motion { /* keep active piece on top */
+    position: absolute;
     z-index: calc(var(--z-layer-pieces) + 5);
 }
 
@@ -322,53 +323,63 @@ h1 {
     text-align: center;
     margin: 10px;
 }
+
 #userArea > div {
     padding: 10px;
 }
+
 #diceCup > div {
     display: inline-block;
 }
 
-#board .ur-piece-hover,
+.ur-piece-hover,
 .ur-move-target {
-    box-shadow: inset 0 0 5px 5px #f0f !important;
     z-index: calc(var(--z-layer-board) - 1); /* just under the space; TODO is this needed? */
 }
 
-.ur-legal-move-hover {
+.ur-piece-hover.ur-action-p1,
+.ur-move-target.ur-action-p1 {
+    box-shadow: inset 0 0 10px 10px var(--color-p1-dark) !important;
+}
+
+.ur-piece-hover.ur-action-p2,
+.ur-move-target.ur-action-p2 {
+    box-shadow: inset 0 0 10px 10px var(--color-p2-dark) !important;
+}
+
+.ur-legal-move-space {
     z-index: calc(var(--z-layer-board) + 1);
 }
-.space.ur-legal-move-hover::after {
+
+.space.ur-legal-move-space.ur-occupied::after {
+    filter: invert(75%) blur(5px);
+}
+
+.space.ur-legal-move-space::after,
+.finishArea.ur-legal-move-space::after {
     content: url("/images/piece0.svg");
     position: absolute;
-    top:50%;
-    transform: translateX(-50%) translateY(-50%);
-    filter: blur(10px);
+    filter: blur(5px);
     height: 60px;
     width: 60px;
     opacity: 0.85;
     z-index: calc(var(--z-layer-pieces) + 2);
 }
 
-.space.ur-legal-move-hover.ur-occupied::after {
-    filter: invert(75%) blur(10px);
-}
 
-#board .space.ur-move-candidate {
+.space.ur-move-candidate {
     box-shadow: inset 0 0 20px #000;
     z-index: calc(var(--z-layer-pieces) - 2);
 }
 
-#board .space.ur-move-candidate.p1 {
+.space.ur-move-candidate.p1 {
     background-color: var(--color-p1-light);
 }
 
-#board .space.ur-move-candidate.p2 {
+.space.ur-move-candidate.p2 {
     background-color: var(--color-p2-light);
 }
 
-#board .space.ur-move-candidate.middle {
+.space.ur-move-candidate.middle {
     background-color: var(--color-mid-move-candidate);
 }
-
-/* TODO style for pieces on player's turn: with/without moves */

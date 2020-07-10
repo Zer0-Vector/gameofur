@@ -68,7 +68,7 @@ namespace Selectors {
     export const FinishAreas = new CssClass("finishArea");
     export const DropTargets = new CssClasses(FinishAreas, AllSpaces);
     export const NoLegalMoves = new CssClass("ur-no-moves");
-    export const LegalMoveHover = new CssClass("ur-legal-move-hover");
+    export const LegalMoveHover = new CssClass("ur-legal-move-space");
     export const SpaceOccupied = new CssClass("ur-occupied");
     export const MoveTarget = new CssClass("ur-move-target");
 
@@ -76,7 +76,7 @@ namespace Selectors {
     export const InputArea = new SimpleSelectableId("inputArea");
     export const DiceFeedback = new (class extends JQuerySelectable {
         selector: string = InputArea.selector + " > p";
-    })();
+        })();
 
     export const PlayerClasses = new CssClasses(
         new CssClass("p1"),
@@ -214,11 +214,11 @@ class Piece implements Renderable, Identifiable<PieceId>, Containable<SpaceId> {
                     .load(Piece.svgPath, (response, status, xhr) => {
                         if (status === "success") {
                             console.debug("Loaded piece into "+this.id.selector+" under "+this.location.selector);
-                            $(this.id.selector).position({
-                                my: "center",
-                                at: "center",
-                                of: $(this.location.selector)
-                            });
+                            // $(this.id.selector).position({
+                            //     my: "center",
+                            //     at: "center",
+                            //     of: $(this.location.selector)
+                            // });
                             resolve();
                         } else {
                             let reason = "Error loading "+Piece.svgPath+" into "+this.id.selector;
