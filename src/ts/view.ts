@@ -1,4 +1,4 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable, DieId, SpaceId, PieceId, SimpleId, AName, Containable, BOARD } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable, DieId, SpaceId, PieceId, SimpleId, Containable } from "./utils.js";
 
 //#region Selector classes
 abstract class JQuerySelectable implements Selectable {
@@ -355,7 +355,7 @@ namespace UrView {
         
         // dnd spaces and piecces are disabled first
         console.debug("Configuring drag/drop for pieces.");
-        initializeDraggable($('.startingArea > div'));
+        initializeDraggable(Selectors.AllPieceContainers.jquery);
         
         console.debug("Configuring drag/drop for spaces.");
         Selectors.DropTargets.jquery.droppable({
@@ -532,7 +532,7 @@ namespace UrView {
     }
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
-        var message = name+"'s Turn";
+        let message = name+"'s Turn";
         Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
         dice.clear();
         Selectors.DiceFeedback.jquery.html("Roll the dice");
