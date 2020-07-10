@@ -288,6 +288,10 @@ export class UrModel implements StateOwner {
         return this.players[this.turn.player];
     }
 
+    get currentOpponent() {
+        return this.players[UrUtils.getOpponent(this.turn.player)];
+    }
+
     get currentTrack() {
         return this.board.tracks[this.turn.player];
     }
