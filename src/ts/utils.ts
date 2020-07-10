@@ -1,5 +1,3 @@
-"use strict";
-
 export enum EntityId {
     PLAYER1 = 0x1,
     PLAYER2 = 0x2,
@@ -217,6 +215,39 @@ export interface UrHandlers {
 export type DieValue =  0 | 1;
 export type DiceValue = 0 | 1 | 2 | 3 | 4;
 export type DiceList = [DieValue, DieValue, DieValue, DieValue];
+
+export enum GameStateType {
+    TERMINAL, // in this state, we wait for a user interaction
+    EPHEMERAL, // a "temporary" state which triggers its own transition (to chain actions together)
+    CONDITIONAL // Same as EPHEMERAL, but checks a condition to determine the next action.
+}
+
+export interface ATempState extends AGameState {
+    action: GameAction;
+}
+
+export type OuterTransitionMethod = ((action: GameAction)=>AGameState)
+export interface AGameState {
+    id: GameState;
+    type: GameStateType;
+    peekNext: OuterTransitionMethod; // TODO convert this to enter state conditionals
+    edges: GameAction[];
+}
+
+export interface AGameAction {
+    id: GameAction;
+    run(): Promise<void>;
+}
+
+export interface AStateOwner<StateType> {
+    state: StateType;
+}
+
+export type OneToOneRepository<K extends number, V> = {[index in K]:V}
+export type Repository<K extends number, V> = {[index in K]?:V}
+export type ActionRepository = OneToOneRepository<GameAction, AGameAction>;
+export type StateRepository = OneToOneRepository<GameState, AGameState>;
+export type TransitionRepository = OneToOneRepository<GameState, Repository<GameAction, GameState>>;
 
 export namespace UrUtils {
     export const SPACE_ID_PREFIX: string = "s-";
