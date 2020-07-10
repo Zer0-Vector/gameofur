@@ -195,6 +195,10 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.StartingTurn, async ()=>{
             VIEW.buttons.roller.enable();
             VIEW.buttons.passer.disable();
+            VIEW.removeNoMovesStyles();
+            for (let p of MODEL.currentOpponent.pieces) {
+                VIEW.applyNoMovesStyles(p.id);
+            }
             console.info(MODEL.currentPlayer.name+"'s turn. Turn "+MODEL.turn.number);
         });
         actionMaker(GameAction.ThrowDice, async ()=>{
@@ -215,22 +219,21 @@ let ACTIONS: ActionRepository = (() => {
             let legal = new MoveComputer(MODEL.turn.player, MODEL.currentPlayer.pieces, MODEL.currentTrack).compute(MODEL.turn.rollValue as DiceValue);
             if (legal.size === 0) {
                 MODEL.turn.noLegalMoves = true;
-            } else {
-                for (let psc of MODEL.currentPlayer.pieces) {
-                    let move = legal.get(psc.id);
-                    if (move === undefined) {
-                        VIEW.applyNoMovesStyles(psc.id);
-                    } else {
-                        VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
-                        VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
-                    }
+            }
+
+            for (let psc of MODEL.currentPlayer.pieces) {
+                let move = legal.get(psc.id);
+                if (move === undefined) {
+                    VIEW.applyNoMovesStyles(psc.id);
+                } else {
+                    VIEW.dndControl(move.piece.id, move.space.id, true, move.id);
+                    VIEW.applyLegalMoveBehavior(move.piece.id, move.space.id);
                 }
             }
         });
         actionMaker(GameAction.MovePiece, async () => {
             console.debug("Updating model with new location");
             VIEW.removeLegalMoveBehavior();
-            VIEW.removeNoMovesStyles();
             let piece:Piece = MODEL.turn.piece as Piece;
             let start:Space = MODEL.turn.startSpace as Space;
             let end:Space = MODEL.turn.endSpace as Space;
@@ -307,6 +310,7 @@ let ACTIONS: ActionRepository = (() => {
         });
         actionMaker(GameAction.ShowWinner, async () => {
             console.info("** "+MODEL.currentPlayer.name.toUpperCase()+" WINS! **");
+            VIEW.removeNoMovesStyles();
         });
         return rval as ActionRepository;
     })();
