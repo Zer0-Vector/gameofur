@@ -12,12 +12,14 @@ const SRC_SVG = SRC_DIR + '/images/*.svg';
 const SRC_PNG = SRC_DIR + '/images/*.png';
 const SRC_BG_SVG = SRC_DIR + '/images/bg/*.svg'
 const SRC_HTML = SRC_DIR + '/html/**/*.html';
+const SRC_JSON = SRC_DIR + '/json/**/*.json';
 const OUTPUT_DIR = './dist';
 const WWW_ROOT = OUTPUT_DIR + '/site';
 const WWW_JS = WWW_ROOT + '/scripts';
 const WWW_CSS = WWW_ROOT + '/css';
 const WWW_IMAGES = WWW_ROOT + '/images';
 const WWW_IMAGES_BG = WWW_IMAGES + '/bg';
+const WWW_JSON_DATA = WWW_ROOT + '/json';
 
 function copyFiles(srcPattern, destDir) {
     console.log("Deploying "+srcPattern+" into "+destDir);
@@ -78,6 +80,10 @@ function images() {
             .pipe(decomment({trim:true})).pipe(gulp.dest(WWW_IMAGES));
 }
 
+function json() {
+    return copyFiles(SRC_JSON, WWW_JSON_DATA);
+}
+
 async function clean() {
     console.log("Cleaning "+OUTPUT_DIR);
     return del.sync(OUTPUT_DIR);
@@ -91,14 +97,16 @@ function watch() {
     gulp.watch(SRC_BG_SVG, images);
     gulp.watch(tsProject.config.include, ts);
     gulp.watch("tsconfig.json", ts);
+    gulp.watch(SRC_JSON, json);
 }
 
 exports.clean = clean;
 exports.watch = watch;
-exports.build = gulp.series(html, jsdeps, ts, css, images, node);
+exports.build = gulp.series(html, json, jsdeps, ts, css, images, node);
 exports.html = html;
 exports.css = css;
 exports.images = images;
 exports.node = node;
 exports.ts = gulp.series(jsdeps, ts);
 exports.info = info;
+exports.json = json;
