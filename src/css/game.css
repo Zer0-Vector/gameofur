@@ -243,8 +243,8 @@ h1 {
     background-image: url('/images/bg/fourfivedots.svg');
 }
 
-.space.middlefivedots {
-    background-image: url('/images/bg/middlefivedots.svg');
+.space.smallfivedots {
+    background-image: url('/images/bg/smallfivedots.svg');
 }
 
 #gameArea {
