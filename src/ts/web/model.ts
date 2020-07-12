@@ -1,4 +1,4 @@
-import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId, GameAction, AStateOwner} from './utils.js';
+import {EntityId, GameState, UrUtils, PlayerEntity, SpaceEntity, PLAYER_MASK, SPACE_MASK, DiceList, DiceValue, DieValue, Identifiable, PieceId, SpaceId, GameAction, AStateOwner, PlayerInfoMap} from './utils.js';
 
 export class TurnData {
     private static COUNTER = 1;
@@ -111,6 +111,9 @@ export class Space implements Identifiable<SpaceId> {
     }
     isRosette() {
         return UrUtils.hasEntityType(this.type, EntityId.ROSETTE);
+    }
+    toString() {
+        return this.id.toString();
     }
 }
 
@@ -266,12 +269,12 @@ export interface GraphStateProvider extends StateOwner {
 
 export class UrModel implements StateOwner {
     public readonly board: Board;
-    public readonly players: { [EntityId.PLAYER1]: Player, [EntityId.PLAYER2]: Player }; 
+    public readonly players: PlayerInfoMap<Player>; 
     public readonly dice: Dice = new Dice();
     public turn = TurnData.create();
     public nextTurn = TurnData.create(EntityId.PLAYER2);
     public state: GameState = GameState.Initial;
-    public score: {[EntityId.PLAYER1]: number, [EntityId.PLAYER2]: number};
+    public score: PlayerInfoMap<number>;
     
     // public readonly history: TurnTaken[] = []; // TODO
     

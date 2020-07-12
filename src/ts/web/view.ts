@@ -1,4 +1,4 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable as ISelectable, DieId, SpaceId, PieceId, SimpleId as SimpleIdentifier, Containable } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable as ISelectable, DieId, SpaceId, PieceId, SimpleId as SimpleIdentifier, Containable, PlayerInfoMap } from "./utils.js";
 
 //#region Selector classes
 
@@ -130,11 +130,7 @@ namespace JQuerySelectable {
         }
 
         public and(selectable:Selectable) {
-            if (this._product instanceof Conjunction) {
-                this._product = new Conjunction(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), selectable));
-            } else {
-                this._product = new Conjunction(this._product, selectable);
-            }
+            this._product = new Conjunction(this._product, selectable);
             return this;
         }
         
@@ -143,11 +139,7 @@ namespace JQuerySelectable {
         }
     
         public or(selectable:Selectable) {
-            if (this._product instanceof Disjunction) {
-                this._product = new Disjunction(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), selectable));
-            } else {
-                this._product = new Disjunction(this._product, selectable);
-            }
+            this._product = new Disjunction(this._product, selectable);
             return this;
         }
 
@@ -156,20 +148,16 @@ namespace JQuerySelectable {
         }
     
         public decendent(decendent:Selectable) {
-            if (this._product instanceof DecendentHeirarchy) {
-                this._product = new DecendentHeirarchy(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), decendent));
-            } else {
-                this._product = new DecendentHeirarchy(this._product, decendent);
-            }
+            this._product = new DecendentHeirarchy(this._product, decendent);
             return this;
+        }
+
+        public decendentClass(className:string) {
+            return this.decendent(new Class(className));
         }
     
         public child(child:Selectable) {
-            if (this._product instanceof DirectDecendentHeirarchy) {
-                this._product = new DirectDecendentHeirarchy(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), child));
-            } else {
-                this._product = new DirectDecendentHeirarchy(this._product, child);
-            }
+            this._product = new DirectDecendentHeirarchy(this._product, child);
             return this;
         }
     
@@ -254,6 +242,16 @@ namespace Selectors {
 
     export const DieRotationClasses = JQuerySelectable.fromClass("r120").orClass("r240").buildClassCollection();
     export const GameArea = JQuerySelectable.ofId("gameArea");
+    
+    export const Player1Scoreboard = JQuerySelectable.fromClass("scoreboard").andClass("p1").build();
+    export const Player2Scoreboard = JQuerySelectable.fromClass("scoreboard").andClass("p2").build();
+    export const Scoreboards = JQuerySelectable.from(Player1Scoreboard).or(Player2Scoreboard).buildClassCollection();
+
+    export const Player1ScoreValue = JQuerySelectable.from(Player1Scoreboard).decendentClass("score").build();
+    export const Player2ScoreValue = JQuerySelectable.from(Player2Scoreboard).decendentClass("score").build();
+
+
+    export const TurnIndicatorClass = JQuerySelectable.ofClass("yourturn");
 }
 
 interface Renderable {
@@ -736,6 +734,8 @@ namespace UrView {
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
         let message = name+"'s Turn";
         Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.selectables[p-1].toString()).html(message);
+        Selectors.TurnIndicatorClass.removeFrom(Selectors.Scoreboards);
+        Selectors.TurnIndicatorClass.addTo(Selectors.Scoreboards.getClass(p-1));
         dice.clear();
         Selectors.DiceFeedback.jquery.html("Roll the dice");
     }
@@ -764,6 +764,14 @@ namespace UrView {
                 easing: "easeInExpo",
             });
         }
+    }
+
+    export function updateScores(scores: PlayerInfoMap<number>) {
+        console.log("Settings scores: ", scores);
+        console.log(Selectors.Player1ScoreValue)
+        console.log(Selectors.Player2ScoreValue)
+        Selectors.Player1ScoreValue.jquery.html(""+scores[EntityId.PLAYER1]);
+        Selectors.Player2ScoreValue.jquery.html(""+scores[EntityId.PLAYER2]);
     }
 }
 
