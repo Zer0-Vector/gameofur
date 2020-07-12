@@ -102,8 +102,8 @@ function watch() {
     gulp.watch(SRC_SVG, images);
     gulp.watch(SRC_PNG, images);
     gulp.watch(SRC_BG_SVG, images);
-    gulp.watch(tsProject.config.include, ts);
-    gulp.watch("tsconfig.json", ts);
+    gulp.watch(tsProject.config.include, gulp.series(ts, webJs, serverJs));
+    gulp.watch("tsconfig.json", gulp.series(jsdeps, ts, webJs, serverJs));
     gulp.watch(SRC_JSON, json);
 }
 
