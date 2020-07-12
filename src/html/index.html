@@ -18,6 +18,12 @@
                 <button type="button" id="starter" disabled><u>S</u>tart Game</button>
                 <button type="button" id="newgame" disabled><u>N</u>ew Game</button>
                 <p>
+                    <input type="checkbox" id="chxAutoRoll" name="autoroll" />
+                    <label for="chxAutoRoll">Auto Roll</label>
+                    <input type="checkbox" id="chxAutoPass" name="autopass" />
+                    <label for="chxAutoPass">Auto Pass Turn</label>
+                </p>
+                <p>
                     <label for="variantSelection">Select Variant: </label>
                     <select id="variantSelection">
                         <option value="basic">Basic</option><!-- https://en.wikipedia.org/wiki/Royal_Game_of_Ur, https://youtu.be/WZskjLq040I -->
@@ -28,8 +34,7 @@
             </div>
             <div id="gameArea">
                 <div id="p1Area" class="playerArea">
-                    <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
-                    <div><button type="button" id="setName1">Set Name</button></div>
+                    <h2 class="p1 scoreboard"><span class="name" title="TODO Double click to set name.">Player 1</span>: <span class="score">0</span></h2>
                 </div>
                 <div id="boardContainer">
                     <div id="board">
@@ -76,8 +81,7 @@
                     </div>
                 </div>
                 <div id="p2Area" class="playerArea">
-                    <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
-                    <div><button type="button" id="setName1">Set Name</button></div>
+                    <h2 class="p1 scoreboard"><span class="name" title="TODO Double click to set name.">Player 2</span>: <span class="score">0</span></h2>
                 </div>
             </div>
             <div id="userArea">

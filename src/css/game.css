@@ -262,8 +262,16 @@ h1 {
     vertical-align: top;
     position: relative;
     height: var(--board-height);
-    width: calc(var(--space-total-height) + var(--space-border-width));
+    width: calc(2 * (var(--space-total-height) + var(--space-border-width)));
     z-index: var(--z-layer-bottom);
+}
+
+.playerArea .scoreboard {
+    padding: 10px;
+}
+
+.playerArea .scoreboard.yourturn {
+    border: 5px solid green;
 }
 
 .space {
@@ -284,20 +292,24 @@ h1 {
     padding: 0 5px;
 }
 
-.space.bucket.c1 {
+.space.bucket.p1 {
     justify-content: right;
     flex-direction: row-reverse;
     left: unset;
     right: var(--col3-left);
 }
 
-.space.bucket.c3 {
+.space.bucket.p2 {
     justify-content: left;
     flex-direction: row;
 }
 
 .space.startingArea {
     border-bottom: var(--space-border-color) dashed var(--space-border-width);
+}
+
+.space.finishArea {
+    border-top: var(--space-border-color) dashed var(--space-border-width);
 }
 
 /* Pieces divs */
