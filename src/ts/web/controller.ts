@@ -1,6 +1,6 @@
-import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space} from './model.js';
+import {Piece, UrModel, Player, Bucket, StateOwner, TurnData, Move, Space, GameOptions} from './model.js';
 import UrView from './view.js';
-import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, Identifier, ActionRepository, TransitionRepository, AGameAction, Repository } from './utils.js';
+import { EntityId, GameState, UrHandlers, PlayerEntity, UrUtils, GameAction, DiceValue, Identifier, ActionRepository, TransitionRepository, AGameAction, Repository, Maybe } from './utils.js';
 
 let VIEW = UrView;
 let MODEL: UrModel;
@@ -8,7 +8,7 @@ let MODEL: UrModel;
 
 //#region States
 interface EphemeralState {
-    nextAction: GameAction;
+    nextAction: Maybe<GameAction>;
 }
 
 class NonTerminalState implements EphemeralState {
@@ -18,50 +18,59 @@ class NonTerminalState implements EphemeralState {
     }
 }
 
-abstract class JunctionState implements EphemeralState {
+class JunctionState implements EphemeralState {
+    private computeNext: ()=>GameAction;
+    constructor(computeNext:()=>GameAction) {
+        this.computeNext = computeNext;
+    }
     get nextAction() {
         return this.computeNext();
     }
-    protected abstract computeNext(): GameAction;
+}
+
+class ConditionallyNonTerminalState implements EphemeralState {
+    private getNext: ()=>Maybe<GameAction>;
+    constructor(nextAction: GameAction, condition:()=>boolean) {
+        this.getNext = () => condition() ? nextAction : undefined;
+    }
+    get nextAction() {
+        return this.getNext();
+    }
 }
 
 const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
     [GameState.PlayersReady]: new NonTerminalState(GameAction.SetupGame),
     [GameState.TurnStart]: new NonTerminalState(GameAction.StartingTurn),
+    [GameState.PreRoll]: new ConditionallyNonTerminalState(GameAction.ThrowDice, ()=>OPTIONS.autoroll),
     [GameState.Rolled]: new NonTerminalState(GameAction.EnableLegalMoves),
-    [GameState.PreMove]: new (class extends JunctionState {
-        protected computeNext(): GameAction {
-            if (MODEL.turn.noLegalMoves) {
-                console.debug("No legal moves");
-                // TODO this should have it's own transition for updating the view.
-                return GameAction.TurnEnding;
-            } else {
-                return GameAction.MovesAvailable;
-            }
+    [GameState.PreMove]: new JunctionState((): GameAction => {
+        if (MODEL.turn.noLegalMoves) {
+            console.info("No legal moves");
+            // TODO this should have it's own transition for updating the view.
+            return GameAction.TurnEnding;
+        } else {
+            return GameAction.MovesAvailable;
         }
-    })(),
+    }),
     [GameState.PieceDropped]: new NonTerminalState(GameAction.FreezeBoard),
-    [GameState.Moved]: new (class extends JunctionState {
-        protected computeNext(): GameAction {
-            if (MODEL.turn.rosette) return GameAction.RosetteBonus;
-            if (MODEL.turn.knockout) return GameAction.KnockoutOpponent;
-            if (MODEL.turn.scored) return GameAction.PieceScored;
-            return GameAction.MoveFinished;
-        }
-    })(),
+    [GameState.Moved]: new JunctionState((): GameAction => {
+        if (MODEL.turn.rosette) return GameAction.RosetteBonus;
+        if (MODEL.turn.knockout) return GameAction.KnockoutOpponent;
+        if (MODEL.turn.scored) return GameAction.PieceScored;
+        return GameAction.MoveFinished;
+    }),
     [GameState.PostMove]: new NonTerminalState(GameAction.TurnEnding),
-    [GameState.CheckScore]: new (class extends JunctionState {
-        protected computeNext(): GameAction {
-            console.info("Score: "+MODEL.score[EntityId.PLAYER1]+" - "+MODEL.score[EntityId.PLAYER2]);
-            let playerPieces = MODEL.currentPlayer.pieces;
-            for (let p of playerPieces) {
-                if ((p.location.type & EntityId.FINISH) === 0) {
-                    return GameAction.TurnEnding; // found piece not finished
-                }
+    [GameState.CheckScore]: new JunctionState((): GameAction => {
+        console.info("Score: "+MODEL.score[EntityId.PLAYER1]+" - "+MODEL.score[EntityId.PLAYER2]);
+        let playerPieces = MODEL.currentPlayer.pieces;
+        for (let p of playerPieces) {
+            if ((p.location.type & EntityId.FINISH) === 0) {
+                return GameAction.TurnEnding; // found piece not finished
             }
-            return GameAction.AllFinished;
         }
-    })(),
+        return GameAction.AllFinished;
+    }),
+    [GameState.EndTurn]: new ConditionallyNonTerminalState(GameAction.PassTurn, () => OPTIONS.autopass),
     [GameState.GameOver]: new NonTerminalState(GameAction.ShowWinner),
 }
 
@@ -179,11 +188,11 @@ let ACTIONS: ActionRepository = (() => {
             MODEL.nextTurn.player = MODEL.turn.player;
         });
         actionMaker(GameAction.KnockoutOpponent, async () => {
-            console.debug("Returning opponent piece to start.");
             if (MODEL.turn.knockedPiece === undefined) {
                 throw "No knocked piece in the model to move.";
             }
             console.assert(MODEL.turn.knockedPiece.owner === UrUtils.getOpponent(MODEL.turn.player));
+            console.info(MODEL.currentPlayer.name+" knocked out an opponent's piece on "+MODEL.turn.endSpace);
             
             await VIEW.movePiece(MODEL.turn.knockedPiece.id, MODEL.opponentStartBucket.id, 300, false);
         })
@@ -356,10 +365,25 @@ class GameEngine {
     }
 
 }
+const OPTIONS: GameOptions = new GameOptions();
 
 namespace UrController {
     let ENGINE: GameEngine;
     class UrHandlersImpl implements UrHandlers {
+        checkboxChanged(name: string, checked: boolean): void {
+            switch(name) {
+                case "autopass":
+                    OPTIONS.autopass = checked;
+                    console.debug("AutoPass "+(OPTIONS.autopass ? "enabled" : "disabled"));
+                    break;
+                case "autoroll":
+                    OPTIONS.autoroll = checked;
+                    console.debug("AutoRoll "+(OPTIONS.autoroll ? "enabled" : "disabled"));
+                    break;
+                default:
+                    console.warn("Unknown checkbox: "+name);
+            }
+        }
         newGame(): void {
             console.warn("newGame() NOT IMPLEMENTED");
         }

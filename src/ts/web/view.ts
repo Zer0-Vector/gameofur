@@ -1,93 +1,259 @@
-import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable, DieId, SpaceId, PieceId, SimpleId, Containable } from "./utils.js";
+import { PlayerEntity, UrUtils, EntityId, UrHandlers, DiceList, DieValue, DiceValue, Maybe, Identifiable, Identifier, Selectable as ISelectable, DieId, SpaceId, PieceId, SimpleId as SimpleIdentifier, Containable } from "./utils.js";
 
 //#region Selector classes
-abstract class JQuerySelectable implements Selectable {
-    abstract selector: string;
-    get jquery() {
-        return $(this.selector);
+
+
+
+
+namespace JQuerySelectable {
+
+    export function ofClass(className:string) {
+        return new Class(className);
+    }
+
+    export function ofElement(elementName:string) {
+        return new Element(elementName);
+    }
+
+    export function ofId(idName:string) {
+        return new SimpleId(idName);
+    }
+
+    export function from(selectable:Selectable) {
+        return Builder.from(selectable);
+    }
+
+    export function fromClass(className:string) {
+        return Builder.from(new Class(className));
+    }
+
+    export function fromElement(elementName:string) {
+        return Builder.from(new Element(elementName));
+    }
+
+    export abstract class Selectable implements ISelectable {
+        abstract readonly selector: string;
+        protected constructor(asString:string) {
+            this.toString = () => asString;
+        }
+        get jquery() {
+            return $(this.selector);
+        }
+    
+    }
+
+    class Element extends Selectable {
+        readonly selector: string
+        constructor(element: string) {
+            super("<"+element+"/>");
+            this.selector = element;
+        }
+    }
+    
+    interface ICollection {
+        selectables: Selectable[];
+    }
+
+    abstract class Collection extends Selectable implements ICollection {
+        readonly selector:string;
+        readonly selectables:Selectable[];
+        protected constructor(nameSeparator:string, selectorSeparator:string, first:Selectable, second:Selectable, ...more:Selectable[]) {
+            super(Array.of(first, second, ...more).map(c => c instanceof Collection ? "("+c.toString()+")" : c.toString()).join(nameSeparator));
+            this.selectables = Array.of(first, second, ...more);
+            this.selector = this.selectables.map(c => c.selector).join(selectorSeparator);
+        }
+    }
+
+    abstract class AClassSelector extends Selectable {
+        constructor(name:string) {
+            super(name);
+        }
+        protected get classList(): string {
+            return this.toString();
+        }
+        addTo(s:ISelectable) {
+            return $(s.selector).addClass(this.classList);
+        }
+        removeFrom(s:ISelectable) {
+            return $(s.selector).removeClass(this.classList);
+        }
+    }
+
+    class Class extends AClassSelector {
+        readonly selector: string;
+        constructor(name:string) {
+            super(name);
+            this.selector = "."+name;
+        }
+    }
+
+    class ClassCollection extends AClassSelector implements ICollection {
+        private readonly _delegate: Collection;
+        constructor(delegate:Collection) {
+            super(delegate.toString());
+            // TODO verify all members are classes
+            this._delegate  = delegate;
+        }
+        protected get classList(): string {
+            return this._delegate.selectables.join(" ");
+        }
+        getClass(index:number) {
+            return this._delegate.selectables[index] as AClassSelector;
+        }
+        get selectables() {
+            return this._delegate.selectables;
+        }
+        get selector(): string {
+            return this._delegate.selector;
+        }
+    }
+    
+    class Builder {
+        private _product:Selectable;
+        private constructor(initial:Selectable) {
+            this._product = initial;
+        }
+    
+        public static from(selectable:Selectable) {
+            return new Builder(selectable);
+        }
+    
+        public build() {
+            return this._product;
+        }
+
+        public buildClassCollection() {
+            if (this._product instanceof Collection) {
+                return new ClassCollection(this._product);
+            }
+            throw "Not a collection";
+        }
+
+        public and(selectable:Selectable) {
+            if (this._product instanceof Conjunction) {
+                this._product = new Conjunction(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), selectable));
+            } else {
+                this._product = new Conjunction(this._product, selectable);
+            }
+            return this;
+        }
+        
+        public andClass(className:string) {
+            return this.and(new Class(className));
+        }
+    
+        public or(selectable:Selectable) {
+            if (this._product instanceof Disjunction) {
+                this._product = new Disjunction(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), selectable));
+            } else {
+                this._product = new Disjunction(this._product, selectable);
+            }
+            return this;
+        }
+
+        public orClass(className:string) {
+            return this.or(new Class(className));
+        }
+    
+        public decendent(decendent:Selectable) {
+            if (this._product instanceof DecendentHeirarchy) {
+                this._product = new DecendentHeirarchy(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), decendent));
+            } else {
+                this._product = new DecendentHeirarchy(this._product, decendent);
+            }
+            return this;
+        }
+    
+        public child(child:Selectable) {
+            if (this._product instanceof DirectDecendentHeirarchy) {
+                this._product = new DirectDecendentHeirarchy(this._product.selectables[0], this._product.selectables[1], ...Array.of(...this._product.selectables.slice(2), child));
+            } else {
+                this._product = new DirectDecendentHeirarchy(this._product, child);
+            }
+            return this;
+        }
+    
+        public childClass(className:string) {
+            return this.child(new Class(className));
+        }
+    
+        public childElement(elementName:string) {
+            return this.child(new Element(elementName));
+        }
+    }
+
+    class Disjunction extends Collection {
+        constructor(first:Selectable, second:Selectable, ...more:Selectable[]) {
+            super(" | ", ", ", first, second, ...more);
+        }
+    }
+    
+    class Conjunction extends Collection {
+        constructor(first:Selectable, second:Selectable, ...more:Selectable[]) {
+            super(" & ", "", first, second, ...more);
+        }
+    }
+    
+    class DecendentHeirarchy extends Collection {
+        constructor(first:Selectable, second:Selectable, ...more:Selectable[]) {
+            super(" ", " ", first, second, ...more);
+        }
+    }
+    
+    class DirectDecendentHeirarchy extends Collection {
+        constructor(first:Selectable, second:Selectable, ...more:Selectable[]) {
+            super(" > ", " > ", first, second, ...more);
+        }
+    }
+
+    export abstract class Id<ID extends Identifier> extends Selectable implements Identifiable<ID> {
+        readonly abstract id: ID;
+        constructor(id:string) {
+            super(id);
+        }
+        get selector() {
+            return this.id.selector;
+        }
+    }
+    
+    class SimpleId extends Id<SimpleIdentifier> {
+        id: SimpleIdentifier;
+        constructor(id:string) {
+            super(id);
+            this.id = SimpleIdentifier.get(id);
+        }
     }
 }
 
-abstract class ACssClass extends JQuerySelectable {
-    protected constructor(toString:string) {
-        super();
-        this.toString = () => toString;
-    }
-    addTo(s:Selectable) {
-        return $(s.selector).addClass(this.toString());
-    }
-    removeFrom(s:Selectable) {
-        return $(s.selector).removeClass(this.toString());
-    }
-}
 
-class CssClass extends ACssClass {
-    readonly selector: string;
-    constructor(name:string) {
-        super(name);
-        this.selector = "."+name;
-    }
-}
 
-class CssClasses extends ACssClass {
-    readonly selector: string;
-    readonly classes: CssClass[];
-    constructor(...classes:CssClass[]) {
-        super(classes.map(c => c.toString()).join(" "));
-        this.selector = classes.map(c => c.selector).join(", ");
-        this.classes = classes;
-    }
-}
 
-abstract class SelectableId<ID extends Identifier> extends JQuerySelectable implements Identifiable<ID> {
-    readonly abstract id: ID;
-    constructor(id:string) {
-        super();
-        this.toString = () => id;
-    }
-    get selector() {
-        return this.id.selector;
-    }
-}
 
-class SimpleSelectableId extends SelectableId<SimpleId> {
-    id: SimpleId;
-    constructor(id:string) {
-        super(id);
-        this.id = SimpleId.get(id);
-    }
-}
+
+
 //#endregion
 
 namespace Selectors {
-    export const AllPieceContainers = new CssClass("pieceHolder");
-    export const PieceInMotion = new CssClass("ur-piece-in-motion");
-    export const PieceHover = new CssClass("ur-piece-hover");
-    export const AllSpaces = new CssClass("space");
-    export const StartingAreas = new CssClass("startingArea");
-    export const FinishAreas = new CssClass("finishArea");
-    export const DropTargets = new CssClasses(FinishAreas, AllSpaces);
-    export const NoLegalMoves = new CssClass("ur-no-moves");
-    export const LegalMoveHover = new CssClass("ur-legal-move-space");
-    export const SpaceOccupied = new CssClass("ur-occupied");
-    export const MoveTarget = new CssClass("ur-move-target");
+    export const AllPieceContainers = JQuerySelectable.ofClass("pieceHolder");
+    export const PieceInMotion = JQuerySelectable.ofClass("ur-piece-in-motion");
+    export const PieceHover = JQuerySelectable.ofClass("ur-piece-hover");
+    export const AllSpaces = JQuerySelectable.ofClass("space");
+    export const StartingAreas = JQuerySelectable.ofClass("startingArea");
+    export const FinishAreas = JQuerySelectable.ofClass("finishArea");
+    export const DropTargets = JQuerySelectable.from(FinishAreas).or(AllSpaces).build();
+    export const NoLegalMoves = JQuerySelectable.ofClass("ur-no-moves");
+    export const LegalMoveHover = JQuerySelectable.ofClass("ur-legal-move-space");
+    export const SpaceOccupied = JQuerySelectable.ofClass("ur-occupied");
+    export const MoveTarget = JQuerySelectable.ofClass("ur-move-target");
 
-    export const TurnIndicator = new SimpleSelectableId("turnIndicator");
-    export const InputArea = new SimpleSelectableId("inputArea");
-    export const DiceFeedback = new (class extends JQuerySelectable {
-        selector: string = InputArea.selector + " > p";
-        })();
+    export const TurnIndicator = JQuerySelectable.ofId("turnIndicator");
+    export const InputArea = JQuerySelectable.ofId("inputArea");
+    export const DiceFeedback = JQuerySelectable.from(InputArea).childElement("p").build();
+    
+    export const PlayerClasses = JQuerySelectable.fromClass("p1").orClass("p2").buildClassCollection();
 
-    export const PlayerClasses = new CssClasses(
-        new CssClass("p1"),
-        new CssClass("p2")
-        );
-
-    export const DieRotationClasses = new CssClasses(
-        new CssClass("r120"), 
-        new CssClass("r240")
-        );
-    export const GameArea = new SimpleSelectableId("gameArea");
+    export const DieRotationClasses = JQuerySelectable.fromClass("r120").orClass("r240").buildClassCollection();
+    export const GameArea = JQuerySelectable.ofId("gameArea");
 }
 
 interface Renderable {
@@ -98,7 +264,7 @@ interface Updateable<UpdateDescriptor> {
     update(update?:UpdateDescriptor): Promise<void>;
 }
 
-class Die extends SelectableId<DieId> implements Updateable<DieValue>, Renderable {
+class Die extends JQuerySelectable.Id<DieId> implements Updateable<DieValue>, Renderable {
     static nextId = 0;
 
     static readonly svgMap = {
@@ -144,7 +310,7 @@ class Die extends SelectableId<DieId> implements Updateable<DieValue>, Renderabl
         this.currentView = view;
         if (orientation < 2) { // 2 === no rotation
             await this.render();
-            Selectors.DieRotationClasses.classes[orientation].addTo(this);
+            Selectors.DieRotationClasses.getClass(orientation).addTo(this);
         } else {
             return this.render();
         }
@@ -155,10 +321,10 @@ class Die extends SelectableId<DieId> implements Updateable<DieValue>, Renderabl
     }
 }
 
-class RollInfo implements Updateable<DiceValue>, Identifiable<SimpleId> {
-    readonly id: SimpleId;
+class RollInfo implements Updateable<DiceValue>, Identifiable<SimpleIdentifier> {
+    readonly id: SimpleIdentifier;
     constructor() {
-        this.id = SimpleId.get("rollInfo");
+        this.id = SimpleIdentifier.get("rollInfo");
     }
     async update(update: DiceValue): Promise<void> {
         $(this.id.selector).html("You rolled: <em class=\"rollValue\">"+update+"</em>");
@@ -168,11 +334,11 @@ class RollInfo implements Updateable<DiceValue>, Identifiable<SimpleId> {
     };
 }
 
-class Dice implements Updateable<DiceList>, Identifiable<SimpleId>{
-    readonly id: SimpleId;
+class Dice implements Updateable<DiceList>, Identifiable<SimpleIdentifier>{
+    readonly id: SimpleIdentifier;
     readonly dice: [Die, Die, Die, Die];
     constructor() {
-        this.id = SimpleId.get("diceCup");
+        this.id = SimpleIdentifier.get("diceCup");
         this.dice = [
             Die.getNew(0),
             Die.getNew(1),
@@ -259,12 +425,11 @@ interface Enableable {
     disable(): void;
 }
 
-class HtmlButton extends JQuerySelectable implements Enableable, Identifiable<SimpleId>, Selectable {
-    id: SimpleId;
+class HtmlButton extends JQuerySelectable.Selectable implements Enableable, Identifiable<SimpleIdentifier>, ISelectable {
+    id: SimpleIdentifier;
     constructor(id: string) {
-        super();
-        this.id = SimpleId.get(id);
-        this.toString = () => id;
+        super(id);
+        this.id = SimpleIdentifier.get(id);
     }
     get selector() {
         return "button"+this.id.selector;
@@ -279,6 +444,15 @@ class HtmlButton extends JQuerySelectable implements Enableable, Identifiable<Si
     }
 }
 
+class CheckBox extends JQuerySelectable.Selectable implements Identifiable<SimpleIdentifier> {
+    id: SimpleIdentifier;
+    selector: string;
+    constructor(id: string) {
+        super(id);
+        this.id = SimpleIdentifier.get(id);
+        this.selector = "#"+this.id;
+    }
+}
 
 function initializeDraggable(selector:JQuery<HTMLElement>, 
     options:JQueryUI.DraggableOptions = {
@@ -301,6 +475,11 @@ namespace UrView {
         passer: new HtmlButton('passer'),
         starter: new HtmlButton('starter'),
         newgame: new HtmlButton('newgame'),
+    }
+
+    export const checkboxes = {
+        autopass: new CheckBox("chxAutoPass"),
+        autoroll: new CheckBox("chxAutoRoll"),
     }
 
     // TODO consodidate into map
@@ -333,6 +512,13 @@ namespace UrView {
         buttons.starter.jquery.on('click', handlers.startGame);
         buttons.newgame.jquery.on('click', handlers.newGame);
         moveHander = handlers.pieceMoved;
+        
+        console.debug("Configuring checkboxes...");
+        let cbh = (event:JQueryEventObject) => {
+            handlers.checkboxChanged($(event.target).prop("name"), $(event.target).prop("checked"));
+        };
+        checkboxes.autopass.jquery.on('click', cbh);
+        checkboxes.autoroll.jquery.on('click', cbh);
 
         console.info("Configuring keyboard shortcuts:\n\tEnter/R = roll dice\n\tSpace/P = pass turn");
         $(document).on('keypress', e => {
@@ -549,14 +735,14 @@ namespace UrView {
 
     export function updateTurnDisplay(p: PlayerEntity, name: string) {
         let message = name+"'s Turn";
-        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
+        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.selectables[p-1].toString()).html(message);
         dice.clear();
         Selectors.DiceFeedback.jquery.html("Roll the dice");
     }
 
     export function showWinnder(p: PlayerEntity, name: String) {
         let message = name+ " Wins!";
-        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.classes[p-1].toString()).html(message);
+        Selectors.TurnIndicator.jquery.attr("class", Selectors.PlayerClasses.selectables[p-1].toString()).html(message);
         dice.clear();
         Selectors.DiceFeedback.jquery.empty();
     }

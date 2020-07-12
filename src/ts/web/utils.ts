@@ -210,6 +210,7 @@ export interface UrHandlers {
     passTurn(): void;
     startGame(): void;
     pieceMoved(piece:Identifier, space:Identifier): void;
+    checkboxChanged(name:string, checked:boolean): void;
 }
 
 export type DieValue =  0 | 1;

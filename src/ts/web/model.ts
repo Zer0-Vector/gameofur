@@ -304,3 +304,8 @@ export class UrModel implements StateOwner {
         return new UrModel(player1, player2);
     }
 }
+
+export class GameOptions {
+    autopass: boolean = false;
+    autoroll: boolean = false;
+}
