@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="css/game.css" />
+        <script src="scripts/jquery.js"></script>
+        <script src="scripts/jquery-ui.js"></script>
+
+        <script>
+            var exports = {}; // hack to fix Uncaught ReferenceError
+        </script>
+        <script type="module" src="scripts/gameofur.js">
+        </script>
+    </head>
+    <body>
+        <div>
+            <div id="titleArea">
+                <h1>Royal Game of Ur</h1>
+                <button type="button" id="starter" disabled><u>S</u>tart Game</button>
+                <button type="button" id="newgame" disabled><u>N</u>ew Game</button>
+                <p>
+                    <label for="variantSelection">Select Variant: </label>
+                    <select id="variantSelection">
+                        <option value="basic">Basic</option><!-- https://en.wikipedia.org/wiki/Royal_Game_of_Ur, https://youtu.be/WZskjLq040I -->
+                        <option value="finkel" disabled="true">Finkel</option><!-- https://boardgamegeek.com/thread/2289284/going-full-finkel-other-royal-game-ur -->
+                        <option value="skiryuk" disabled="true">Skiryuk</option><!-- https://www.ancientgames.org/royal-game-ur-game-20-squares/ -->
+                    </select>
+                </p>
+            </div>
+            <div id="gameArea">
+                <div id="p1Area" class="playerArea">
+                    <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
+                    <div><button type="button" id="setName1">Set Name</button></div>
+                </div>
+                <div id="boardContainer">
+                    <div id="board">
+                        <!-- TODO move start/finish out of board div; can still be a space -->
+                        <!-- p1 start/finish -->
+                        <div id="sA0" class="space bucket startingArea p1 r5 c1"></div>
+                        <div id="sA15" class="space bucket finishArea p1 r6 c1"></div>
+
+                        <!-- p2 start/finish -->
+                        <div id="sB0" class="space bucket startingArea p2 r5 c3"></div>
+                        <div id="sB15" class="space bucket finishArea p2 r6 c3"></div>
+
+                        <!-- TODO: spaces constructed here. -->
+                    </div>
+                </div>
+                <div id="p2Area" class="playerArea">
+                    <h3 class="p1"><span class="name"></span><span class="score"></span></h3>
+                    <div><button type="button" id="setName1">Set Name</button></div>
+                </div>
+            </div>
+            <div id="userArea">
+                <div id="inputArea">
+                    <h2 id="turnIndicator"></h2>
+                    <button type="button" id="roller" disabled><u>R</u>oll</button>
+                    <button type="button" id="passer" disabled><u>P</u>ass Turn</button>
+                    <p id="rollInfo"></p>
+                </div>
+                <div id="diceCup"> <!-- TODO construct dice as well -->
+                    <div class="dieHolder">
+                        <div id="die0"></div>
+                    </div>
+                    <div class="dieHolder">
+                        <div id="die1"></div>
+                    </div>
+                    <div class="dieHolder">
+                        <div id="die2"></div>
+                    </div>
+                    <div class="dieHolder">
+                        <div id="die3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
