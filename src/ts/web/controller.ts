@@ -199,6 +199,7 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.PieceScored, async ()=>{
             console.info(MODEL.currentPlayer.name + " scored!");
             MODEL.score[MODEL.turn.player]++;
+            VIEW.updateScores(MODEL.score);
         });
 
         actionMaker(GameAction.PassTurn, async ()=>{

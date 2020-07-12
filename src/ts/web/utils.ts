@@ -362,3 +362,5 @@ class BoardSkeleton {
 }
 export const BOARD = new BoardSkeleton();
 
+export type PlayerInfoMap<T> = {[EntityId.PLAYER1]: T, [EntityId.PLAYER2]: T};
+
