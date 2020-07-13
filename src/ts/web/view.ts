@@ -450,6 +450,9 @@ class CheckBox extends JQuerySelectable.Selectable implements Identifiable<Simpl
         this.id = SimpleIdentifier.get(id);
         this.selector = "#"+this.id;
     }
+    click() {
+        this.jquery.trigger("click");
+    }
 }
 
 function initializeDraggable(selector:JQuery<HTMLElement>, 
@@ -767,9 +770,6 @@ namespace UrView {
     }
 
     export function updateScores(scores: PlayerInfoMap<number>) {
-        console.log("Settings scores: ", scores);
-        console.log(Selectors.Player1ScoreValue)
-        console.log(Selectors.Player2ScoreValue)
         Selectors.Player1ScoreValue.jquery.html(""+scores[EntityId.PLAYER1]);
         Selectors.Player2ScoreValue.jquery.html(""+scores[EntityId.PLAYER2]);
     }

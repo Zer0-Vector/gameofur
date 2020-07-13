@@ -41,7 +41,7 @@ class ConditionallyNonTerminalState implements EphemeralState {
 const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
     [GameState.PlayersReady]: new NonTerminalState(GameAction.SetupGame),
     [GameState.TurnStart]: new NonTerminalState(GameAction.StartingTurn),
-    [GameState.PreRoll]: new ConditionallyNonTerminalState(GameAction.ThrowDice, ()=>OPTIONS.autoroll),
+    [GameState.PreRoll]: new ConditionallyNonTerminalState(GameAction.ThrowDice, ()=>OPTIONS.get().autoroll),
     [GameState.Rolled]: new NonTerminalState(GameAction.EnableLegalMoves),
     [GameState.PreMove]: new JunctionState((): GameAction => {
         if (MODEL.turn.noLegalMoves) {
@@ -70,7 +70,7 @@ const EPHEMERAL_STATES:Repository<GameState, EphemeralState> = {
         }
         return GameAction.AllFinished;
     }),
-    [GameState.EndTurn]: new ConditionallyNonTerminalState(GameAction.PassTurn, () => OPTIONS.autopass),
+    [GameState.EndTurn]: new ConditionallyNonTerminalState(GameAction.PassTurn, () => OPTIONS.get().autopass),
     [GameState.GameOver]: new NonTerminalState(GameAction.ShowWinner),
 }
 
@@ -213,8 +213,18 @@ let ACTIONS: ActionRepository = (() => {
         actionMaker(GameAction.MovesAvailable, async () => {
             console.debug("We're ready to move something...");
         });
-        actionMaker(GameAction.TurnEnding, async () => {
-            VIEW.buttons.passer.enable();
+        actionMaker(GameAction.TurnEnding, () => {
+            // TODO is there a better way to do this?
+            return new Promise<void>((resolve, reject) => {
+                VIEW.buttons.passer.enable();
+                if (OPTIONS.get().autopass && MODEL.turn.noLegalMoves) { // TODO this should be in after PostMove so the PassTurn button can also be used. Use Promis.any to ensure only one promise triggers the state transition.
+                    setTimeout(() => {
+                        resolve();
+                    }, 1000);
+                } else {
+                    resolve();
+                }
+            });
         });
         actionMaker(GameAction.NewGame, notImplemented(GameAction.NewGame));
         actionMaker(GameAction.AllFinished, async () => {
@@ -366,7 +376,25 @@ class GameEngine {
     }
 
 }
-const OPTIONS: GameOptions = new GameOptions();
+
+class OptionsStorage {
+    private static readonly STORAGE_KEY = "RoyalGameOfUrOptions";
+    private _options: GameOptions = new GameOptions();
+    get() {
+        return this._options;
+    }
+    save() {
+        localStorage.setItem(OptionsStorage.STORAGE_KEY, JSON.stringify(this._options));
+    }
+    load() {
+        let stored = localStorage.getItem(OptionsStorage.STORAGE_KEY);
+        if (stored !== null && stored.length > 0) {
+            this._options = JSON.parse(stored);
+        }
+    }
+}
+
+const OPTIONS = new OptionsStorage();
 
 namespace UrController {
     let ENGINE: GameEngine;
@@ -374,12 +402,14 @@ namespace UrController {
         checkboxChanged(name: string, checked: boolean): void {
             switch(name) {
                 case "autopass":
-                    OPTIONS.autopass = checked;
-                    console.debug("AutoPass "+(OPTIONS.autopass ? "enabled" : "disabled"));
+                    OPTIONS.get().autopass = checked;
+                    OPTIONS.save();
+                    console.debug("AutoPass "+(OPTIONS.get().autopass ? "enabled" : "disabled"));
                     break;
                 case "autoroll":
-                    OPTIONS.autoroll = checked;
-                    console.debug("AutoRoll "+(OPTIONS.autoroll ? "enabled" : "disabled"));
+                    OPTIONS.get().autoroll = checked;
+                    OPTIONS.save();
+                    console.debug("AutoRoll "+(OPTIONS.get().autoroll ? "enabled" : "disabled"));
                     break;
                 default:
                     console.warn("Unknown checkbox: "+name);
@@ -441,6 +471,14 @@ namespace UrController {
 
         ENGINE = new GameEngine(MODEL);
         ENGINE.do(GameAction.Initialize);
+
+        OPTIONS.load();
+        if (OPTIONS.get().autopass) {
+            VIEW.checkboxes.autopass.click();
+        }
+        if (OPTIONS.get().autoroll) {
+            VIEW.checkboxes.autoroll.click();
+        }
     }
 
     function setupBoard() {
