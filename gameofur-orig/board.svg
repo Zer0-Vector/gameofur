@@ -1,0 +1,114 @@
+<svg width="350" height="850" viewBox="0 0 350 850" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        :root {
+            --color-p1: #2E51A2;	/* Main Primary color */
+            --color-p1-lighter: #708BC8;
+            --color-p1-light: #4968AF;
+            --color-p1-dark: #173A8B;
+            --color-p1-darker: #0C2A6E;
+
+            --color-rosette: #E22D4E;	/* Main Secondary color (1) */
+            --color-rosette-lighter: #F57C91;
+            --color-rosette-light: #F0536F;
+            --color-rosette-dark: #C30D2D;
+            --color-rosette-darker: #9A011C;
+
+            --color-other: #5BD02A;	/* Main Secondary color (2) */
+            --color-other-lighter: #98E875;
+            --color-other-light: #78DD4C;
+            --color-other-dark: #3EB30C;
+            --color-other-darker: #2B8D01;
+
+            --color-p2: #F1B130;	/* Main Complement color */
+            --color-p2-lighter: #FFD581;
+            --color-p2-light: #FFC758;
+            --color-p2-dark: #D08F0E;
+            --color-p2-darker: #A46E01;
+
+            --color-mid-lane: rgb(127,127,127);
+            --color-border: pink;
+
+            --pos-space-left-p1: 25;
+        }
+        .spaces .p1 {
+            fill:var(--color-p1-lighter)
+        }
+        .spaces .p2 {
+            fill:var(--color-p2-lighter)
+        }
+        .mid {
+            fill:var(--color-mid-lane)
+        }
+        .spaces {
+            stroke-width:7;
+            stroke:var(--color-border);
+        }
+        .icon.rosette {
+            fill:var(--color-rosette-light);
+            stroke-width:1;
+            stroke:var(--color-rosette-dark);
+            opacity: 0.7;
+        }
+    </style>
+    <defs>
+        <rect id="urSpace" width="100" height="100" />
+        <ellipse id="rPetal" rx="5" ry="23" cx="50" cy="50"/>
+        <g id="rCross">
+            <use href="#rPetal" transform="translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(90 50 50) translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(180 50 50) translate(0 -20)"/>
+            <use href="#rPetal" transform="rotate(270 50 50) translate(0 -20)"/>
+        </g>
+        <g id="urRosette">
+            <use href="#rCross" />
+            <use href="#rCross" transform="rotate(30 50 50)" />
+            <use href="#rCross" transform="rotate(60 50 50)" />
+            <circle r="18" cx="50" cy="50" style="stroke-width:0" />
+        </g>
+    </defs>
+    <g class="spaces">
+        <g class="mid">
+            <use href="#urSpace" x="125" y="25" class="space" />
+            <use href="#urSpace" x="125" y="125" class="space" />
+            <use href="#urSpace" x="125" y="225" class="space" />
+            <use href="#urSpace" x="125" y="325" class="space rosette" />
+            <use href="#urSpace" x="125" y="425" class="space"/>
+            <use href="#urSpace" x="125" y="525" class="space" />
+            <use href="#urSpace" x="125" y="625" class="space" />
+            <use href="#urSpace" x="125" y="725" class="space"/>
+        </g>
+        <g class="p1">
+            <g class="onramp">
+                <use href="#urSpace" x="25" y="25" class="space rosette" />
+                <use href="#urSpace" x="25" y="125" class="space" />
+                <use href="#urSpace" x="25" y="225" class="space" />
+                <use href="#urSpace" x="25" y="325" class="space start" />
+            </g>
+            <g class="offramp">
+                <use href="#urSpace" x="25" y="625" class="space finish rosette" />
+                <use href="#urSpace" x="25" y="725" class="space"/>
+            </g>
+        </g>
+
+        <g class="p2">
+            <g class="onramp">
+                <use href="#urSpace" x="225" y="25" class="rosette" />
+                <use href="#urSpace" x="225" y="125" />
+                <use href="#urSpace" x="225" y="225" />
+                <use href="#urSpace" x="225" y="325" class="start" />
+            </g>
+            <g class="offramp">
+                <use href="#urSpace" x="225" y="625" class="finish rosette" />
+                <use href="#urSpace" x="225" y="725" />
+            </g>
+        </g>
+    </g>
+    <g class="rosette icon">
+        <use href="#urRosette" x="125" y="325" />
+        <use href="#urRosette" x="25" y="25" />
+        <use href="#urRosette" x="225" y="25" />
+        <use href="#urRosette" x="25" y="625" />
+        <use href="#urRosette" x="225" y="625" />
+    </g>
+    <!-- TODO make spaces more intricate: https://en.wikipedia.org/wiki/Royal_Game_of_Ur#/media/File:British_Museum_Royal_Game_of_Ur.jpg -->
+</svg>
