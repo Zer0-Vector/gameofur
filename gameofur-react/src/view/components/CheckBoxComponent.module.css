@@ -1,0 +1,16 @@
+.container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-content: center;
+    justify-content: center;
+}
+
+.container input[type="checkbox"] {
+    margin: 5px 10px;
+}
+
+.selected {
+    font-weight: bold;
+    font-style: italic;
+}

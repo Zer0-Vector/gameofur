@@ -1,0 +1,11 @@
+#inputPanel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#dicePanel {
+    display: flex;
+    flex-direction: row;
+    
+}

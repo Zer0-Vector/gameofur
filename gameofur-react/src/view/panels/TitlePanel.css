@@ -1,0 +1,45 @@
+#titlePanel {
+    width: 100%;
+    border-bottom: 2px solid gray;
+    padding-bottom: 10px;
+}
+
+
+#titlePanel .headerSection {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    justify-items: center;
+}
+
+#titlePanel .headerSection > * {
+    margin: 5px 10px;
+}
+
+#titlePanel .headerSection .columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+}
+
+.columns .column {
+    width: 33%;
+}
+
+#titlePanel .inputRow {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.optionsLabel {
+    font-weight: bold;
+}
+
+h1.title {
+    width: 40%;
+    border-bottom: 2px solid black;
+}
