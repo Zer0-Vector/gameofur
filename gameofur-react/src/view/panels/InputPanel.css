@@ -2,10 +2,14 @@
     width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    border-bottom: 2px solid black;
 }
 
 #dicePanel {
+    width: 80%;
     display: flex;
-    flex-direction: row;
-    
+    flex-direction: column;
+    align-items: center;
+    justify-items: stretch;
 }

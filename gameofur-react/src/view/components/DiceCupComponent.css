@@ -1,5 +1,4 @@
 #diceCup {
-    display: flex;
-    flex-direction: row;
+    display: block;
     margin: 15px 25px;
 }
