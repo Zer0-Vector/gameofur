@@ -2,5 +2,6 @@
     "ur.build.root": "dist",
     "ur.server.port": "8888",
     "ur.build.www": "dist/site",
-    "svg.preview.background": "transparent"
+    "svg.preview.background": "transparent",
+    "css.lint.unknownAtRules": "ignore"
 }
