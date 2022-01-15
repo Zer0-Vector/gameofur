@@ -1,0 +1,13 @@
+@import url('../globals.css');
+
+.board {
+  width: min-content;
+  height: min-content;
+  margin: auto;
+  display: flex;
+  padding: 2em;
+  border-width: 10px;
+  border-style: outset;
+  border-color: seagreen;
+  background-color: darkseagreen;
+}

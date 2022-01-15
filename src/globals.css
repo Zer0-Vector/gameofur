@@ -1,0 +1,8 @@
+:root {
+  --space-width: 10vh;
+  --space-height: 10vh;
+  --p0-color: #000;
+  --p1-color: #fff;
+  --space-border-width: 3px;
+  --space-border-color: black;
+}

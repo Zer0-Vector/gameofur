@@ -1,0 +1,74 @@
+@import url('../globals.css');
+
+.space {
+  background-color: lightgray;
+  width: var(--space-width);
+  height: var(--space-height);
+  border: var(--space-border-width) solid var(--space-border-color);
+}
+
+.pos-top {
+  border-top: calc(2 * var(--space-border-width)) solid var(--space-border-color);
+}
+
+.pos-left {
+  border-left: calc(2 * var(--space-border-width)) solid var(--space-border-color);
+}
+
+.pos-left.gap {
+  border-left: var(--space-border-width) solid var(--space-border-color) !important;
+}
+
+.pos-right {
+  border-right: calc(2 * var(--space-border-width)) solid var(--space-border-color);
+}
+
+.pos-right.gap {
+  border-right: var(--space-border-width) solid var(--space-border-color) !important;
+  border-left: calc(2 * var(--space-border-width)) solid transparent;
+}
+
+.pos-top.gap {
+  border-top: var(--space-border-width) solid var(--space-border-color) !important;
+}
+
+.pos-bottom.gap {
+  border-bottom: var(--space-border-width) solid var(--space-border-color) !important;
+}
+
+.pos-bottom {
+  border-bottom: calc(2 * var(--space-border-width)) solid var(--space-border-color);
+}
+
+.space.gap {
+  background-color: transparent;
+  border-color: transparent
+}
+
+.img-bigfivedots {
+  content: url('../images/bigfivedots.svg')
+}
+
+.img-smallfivedots {
+  content: url('../images/smallfivedots.svg')
+}
+
+.img-twelvedots {
+  content: url('../images/twelvedots.svg')
+}
+
+.img-fourfivedots {
+  content: url('../images/fourfivedots.svg')
+}
+
+.img-rosette {
+  content: url('../images/rosette.svg')
+}
+
+.img-eyes0 {
+  content: url('../images/eyes0.svg')
+}
+
+.img-eyes1 {
+  content: url('../images/eyes1.svg')
+}
