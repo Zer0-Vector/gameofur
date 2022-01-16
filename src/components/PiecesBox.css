@@ -1,0 +1,27 @@
+.pieces-box {
+  border: 5px solid salmon;
+}
+
+.img-piece0 {
+  content: url('../images/piece0.svg')
+}
+
+.img-piece1 {
+  content: url('../images/piece1.svg')
+}
+
+.img-piece2 {
+  content: url('../images/piece2.svg')
+}
+
+.img-piece3 {
+  content: url('../images/piece3.svg')
+}
+
+.img-piece4 {
+  content: url('../images/piece4.svg')
+}
+
+.img-piece5 {
+  content: url('../images/piece5.svg')
+}

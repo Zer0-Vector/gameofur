@@ -1,11 +1,15 @@
 class Player {
 
-  constructor(id) {
+  constructor(id, name, avatarIdSuffix) {
     this.id = id
+    this.name = name ? name : "Player " + id
+    this.avatarIdSuffix = avatarIdSuffix ? avatarIdSuffix : 0
   }
 
-  toClassName = () => 'player' + this.id
+  className = () => 'player' + this.id
   
+  avatarId = () => this.name.replace(/\s+/, '') + this.avatarIdSuffix
+
 }
 
 export default Player

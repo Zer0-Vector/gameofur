@@ -1,0 +1,12 @@
+.name-box {
+  border: 1px solid black;
+  padding: 1vw;
+}
+
+.avatar {
+  width: 20vw;
+  height: 20vw;
+  border-width: 5px;
+  border-color: brown;
+  border-style: double;
+}

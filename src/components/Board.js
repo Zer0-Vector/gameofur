@@ -2,14 +2,15 @@ import React from 'react'
 import './Board.css'
 import Space from './Space'
 import SpaceImage from '../constants/SpaceImage'
-import Column from './Column'
+import Column from '../containers/Column'
+import Box from '../containers/Box'
 
 class Board extends React.Component {
 
   render() {
     return (
-      <div className='board'>
-        <Column id={0} ownerId={0}>
+      <Box className='board'>
+        <Column id={0}>
           <Space image={SpaceImage.rosette} edge='top left' />
           <Space image={SpaceImage.eyes1} edge='left' />
           <Space image={SpaceImage.bigfivedots} edge='left' />
@@ -39,7 +40,7 @@ class Board extends React.Component {
           <Space image={SpaceImage.rosette} edge='right' />
           <Space image={SpaceImage.smallfivedots} edge='bottom right' />
         </Column>
-      </div>
+      </Box>
     )
   }
 }
