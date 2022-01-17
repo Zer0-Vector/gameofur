@@ -1,14 +1,17 @@
 <svg width="52" height="52" xmlns="http://www.w3.org/2000/svg" class="piece">
     <style>
-        .piece {
+        .pieceDisc {
             stroke: black;
             stroke-width: 1px;
+            fill: pink;
         }
         .pip {
             fill: white;
+            stroke: gray;
+            stroke-width: 2px;
         }
     </style>
-    <circle r="25" cx="26" cy="26" />
+    <circle r="25" cx="26" cy="26" class="pieceDisc" />
     <g class="pip">
         <circle r="4" cx="26" cy="26" /><!-- center -->
         <circle r="4" cx="16" cy="16" /><!-- NW -->
