@@ -1,8 +1,15 @@
 <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg" class="piece">
     <style>
+        .pieceDisc {
+            stroke: black;
+            stroke-width: 1px;
+            fill: pink;
+        }
         .pip {
             fill: white;
+            stroke: gray;
+            stroke-width: 2px;
         }
     </style>
-    <circle r="25" cx="30" cy="30" />
+    <circle r="25" cx="30" cy="30" class="pieceDisc" />
 </svg>
