@@ -7,15 +7,20 @@ import './Game.css'
 
 class Game extends React.Component {
   static contextType = GameContext
+
+  piecesForPlayer(id) {
+    return this.context.pieces.filter((p,i)=>(p.player.number===id))
+  }
+
   render() {
     return (
       <Box className="game">
           <Box className="player-area-container">
-            <PlayerArea player={this.context.player1} />
+            <PlayerArea player={this.context.players[0]} pieces={this.piecesForPlayer(1)} />
           </Box>
           <Board />
           <Box className="player-area-container">
-            <PlayerArea player={this.context.player2} />
+            <PlayerArea player={this.context.players[1]} pieces={this.piecesForPlayer(2)} />
           </Box>
       </Box>
     )

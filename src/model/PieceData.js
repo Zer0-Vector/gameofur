@@ -1,8 +1,10 @@
 class PieceData {
-  constructor(playerId, pieceId) {
-    this.playerId = playerId
+  constructor(player, pieceId) {
+    this.player = player
     this.id = pieceId
   }
+
+  className = () => this.player.className() + '-piece' + this.id
 }
 
 export default PieceData

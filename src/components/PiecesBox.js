@@ -1,16 +1,22 @@
 import React from "react"
 import './PiecesBox.css'
+import {ReactComponent as ReactPiece} from '../images/piece5.svg'
 
 class PiecesBox extends React.Component {
   
   render() {
-    const pieces = []
-    for (var i = 0; i < 7; i++) {
-      pieces.push(<div key={i} className="piece img-piece5" id={"piece"+i} />)
-    }
+    const { pieces } = this.props
     return (
       <div className="pieces-box">
-        {pieces}
+        {pieces.map((pieceData) => (
+            <div 
+                key={pieceData.className()}
+                className={['piece', pieceData.className(), pieceData.player.className()].join(' ')}
+            >
+              <ReactPiece />
+            </div>
+          )
+        )}
       </div>
     )
   }

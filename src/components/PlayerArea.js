@@ -6,11 +6,11 @@ import PiecesBox from './PiecesBox'
 class PlayerArea extends React.Component {
 
   render() {
-    const { player } = this.props
+    const { player, pieces } = this.props
     return (
       <div className={'player-area ' + player.className()}>
         <NameBox player={player} />
-        <PiecesBox />
+        <PiecesBox pieces={pieces} />
       </div>
     )
   }
