@@ -1,6 +1,4 @@
-import { type } from "@testing-library/user-event/dist/type"
 import React from "react"
-import { useDrag } from "react-dnd"
 import './PiecesBox.css'
 
 class PiecesBox extends React.Component {
