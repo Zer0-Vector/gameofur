@@ -1,12 +1,26 @@
+:root {
+  --avatar-height: 20vw;
+  --avatar-width: 20vw;
+}
 .name-box {
   border: 1px solid black;
-  padding: 1vw;
+  padding: 1vh;
+  width: 25vw;
+  height: max-content;
+  display: flex;
+  align-items: center;
+  flex-flow: column nowrap;
 }
 
-.avatar {
-  width: 20vw;
-  height: 20vw;
+.avatar-container {
+  width: var(--avatar-width);
+  height: var(--avatar-height);
   border-width: 5px;
   border-color: brown;
   border-style: double;
+}
+
+.avatar {
+  width: var(--avatar-width);
+  height: var(--avatar-height);
 }
