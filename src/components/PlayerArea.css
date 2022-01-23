@@ -1,5 +1,8 @@
 .player-area {
-  width: min-content;
-  height: min-content;
+  width: max-content;
+  height: max-content;
   margin: 1vw;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
 }
