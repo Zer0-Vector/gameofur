@@ -1,4 +1,4 @@
-class Player {
+class PlayerData {
 
   constructor(number, name, avatarIdSuffix) {
     this.number = number
@@ -12,4 +12,4 @@ class Player {
 
 }
 
-export default Player
+export default PlayerData
