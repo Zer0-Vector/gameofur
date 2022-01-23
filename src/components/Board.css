@@ -4,8 +4,8 @@
   width: min-content;
   height: min-content;
   display: flex;
-  padding: 2em;
-  border-width: 10px;
+  padding: 1vh;
+  border-width: 15px;
   border-style: outset;
   border-color: seagreen;
   background-color: darkseagreen;

@@ -1,48 +1,39 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import './Board.css'
 import Space from './Space'
-import SpaceImage from '../constants/SpaceImage'
 import Column from '../containers/Column'
 import Box from '../containers/Box'
+import GameContext from '../model/GameContext'
 
-class Board extends React.Component {
+function Board() {
+  const gameContext = useContext(GameContext)
 
-  render() {
-    return (
-      <Box className='board'>
-        <Column id={0}>
-          <Space image={SpaceImage.rosette} edge='top left' />
-          <Space image={SpaceImage.eyes1} edge='left' />
-          <Space image={SpaceImage.bigfivedots} edge='left' />
-          <Space image={SpaceImage.eyes0} edge='left' />
-          <Space gap={true} edge='right top' />
-          <Space gap={true} edge='right bottom' />
-          <Space image={SpaceImage.rosette} edge='left' />
-          <Space image={SpaceImage.smallfivedots} edge='bottom left' />
-        </Column>
-        <Column id={1}>
-          <Space image={SpaceImage.twelvedots} edge='top' />
-          <Space image={SpaceImage.bigfivedots} />
-          <Space image={SpaceImage.fourfivedots} />
-          <Space image={SpaceImage.rosette} />
-          <Space image={SpaceImage.bigfivedots} />
-          <Space image={SpaceImage.fourfivedots} />
-          <Space image={SpaceImage.eyes0} />
-          <Space image={SpaceImage.bigfivedots} edge='bottom' />
-        </Column>
-        <Column id={2} ownerId={1}>
-          <Space image={SpaceImage.rosette} edge='top right' />
-          <Space image={SpaceImage.eyes1} edge='right' />
-          <Space image={SpaceImage.bigfivedots} edge='right' />
-          <Space image={SpaceImage.eyes0} edge='right' />
-          <Space gap={true} edge='top left' />
-          <Space gap={true} edge='bottom left' />
-          <Space image={SpaceImage.rosette} edge='right' />
-          <Space image={SpaceImage.smallfivedots} edge='bottom right' />
-        </Column>
-      </Box>
-    )
+  const spaces = new Array(3)
+  for (var i = 0; i < 3; i++) {
+    const index = i;
+    spaces[i] = (()=>
+      gameContext.spaces
+          .filter(item => item.column === index && item.row >= 0)
+          .sort((a, b)=> a.row - b.row)
+          .map(item => <Space {...item} key={item.coords()} />)
+    )()
   }
+  spaces[0].splice(4, 0, 
+    <Space gap={true} edgeClass='right top' key='gap0' />,
+    <Space gap={true} edgeClass='right bottom' key='gap1' />
+  )
+  spaces[2].splice(4, 0,
+    <Space gap={true} edgeClass='top left' key='gap2' />,
+    <Space gap={true} edgeClass='bottom left' key='gap3' />
+  )
+
+  const wrapWithColumn = (space, index) => <Column key={`col${index}`}>{space}</Column>
+
+  return (
+    <Box className='board'>
+      {spaces.map(wrapWithColumn)}
+    </Box>
+  )
 }
 
 export default Board
