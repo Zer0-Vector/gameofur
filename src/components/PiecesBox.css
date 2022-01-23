@@ -1,11 +1,11 @@
+@import url(../globals.css);
+
 .pieces-box {
-  border: 5px solid salmon;
-}
-
-.piece.player1 .pieceDisc {
-  fill: mediumslateblue;
-}
-
-.piece.player2 .pieceDisc {
-  fill: green;
+  /* border: 5px solid salmon; */
+  align-items: flex-end;
+  justify-content: center;
+  height: max-content;
+  width: 20vh;
+  flex-flow: row wrap;
+  padding: 1vh;
 }

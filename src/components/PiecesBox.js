@@ -1,25 +1,15 @@
 import React from "react"
 import './PiecesBox.css'
-import {ReactComponent as ReactPiece} from '../images/piece5.svg'
+import Box from "../containers/Box"
+import Piece from "./Piece"
 
-class PiecesBox extends React.Component {
-  
-  render() {
-    const { pieces } = this.props
+
+function PiecesBox({ pieces }) {
     return (
-      <div className="pieces-box">
-        {pieces.map((pieceData) => (
-            <div 
-                key={pieceData.className()}
-                className={['piece', pieceData.className(), pieceData.player.className()].join(' ')}
-            >
-              <ReactPiece />
-            </div>
-          )
-        )}
-      </div>
+      <Box className="pieces-box">
+        {pieces.map((pieceData) => <Piece pieceData={pieceData} key={pieceData.className} />)}
+      </Box>
     )
-  }
 }
 
 export default PiecesBox
