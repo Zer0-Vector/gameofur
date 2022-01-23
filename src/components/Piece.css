@@ -1,0 +1,17 @@
+
+.piece.player1 .pieceDisc {
+  fill: rgb(6, 101, 165);
+}
+
+.piece.player2 .pieceDisc {
+  fill: rgb(212, 113, 82);
+}
+
+.piece {
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
+svg.piece-render {
+  filter: drop-shadow(3px 4px 5px black)
+}
