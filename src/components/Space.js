@@ -1,39 +1,35 @@
 import React from "react";
 import './Space.css'
 
-class Space extends React.Component {
-  constructor(props) {
-    super(props)
-    const { image, columnClass, gap, edge } = this.props
-    this.styles = [ 'space' ]
+function Space({ image, columnClass, gap, edgeClass, occupant }) {
+  const styles = [ 'space' ]
 
-    if (edge) {
-      edge
-        .split(' ')
-        .map(suffix => 'pos-'+suffix)
-        .forEach(className => {
-          this.styles.push(className)
-        });
-    }
-    
-    if (columnClass) {
-      this.styles.push(columnClass)
-    }
-
-    if (image) {
-      this.styles.push(image.className())
-    }
-
-    if (gap) {
-      this.styles.push('gap')
-    }
+  if (edgeClass) {
+    edgeClass
+      .split(' ')
+      .map(suffix => 'pos-'+suffix)
+      .forEach(className => {
+        styles.push(className)
+      });
   }
   
-  render() {
-    return (
-      <div className={this.styles.join(' ')} />
-    )
+  if (columnClass) {
+    styles.push(columnClass)
   }
+
+  if (image) {
+    styles.push(image.className())
+  }
+
+  if (gap) {
+    styles.push('gap')
+  }
+  
+  return (
+    <div className={styles.join(' ')}>
+      {occupant}
+    </div>
+  )
 }
 
 export default Space
