@@ -7,7 +7,7 @@ import Piece from "./Piece"
 function PiecesBox({ pieces }) {
     return (
       <Box className="pieces-box">
-        {pieces.map((pieceData) => <Piece pieceData={pieceData} key={pieceData.className} />)}
+        {pieces.map((pieceData) => <Piece pieceData={pieceData} key={pieceData.id} />)}
       </Box>
     )
 }
