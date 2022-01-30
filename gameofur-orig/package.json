@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Royal Game of Ur",
   "private": "true",
-  "main": "index.js",
+  "main": "index.jsx",
   "scripts": {
     "start": "node ./dist",
     "prestart": "gulp build",
