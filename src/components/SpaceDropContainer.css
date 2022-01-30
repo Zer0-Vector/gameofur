@@ -1,0 +1,8 @@
+.space-container {
+  width: max-content;
+  height: max-content;
+}
+
+.space-container.piece-hovering .space {
+  border-color: gray;
+}
