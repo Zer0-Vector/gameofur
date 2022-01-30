@@ -8,10 +8,29 @@
 }
 
 .piece {
-  margin-left: 5px;
-  margin-top: 5px;
+  margin: 20px;
 }
 
 svg.piece-render {
-  filter: drop-shadow(3px 4px 5px black)
+  filter: drop-shadow(3px 4px 5px black);
+}
+
+.piece:hover svg.piece-render {
+  filter: drop-shadow(5px 14px 8px black);
+}
+
+.piece-container {
+  transform: translateX(25px)
+      rotateX(34deg)
+      rotateZ(43deg);
+  transform-style: preserve-3d;
+  border-radius: 32px;
+}
+
+.piece:hover .piece-container {
+  transform:
+  translate3d(0px, -5px, 0px)
+  translateX(25px)
+      rotateX(34deg)
+      rotateZ(43deg);
 }

@@ -11,12 +11,14 @@
             stroke-width: 2px;
         }
     </style>
-    <circle r="25" cx="26" cy="26" class="pieceDisc" />
-    <g class="pip">
-        <circle r="4" cx="26" cy="26" /><!-- center -->
-        <circle r="4" cx="16" cy="16" /><!-- NW -->
-        <circle r="4" cx="36" cy="36" /><!-- SE -->
-        <circle r="4" cx="16" cy="36" /><!-- SW -->
-        <circle r="4" cx="36" cy="16" /><!-- NE -->
+    <g class="piece-container">
+        <circle r="25" cx="26" cy="26" class="pieceDisc" />
+        <g class="pip">
+            <circle r="4" cx="26" cy="26" /><!-- center -->
+            <circle r="4" cx="16" cy="16" /><!-- NW -->
+            <circle r="4" cx="36" cy="36" /><!-- SE -->
+            <circle r="4" cx="16" cy="36" /><!-- SW -->
+            <circle r="4" cx="36" cy="16" /><!-- NE -->
+        </g>
     </g>
 </svg>
