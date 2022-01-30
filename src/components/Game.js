@@ -7,7 +7,7 @@ import './Game.css'
 
 function Game() {
 
-  const context = useContext(GameContext)
+  const [context, controller] = useContext(GameContext)
 
   function piecesForPlayer(id) {
     return context.pieces.filter((p,i)=>(p.player.number===id))
