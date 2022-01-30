@@ -8,5 +8,3 @@ export default class BaseImage {
     return this.prefix + '-' + this.name
   }
 }
-
-export default BaseImage
