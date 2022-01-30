@@ -1,6 +1,6 @@
 import Space from "../components/Space"
 
-class SpaceData {
+export default class SpaceData {
   static ROW_COUNT = 8
 
   constructor(column, row, section, owner, image, edgeClass) {
@@ -14,7 +14,11 @@ class SpaceData {
     this.edgeClass = edgeClass
   }
 
-  coords = () => (this.section==='start' || this.section==='finish') ? this.owner.id + "-" + this.section : `r${this.row}c${this.column}`
+  get coords() {
+    if (this.section==='start' || this.section==='finish') {
+      return this.owner.id + "-" + this.section
+    } else {
+      return `r${this.row}c${this.column}`
+    }
+  }
 }
-
-export default SpaceData

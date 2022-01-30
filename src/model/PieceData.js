@@ -9,7 +9,7 @@ import {ReactComponent as Piece0} from '../images/piece0.svg'
 class PieceData {
   constructor(player, pieceId, pipCount) {
     this.player = player
-    this.id = pieceId
+    this.id = 'piece' + pieceId
     this.location = 'start' // SpaceData.coords
     this.pipCount = pipCount ? pipCount : 5
     const dim = '5vh'
@@ -29,7 +29,7 @@ class PieceData {
           return <Piece5 width={dim} height={dim} />
       }
     })()
-    this.className = this.player.className() + '-piece' + this.id
+    this.selected = false
   }
 
 }
