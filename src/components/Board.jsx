@@ -7,7 +7,7 @@ import GameContext from '../model/GameContext'
 import Gap from './Gap'
 import SpaceDropContainer from './SpaceDropContainer'
 
-function Board() {
+export default function Board() {
   const [gameContext,] = useContext(GameContext)
 
   const spaces = new Array(3)
@@ -37,5 +37,3 @@ function Board() {
     </Box>
   )
 }
-
-export default Board
