@@ -1,6 +1,6 @@
 import React from 'react'
 
-class ComponentUtils {
+export default class ComponentUtils {
   static updateChildren = (children, props) => {
     return React.Children.map(children, (child) => {
       return React.isValidElement(child)
@@ -9,5 +9,3 @@ class ComponentUtils {
     })
   }
 }
-
-export default ComponentUtils
