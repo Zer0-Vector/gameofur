@@ -1,12 +1,10 @@
-:root {
-  --avatar-height: 20vw;
-  --avatar-width: 20vw;
-}
+@import url('../globals.css');
+
 .name-box {
   border: 1px solid black;
   padding: 1vh;
-  width: 25vw;
-  height: max-content;
+  width: var(--name-box-width);
+  height: var(--name-box-height);
   display: flex;
   align-items: center;
   flex-flow: column nowrap;
