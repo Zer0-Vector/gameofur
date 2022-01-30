@@ -1,14 +1,22 @@
 
 .piece.player1 .pieceDisc {
   fill: rgb(6, 101, 165);
+  stroke: rgb(6, 101, 165);
 }
 
 .piece.player2 .pieceDisc {
   fill: rgb(212, 113, 82);
+  stroke:rgb(212, 113, 82);
+}
+
+.piece.selected .pieceDisc {
+  fill: lightgreen;
+  stroke: lightgreen;
 }
 
 .piece {
-  margin: 10px;
+  margin: 15px 15px;
+  z-index: 200;
 }
 
 svg.piece-render {
@@ -21,7 +29,7 @@ svg.piece-render {
 
 .piece-container {
   transform: translateX(25px)
-      rotateX(34deg)
+      rotateX(40deg)
       rotateZ(43deg);
   transform-style: preserve-3d;
   border-radius: 32px;
@@ -29,8 +37,8 @@ svg.piece-render {
 
 .piece:hover .piece-container {
   transform:
-  translate3d(0px, -5px, 0px)
-  translateX(25px)
-      rotateX(34deg)
-      rotateZ(43deg);
+    translate3d(0px, -5px, 0px)
+    translateX(25px)
+    rotateX(40deg)
+    rotateZ(43deg);
 }
