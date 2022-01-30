@@ -5,4 +5,9 @@
   --p1-color: #fff;
   --space-border-width: 3px;
   --space-border-color: #d6bcd6;
+
+  --avatar-height: 20vw;
+  --avatar-width: 20vw;
+  --name-box-width: 25vw;
+  --name-box-height: max-content;
 }
