@@ -1,19 +1,14 @@
 import React, { useContext, useState } from "react"
-import { useDrag } from "react-dnd"
 import GameContext from "../model/GameContext"
 import './Piece.css'
 
-function Piece({ pieceData }) {
+export default function Piece({ pieceData }) {
 
   const [,controller] = useContext(GameContext)
 
   const { id, player, image, selected } = pieceData
 
-  const [, drag] = useDrag(() => ({
-    type: 'piece'
-  }))
-
-  const classes = ['piece', id, player.className()]
+  const classes = ['piece', id, player.className]
 
   if (selected) {
     classes.push('selected')
@@ -26,7 +21,6 @@ function Piece({ pieceData }) {
 
   return (
     <div
-      ref={drag}
       className={classes.join(' ')}
       onClick={updateSelected}
     >
@@ -34,5 +28,3 @@ function Piece({ pieceData }) {
     </div>
   )
 }
-
-export default Piece

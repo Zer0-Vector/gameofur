@@ -1,8 +1,6 @@
 import './App.css'
 import Game from './components/Game'
 import GameContext from './model/GameContext'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
 import { useCallback, useState } from 'react'
 import AppInitializer from './AppInitializer'
 
@@ -54,13 +52,11 @@ function App() {
     }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="app">
-        <GameContext.Provider value={[context, controller]}>
-          <Game />
-        </GameContext.Provider>
-      </div>
-    </DndProvider>
+    <div className="app">
+      <GameContext.Provider value={[context, controller]}>
+        <Game />
+      </GameContext.Provider>
+    </div>
   );
 }
 
