@@ -6,7 +6,9 @@ class PlayerData {
     this.avatarIdSuffix = avatarIdSuffix ? avatarIdSuffix : 0
   }
 
-  className = () => 'player' + this.number
+  get className() {
+    return 'player' + this.number
+  }
   
   avatarId = () => this.name.replace(/\s+/, '') + this.avatarIdSuffix
 

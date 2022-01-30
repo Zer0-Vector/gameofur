@@ -3,17 +3,15 @@ import './PlayerArea.css'
 import NameBox from './NameBox'
 import PiecesBox from './PiecesBox'
 
-class PlayerArea extends React.Component {
+export default class PlayerArea extends React.Component {
 
   render() {
     const { player, pieces } = this.props
     return (
-      <div className={'player-area ' + player.className()}>
+      <div className={'player-area ' + player.className}>
         <NameBox player={player} />
         <PiecesBox pieces={pieces} />
       </div>
     )
   }
 }
-
-export default PlayerArea
