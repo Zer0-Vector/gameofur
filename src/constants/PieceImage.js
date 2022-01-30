@@ -1,6 +1,6 @@
 import BaseImage from "./BaseImage"
 
-class PieceImage extends BaseImage {
+export default class PieceImage extends BaseImage {
   
   static piece0 = new PieceImage('piece0')
   static piece1 = new PieceImage('piece1')
@@ -10,6 +10,6 @@ class PieceImage extends BaseImage {
   static piece5 = new PieceImage('piece5')
 
   constructor(imageName) {
-    super('img-', imageName)
+    super('img', imageName)
   }
 }

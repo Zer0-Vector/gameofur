@@ -1,6 +1,7 @@
 import BaseImage from "./BaseImage"
 
-class SpaceImage extends BaseImage {
+
+export default class SpaceImage extends BaseImage {
   
   static rosette = new SpaceImage('rosette')
   static fourfivedots = new SpaceImage('fourfivedots')
@@ -14,5 +15,3 @@ class SpaceImage extends BaseImage {
     super('img', imageName)
   }
 }
-
-export default SpaceImage

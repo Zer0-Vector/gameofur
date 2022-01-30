@@ -1,5 +1,5 @@
 // enum
-class SpaceType {
+export default class SpaceType {
   static start = new SpaceType('start')
   static finish = new SpaceType('finish')
   static onRamp = new SpaceType('on-ramp')
@@ -14,5 +14,3 @@ class SpaceType {
     return 'space-' + this.name
   }
 }
-
-export default SpaceType

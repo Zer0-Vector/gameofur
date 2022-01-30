@@ -1,7 +1,7 @@
 import React from "react"
 import './NameBox.css'
 
-class NameBox extends React.Component {
+export default class NameBox extends React.Component {
 
   render() {
     const { player } = this.props
@@ -20,5 +20,3 @@ class NameBox extends React.Component {
     )
   }
 }
-
-export default NameBox
