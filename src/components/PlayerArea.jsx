@@ -10,7 +10,7 @@ export default class PlayerArea extends React.Component {
     return (
       <div className={'player-area ' + player.className}>
         <NameBox player={player} />
-        <PiecesBox pieces={pieces} />
+        <PiecesBox pieces={pieces} player={player} />
       </div>
     )
   }

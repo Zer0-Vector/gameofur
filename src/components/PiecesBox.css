@@ -2,6 +2,7 @@
 
 .pieces-box {
   /* border: 5px solid salmon; */
+  display: flex;
   align-items: flex-end;
   justify-content: center;
   height: max-content;

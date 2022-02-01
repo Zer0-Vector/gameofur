@@ -2,7 +2,6 @@ import React, { useContext } from 'react'
 import './Board.css'
 import Space from './Space'
 import Column from '../containers/Column'
-import Box from '../containers/Box'
 import GameContext from '../model/GameContext'
 import Gap from './Gap'
 import SpaceDropContainer from './SpaceDropContainer'
@@ -32,8 +31,8 @@ export default function Board() {
   const wrapWithColumn = (space, index) => <Column key={`col${index}`}>{space}</Column>
 
   return (
-    <Box className='board'>
+    <div className='board'>
       {spaces.map(wrapWithColumn)}
-    </Box>
+    </div>
   )
 }

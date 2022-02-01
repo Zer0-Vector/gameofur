@@ -1,9 +1,17 @@
-import Box from './Box'
+import React from 'react'
 import './Column.css'
 
-export default class Column extends Box {
+export default class Column extends React.Component{
   constructor(props) {
     super(props)
-    this.classNames.push('column')
   }
+
+  render() {
+    return (
+      <div className='column'>
+        {this.props.children}
+      </div>
+    )
+  }
+
 }

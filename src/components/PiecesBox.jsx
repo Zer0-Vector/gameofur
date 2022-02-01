@@ -1,15 +1,13 @@
 import React from "react"
 import './PiecesBox.css'
-import Box from "../containers/Box"
 import Piece from "./Piece"
 
 
-function PiecesBox({ pieces }) {
-    return (
-      <Box className="pieces-box">
-        {pieces.map((pieceData) => <Piece pieceData={pieceData} key={pieceData.id} />)}
-      </Box>
-    )
+export default function PiecesBox({ pieces, player }) {
+  var location = player.className + "-start"
+  return (
+    <div className={"pieces-box " + location}>
+      {pieces.filter(p => p.location === location).map((pieceData) => <Piece pieceData={pieceData} key={pieceData.id} />)}
+    </div>
+  )
 }
-
-export default PiecesBox

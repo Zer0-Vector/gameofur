@@ -1,5 +1,6 @@
 @import url('../globals.css');
 
 .column {
+  display: flex;
   flex-flow: column nowrap;
 }
