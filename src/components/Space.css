@@ -1,12 +1,21 @@
 @import url('../globals.css');
 
 .space {
+  position: relative;
   width: var(--space-width);
   height: var(--space-height);
   border: var(--space-border-width) solid var(--space-border-color);
   box-shadow:inset 1px 4px 4px 3px #899599;
 	background:linear-gradient(to bottom, #ededed 10%, #bab1ba 100%);
 	background-color:#ededed;
+  overflow: visible;
+}
+
+.space .piece {
+  top: 12.5%;
+  left: 12.5%;
+  position: absolute;
+  z-index: 300;
 }
 
 .space.gap {
@@ -50,32 +59,4 @@
 
 .pos-bottom {
   border-bottom: calc(2 * var(--space-border-width)) solid var(--space-border-color);
-}
-
-.img-bigfivedots {
-  content: url('../images/bigfivedots.svg')
-}
-
-.img-smallfivedots {
-  content: url('../images/smallfivedots.svg')
-}
-
-.img-twelvedots {
-  content: url('../images/twelvedots.svg')
-}
-
-.img-fourfivedots {
-  content: url('../images/fourfivedots.svg')
-}
-
-.img-rosette {
-  content: url('../images/rosette.svg')
-}
-
-.img-eyes0 {
-  content: url('../images/eyes0.svg')
-}
-
-.img-eyes1 {
-  content: url('../images/eyes1.svg')
 }

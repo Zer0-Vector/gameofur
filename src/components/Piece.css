@@ -15,15 +15,13 @@
 }
 
 .piece {
+  position: relative;
   margin: 15px 15px;
   z-index: 200;
-}
-
-svg.piece-render {
   filter: drop-shadow(3px 4px 5px black);
 }
 
-.piece:hover svg.piece-render {
+.piece:hover {
   filter: drop-shadow(5px 14px 8px black);
 }
 

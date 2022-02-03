@@ -1,38 +1,37 @@
-import React from "react";
+import React, { useCallback, useContext } from "react"
+import SpaceImage from "../constants/SpaceImage";
+import GameContext from "../model/GameContext"
+import Piece from "./Piece";
 import './Space.css'
 
-export default class Space extends React.Component {
+export default function Space({ image, locationClass }) {
 
-  constructor(props) {
-    super(props)
-    const { image, columnClass, edgeClass } = this.props
-    const styles = [ 'space' ]
-  
-    if (edgeClass) {
-      edgeClass
-        .split(' ')
-        .map(suffix => 'pos-'+suffix)
-        .forEach(className => {
-          styles.push(className)
-        });
-    }
-    
-    if (columnClass) {
-      styles.push(columnClass)
-    }
-  
-    if (image) {
-      styles.push(image.className())
-    }
+  const styles = [ 'space' ]
+  styles.push(image)
+  styles.push(locationClass)
 
-    this.styles = styles
-  }
+  const [context, controller] = useContext(GameContext)
+  const occupant = context.pieces.find(element => {
+    if (!element) return false
+    return element.location === locationClass
+  })
 
-  render() {
-    return (
-      <div className={this.styles.join(' ')}>
-        {this.props.occupant}
-      </div>
-    )
-  }
+  const onClick = useCallback(evt => {
+    if (context.selectedPiece) {
+      if (occupant && context.selectedPiece.location !== locationClass) {
+        controller.selectPiece(null)
+        return
+      }
+      console.log('Moving piece!', context.selectedPiece, locationClass)
+      controller.movePiece(locationClass)
+    }
+  }, [context, controller, locationClass, occupant])
+
+
+  return (
+    <div className={styles.join(' ')} onClick={onClick.bind(this)}>
+      {SpaceImage.getImage(image, '10vh')}
+      {occupant ? <Piece pieceData={occupant} /> : null}
+    </div>
+  )
 }
