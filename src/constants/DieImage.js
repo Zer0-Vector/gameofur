@@ -1,10 +1,8 @@
 import React from 'react'
-import BaseImage from './BaseImage'
 import {ReactComponent as Die0} from '../images/die0.svg'
 import {ReactComponent as Die1} from '../images/die1.svg'
 
-export default class DieImage extends BaseImage {
-
+export default class DieImage {
   static getImage(pips) {
     switch (pips) {
       case 0:
