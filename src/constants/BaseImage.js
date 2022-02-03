@@ -1,10 +1,6 @@
 export default class BaseImage {
-  constructor(prefix, name) {
-    this.prefix = prefix
-    this.name = name
+  constructor(image) {
+    this.image = image
   }
 
-  className() {
-    return this.prefix + '-' + this.name
-  }
 }
