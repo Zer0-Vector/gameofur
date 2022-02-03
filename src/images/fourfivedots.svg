@@ -17,10 +17,10 @@
             <use href="#jaggedBorder" transform="scale(0.475) translate(-50 -50)" stroke-width="2.105" />
         </g>
     </defs>
-    <line x1="50" x2="50" y1="0" y2="100" stroke="black" />
-    <line x1="0" x2="100" y1="50" y2="50" stroke="black" />
     <use href="#dots" transform="translate(25 25)" />
-    <use href="#dots" transform="translate(75 25)" />
-    <use href="#dots" transform="translate(75 75)" />
-    <use href="#dots" transform="translate(25 75)" />
+    <use href="#dots" transform="translate(-25 25)" />
+    <use href="#dots" transform="translate(-25 -25)" />
+    <use href="#dots" transform="translate(25 -25)" />
+    <line x1="50" x2="50" y1="0" y2="100" stroke="black" stroke-width="1px" />
+    <line x1="0" x2="100" y1="50" y2="50" stroke="black" stroke-width="1px"/>
 </svg>
