@@ -1,12 +1,58 @@
 @import url('../globals.css');
 
 .board {
-  width: min-content;
-  height: min-content;
-  display: flex;
-  padding: 1vh;
-  border-width: 15px;
+  width: max-content;
+  height: max-content;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: var(--space-border-width) var(--space-width) var(--space-width) var(--space-width) var(--space-border-width);
+  grid-template-rows: var(--space-border-width) repeat(8, var(--space-height)) var(--space-border-width);
+  border-width: 10px;
   border-style: outset;
   border-color: seagreen;
   background-color: darkseagreen;
+}
+
+.c0 {
+  grid-column: 2;
+}
+
+.c1 {
+  grid-column: 3;
+}
+
+.c2 {
+  grid-column: 4;
+}
+
+.r0 {
+  grid-row: 2;
+}
+
+.r1 {
+  grid-row: 3;
+}
+
+.r2 {
+  grid-row: 4;
+}
+
+.r3 {
+  grid-row: 5;
+}
+
+.r4 {
+  grid-row: 6;
+}
+
+.r5 {
+  grid-row: 7;
+}
+
+.r6 {
+  grid-row: 8;
+}
+
+.r7 {
+  grid-row: 9;
 }
