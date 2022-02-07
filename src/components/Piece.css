@@ -1,22 +1,23 @@
+@import url('../globals.css');
 
 .piece.player1 .pieceDisc {
-  fill: rgb(6, 101, 165);
-  stroke: rgb(6, 101, 165);
+  fill: var(--player1-color);
+  stroke: var(--player1-color);
 }
 
 .piece.player2 .pieceDisc {
-  fill: rgb(212, 113, 82);
-  stroke:rgb(212, 113, 82);
+  fill: var(--player2-color);
+  stroke: var(--player2-color);
 }
 
 .piece.selected .pieceDisc {
-  fill: lightgreen;
-  stroke: lightgreen;
+  fill: var(--selected-color);
+  stroke: var(--selected-color);
 }
 
 .piece {
   position: relative;
-  margin: 15px 15px;
+  margin: 5px 5px;
   z-index: 200;
   filter: drop-shadow(3px 4px 5px black);
 }

@@ -1,22 +1,24 @@
-import React, { useContext, useState } from "react"
-import GameContext from "../model/GameContext"
+import React, { useContext } from "react"
+import TurnPhase from "../constants/TurnPhase"
+import { GameController, GameState } from "../model/GameContext"
 import './Piece.css'
 
-export default function Piece({ pieceData }) {
+export default function Piece({ id }) {
 
-  const [,controller] = useContext(GameContext)
-
-  const { id, player, image, selected } = pieceData
-
-  const classes = ['piece', id, player.className]
+  const controller = useContext(GameController)
+  const state = useContext(GameState)
+  const { player, selected, image } = state.pieces.get(id)
+  const classes = ['piece', 'piece'+id, player.className]
 
   if (selected) {
     classes.push('selected')
   }
 
   const updateSelected = evt => {
-    console.log("selecting piece: ", pieceData)
-    controller.selectPiece(selected ? null : id)
+    if (state.turnPhase === TurnPhase.PRESELECT || state.turnPhase === TurnPhase.SELECTED) {
+      console.log("selecting piece: ", id)
+      controller.selectPiece(selected ? null : id)
+    }
   }
 
   return (
