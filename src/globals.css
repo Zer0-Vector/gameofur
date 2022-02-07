@@ -1,13 +1,41 @@
 :root {
+  --player1-color: rgb(6, 101, 165);
+  --player2-color: rgb(212, 113, 82);
+  --selected-color: lightgreen;
+  
   --space-width: 10vh;
   --space-height: 10vh;
-  --p0-color: #000;
-  --p1-color: #fff;
   --space-border-width: 3px;
   --space-border-color: #d6bcd6;
 
-  --avatar-height: 20vw;
-  --avatar-width: 20vw;
-  --name-box-width: 25vw;
+  --avatar-height: 20vh;
+  --avatar-width: 20vh;
+  --avatar-border-width: 10px;
+
+  --name-box-width: 15vw;
   --name-box-height: max-content;
+  --name-box-border-width: 3px;
+  --name-box-vert-padding: 2vh;
+  --name-box-horiz-padding: 2vw;
+  --name-box-min-width: calc(var(--avatar-width) + 2 * var(--avatar-border-width));
+
+  --pieces-box-width: calc(var(--name-box-width) + 2 * var(--name-box-horiz-padding) - 2 * var(--pieces-box-horiz-padding));
+  --pieces-box-height: max-content;
+  --pieces-box-min-height: 10vh;
+  --pieces-box-border-width: var(--name-box-border-width);
+  --pieces-box-vert-padding: 0;
+  --pieces-box-horiz-padding: 0.5vw;
+  --pieces-box-min-width: calc(var(--name-box-min-width) + 2 * var(--name-box-horiz-padding) - 2 * var(--pieces-box-horiz-padding));
+
+  --dice-box-width: var(--pieces-box-width);
+  --dice-box-min-width: var(--pieces-box-min-width);
+  --dice-box-border-width: var(--pieces-box-border-width);
+
+  --dice-container-width: var(--dice-box-width);
+  --dice-container-min-width: var(--dice-box-min-width);
+  --dice-container-height: fit-content;
+
+  --die-container-width: 10vh;
+  --die-container-height: 10vh;
+
 }
