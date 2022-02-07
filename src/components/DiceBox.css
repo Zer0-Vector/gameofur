@@ -1,0 +1,50 @@
+@import url('../globals.css');
+
+.dice-box {
+  display: flex;
+  flex-flow: column nowrap;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  padding: 2vh 1vw;
+  width: var(--dice-box-width);
+  min-width: var(--dice-box-min-width);
+}
+
+.dice-box button {
+  width: 6vw;
+  height: 3vh;
+  font-weight: bold;
+  font-size: 2vh;
+  border: outset 3px lightgray;
+  border-radius: 10px;
+  background-color: lightgray;
+  color: whitesmoke;
+}
+
+.dice-box.player1 button {
+  background-color: var(--player1-color);
+  border-color: var(--player1-color);
+}
+
+.dice-box.player2 button {
+  background-color: var(--player2-color);
+  border-color: var(--player2-color);
+}
+
+.dice-box button:hover {
+  background-color: var(--selected-color);
+  border-color: var(--selected-color);
+  color: black;
+}
+
+.dice-box button:active {
+  border-style: inset;
+}
+
+.dice-box button:disabled {
+  background-color: lightgray;
+  border-color: lightgray;
+  color: gray;
+}
