@@ -3,11 +3,14 @@ import './PiecesBox.css'
 import Piece from "./Piece"
 
 
-export default function PiecesBox({ pieces, player }) {
-  var location = player.className + "-start"
+export default function PiecesBox({ spaceData, pieces, player }) {
   return (
-    <div className={"pieces-box " + location}>
-      {pieces.filter(p => p.location === location).map((pieceData) => <Piece pieceData={pieceData} key={pieceData.id} />)}
+    <div className={"pieces-box " + spaceData.className}>
+      {
+        pieces
+          .filter(p => p.locationId === spaceData.id)
+          .map((pieceData) => <Piece id={pieceData.id} key={pieceData.id} />)
+      }
     </div>
   )
 }
