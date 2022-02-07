@@ -1,0 +1,6 @@
+@import url('../globals.css');
+
+.die-container {
+  width: var(--die-container-width);
+  height: var(--die-container-height);
+}
