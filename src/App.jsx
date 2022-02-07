@@ -1,23 +1,16 @@
+import React from 'react'
 import './App.css'
 import Game from './components/Game'
-import GameContext from './model/GameContext'
-import { useState } from 'react'
+import { GameState } from './model/GameContext'
 import AppInitializer from './AppInitializer'
-import Controller from './Controller'
 
-function App() {
-
-  const [context, setContext] = useState(AppInitializer.initGameContext())
-
-  const controller = Controller(context, setContext)
+export default function App() {
 
   return (
     <div className="app">
-      <GameContext.Provider value={[context, controller]}>
+      <GameState.Provider value={AppInitializer.initGameState()}>
         <Game />
-      </GameContext.Provider>
+      </GameState.Provider>
     </div>
   );
 }
-
-export default App
