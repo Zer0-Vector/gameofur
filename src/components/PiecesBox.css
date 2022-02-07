@@ -1,12 +1,30 @@
 @import url(../globals.css);
 
 .pieces-box {
-  /* border: 5px solid salmon; */
   display: flex;
-  align-items: flex-end;
   justify-content: center;
-  height: max-content;
-  width: 30vh;
-  flex-flow: row wrap;
-  padding: 1vh;
+  align-content: flex-start;
+  height: var(--pieces-box-height);
+  min-height: var(--pieces-box-min-height);
+  width: var(--pieces-box-width);
+  min-width: var(--pieces-box-min-width);
+  flex-flow: row wrap-reverse;
+  overflow: hidden;
+  padding: var(--pieces-box-vert-padding) var(--pieces-box-horiz-padding);
+}
+
+.pieces-box.player1.start {
+  justify-content: flex-end;
+}
+
+.pieces-box.player2.start {
+  justify-content: flex-start;
+}
+
+.pieces-box.start {
+  border: solid var(--pieces-box-border-width) green;
+}
+
+.pieces-box.finish {
+  border: dotted var(--pieces-box-border-width) black;
 }
