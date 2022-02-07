@@ -9,7 +9,7 @@ export default class NameBox extends React.Component {
       <div className='name-box'>
         <div className='avatar-container'>
           <img
-            src={"https://robohash.org/" + player.avatarId() + ".png?bgset=bg2&set=set1"}
+            src={"https://robohash.org/" + player.avatarId + ".png?bgset=bg2&set=set1"}
             className="avatar"
             alt={player.name + " Avatar"}
             title={player.name + " Avatar"}

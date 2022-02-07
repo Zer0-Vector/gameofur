@@ -1,9 +1,10 @@
 @import url('../globals.css');
 
 .name-box {
-  border: 1px solid black;
-  padding: 1vh;
+  border: var(--name-box-border-width) solid black;
+  padding: var(--name-box-vert-padding) var(--name-box-horiz-padding);
   width: var(--name-box-width);
+  min-width: var(--name-box-min-width);
   height: var(--name-box-height);
   display: flex;
   align-items: center;
@@ -13,7 +14,7 @@
 .avatar-container {
   width: var(--avatar-width);
   height: var(--avatar-height);
-  border-width: 5px;
+  border-width: var(--avatar-border-width);
   border-color: brown;
   border-style: double;
 }
