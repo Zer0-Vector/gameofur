@@ -1,0 +1,15 @@
+@import url('../globals.css');
+
+.dice-container {
+  width: var(--dice-container-width);
+  height: var(--dice-container-height);
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-evenly;
+  justify-items: center;
+  position: relative;
+}
+
+.dice-value {
+  font-weight: bolder;
+}
