@@ -1,37 +1,31 @@
-import React, { useCallback, useContext } from "react"
+import React, { useContext } from "react"
+import TurnPhase from "../constants/TurnPhase";
 import SpaceImage from "../constants/SpaceImage";
-import GameContext from "../model/GameContext"
+import { GameController, GameState } from "../model/GameContext"
 import Piece from "./Piece";
 import './Space.css'
 
-export default function Space({ image, locationClass }) {
+export default function Space({ spaceData }) {
+
+  const controller = useContext(GameController)
+  const state = useContext(GameState)
+
+  const { column, row, imageName } = spaceData;
 
   const styles = [ 'space' ]
-  styles.push(image)
-  styles.push(locationClass)
+  styles.push(imageName)
+  styles.push(`r${row} c${column}`)
 
-  const [context, controller] = useContext(GameContext)
-  const occupant = context.pieces.find(element => {
-    if (!element) return false
-    return element.location === locationClass
-  })
+  function onClick(evt) {
+    controller.movePiece(spaceData.id)
+  }
 
-  const onClick = useCallback(evt => {
-    if (context.selectedPiece) {
-      if (occupant && context.selectedPiece.location !== locationClass) {
-        controller.selectPiece(null)
-        return
-      }
-      console.log('Moving piece!', context.selectedPiece, locationClass)
-      controller.movePiece(locationClass)
-    }
-  }, [context, controller, locationClass, occupant])
-
+  const occupantId = state.spaces.get(spaceData.id).occupantId
 
   return (
-    <div className={styles.join(' ')} onClick={onClick.bind(this)}>
-      {SpaceImage.getImage(image, '10vh')}
-      {occupant ? <Piece pieceData={occupant} /> : null}
+    <div className={styles.join(' ')} onClick={state.turnPhase === TurnPhase.SELECTED ? onClick : ()=>{}}>
+      {SpaceImage.getImage(imageName, '10vh')}
+      {occupantId ? <Piece id={occupantId} /> : null}
     </div>
   )
 }
