@@ -1,5 +1,4 @@
 import PieceImage from '../constants/PieceImage'
-import PlayerData from './PlayerData'
 import SpaceData from './SpaceData'
 
 export default class PieceData {
@@ -13,7 +12,6 @@ export default class PieceData {
     this.image = PieceImage.getPiece(pipCount, dim)
     this.selected = false
     this.locationId = SpaceData.getId(player.colId, SpaceData.START_ROW)
-    this.pathIndex = 0
     console.log("Created piece: ", this.id, this.className)
   }
 
