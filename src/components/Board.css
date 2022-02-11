@@ -7,6 +7,7 @@
   display: grid;
   grid-template-columns: var(--space-border-width) var(--space-width) var(--space-width) var(--space-width) var(--space-border-width);
   grid-template-rows: var(--space-border-width) repeat(8, var(--space-height)) var(--space-border-width);
+  gap: calc(2 * var(--space-border-width));
   border-width: 10px;
   border-style: outset;
   border-color: seagreen;
