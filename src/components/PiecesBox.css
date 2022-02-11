@@ -28,3 +28,11 @@
 .pieces-box.finish {
   border: dotted var(--pieces-box-border-width) black;
 }
+
+.pieces-box.legal-move {
+  border-color: red;
+}
+
+.pieces-box.legal-move:hover {
+  border-color: yellow;
+}
