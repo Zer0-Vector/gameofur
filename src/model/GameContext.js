@@ -8,6 +8,7 @@ export const GameState = React.createContext({
   turnPhase: null, // TurnPhase
   currentPlayerId: 1, // always 1 or 2; Use turnPhase
   diceFaces: [],
+  selectedId: null,
 })
 
 export const GameController = React.createContext({
