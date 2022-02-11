@@ -10,20 +10,27 @@ export default function Space({ spaceData }) {
   const controller = useContext(GameController)
   const state = useContext(GameState)
 
-  const { column, row, imageName } = spaceData;
+  const { column, row, imageName, id } = spaceData;
 
   const styles = [ 'space' ]
   styles.push(imageName)
   styles.push(`r${row} c${column}`)
 
   function onClick(evt) {
-    controller.movePiece(spaceData.id)
+    controller.movePiece(id)
   }
 
-  const occupantId = state.spaces.get(spaceData.id).occupantId
+  const occupantId = state.spaces.get(id).occupantId
+
+  const isLegalMove = controller.isLegalMove(id);
+
+  // if something is selected, and the selected piece would land here, highlight this space; make "brighter" on hover
+  if (isLegalMove) {
+    styles.push('legal-move')
+  }
 
   return (
-    <div className={styles.join(' ')} onClick={state.turnPhase === TurnPhase.SELECTED ? onClick : ()=>{}}>
+    <div className={styles.join(' ')} onClick={isLegalMove && state.turnPhase === TurnPhase.SELECTED ? onClick : ()=>{}}>
       {SpaceImage.getImage(imageName, '10vh')}
       {occupantId ? <Piece id={occupantId} /> : null}
     </div>
