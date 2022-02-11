@@ -5,8 +5,8 @@
   width: var(--space-width);
   height: var(--space-height);
   border: var(--space-border-width) solid var(--space-border-color);
-  box-shadow:inset 1px 4px 4px 3px #899599;
-	background:linear-gradient(to bottom, #ededed 10%, #bab1ba 100%);
+  box-shadow: inset 1px 4px 4px 3px #899599;
+	background: linear-gradient(to bottom, #ededed 10%, #bab1ba 100%);
 	background-color:#ededed;
   overflow: visible;
 }
@@ -23,6 +23,14 @@
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.space.legal-move {
+  border-color: red;
+}
+
+.space.legal-move:hover {
+  border-color: yellow;
 }
 
 .pos-top {
