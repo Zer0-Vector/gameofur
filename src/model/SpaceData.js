@@ -9,6 +9,11 @@ export default class SpaceData {
   static START_ROW = -1
   static FINISH_ROW = -2
 
+  static P1_START_ID = SpaceData.getId(SpaceData.P1_COL, SpaceData.START_ROW)
+  static P2_START_ID = SpaceData.getId(SpaceData.P2_COL, SpaceData.START_ROW)
+  static P1_FINISH_ID = SpaceData.getId(SpaceData.P1_COL, SpaceData.FINISH_ROW)
+  static P2_FINISH_ID = SpaceData.getId(SpaceData.P2_COL, SpaceData.FINISH_ROW)
+
   static getId(column, row) {
     return column + row * SpaceData.COL_COUNT
   }
@@ -19,8 +24,17 @@ export default class SpaceData {
     this.row = row
     this.occupantId = null // null===empty space, else PieceData.id
     this.section = section
-    this.ownerId = owner ? owner.number : null // null===middle section, else PlayerData.id
+    this.owner = owner
     this.imageName = imageName
+  }
+
+  withOccupantId(id) {
+    this.occupantId = id
+    return this
+  }
+
+  get ownerId() {
+    return this.owner ? this.owner.number : null
   }
 
   get className() {
@@ -32,7 +46,7 @@ export default class SpaceData {
   }
 
   pathIndex(playerId) {
-    return RacePath[playerId].indexOf(this.id)
+    return RacePath.get(playerId).indexOf(this.id)
   }
 
 }
