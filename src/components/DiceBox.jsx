@@ -12,8 +12,8 @@ export default function DiceBox({ ownerId }) {
     return (
       <div className={`dice-box player${ownerId} full-of-dice`}>
         <button onClick={controller.rollDice} disabled={state.turnPhase !== TurnPhase.PREROLL}>Roll!</button>
-        <Dice rollValues={state.diceFaces.map(v => v % 2)} rollTotal={state.diceFaces.map(v => v % 2).reduce((p, c) => p + c)} />
-        <div>{state.rollValue}</div>
+        <Dice rollValues={state.diceFaces.map(v => v % 2)} />
+        <div className="dice-value">{state.diceFaces.map(v => v % 2).reduce((p, c) => p + c)}</div>
       </div>
     )
   } else {
