@@ -15,16 +15,19 @@ export default function Piece({ id }) {
   }
 
   const updateSelected = evt => {
-    if (state.turnPhase === TurnPhase.PRESELECT || state.turnPhase === TurnPhase.SELECTED) {
-      console.log("selecting piece: ", id)
-      controller.selectPiece(selected ? null : id)
-    }
+    console.log("selecting piece: ", id)
+    controller.selectPiece(selected ? null : id)
   }
+
+  const canSelect = () => (
+    (state.turnPhase === TurnPhase.PRESELECT || state.turnPhase === TurnPhase.SELECTED)
+    && state.currentPlayerId === player.number
+  )
 
   return (
     <div
       className={classes.join(' ')}
-      onClick={updateSelected}
+      onClick={canSelect() ? updateSelected : ()=>{}}
     >
       {image}
     </div>
