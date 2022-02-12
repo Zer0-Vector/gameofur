@@ -29,7 +29,12 @@ export default class SpaceData {
   }
 
   withOccupantId(id) {
-    this.occupantId = id
+    // only set occupant id if not finishing
+    if (id === SpaceData.P1_FINISH_ID || id === SpaceData.P2_FINISH_ID) {
+      this.occupantId = null
+    } else {
+      this.occupantId = id
+    }
     return this
   }
 
