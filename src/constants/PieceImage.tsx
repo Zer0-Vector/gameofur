@@ -1,3 +1,4 @@
+import React from 'react'
 import {ReactComponent as Piece5} from '../images/piece5.svg'
 import {ReactComponent as Piece4} from '../images/piece4.svg'
 import {ReactComponent as Piece3} from '../images/piece3.svg'
@@ -6,7 +7,7 @@ import {ReactComponent as Piece1} from '../images/piece1.svg'
 import {ReactComponent as Piece0} from '../images/piece0.svg'
 
 export default class PieceImage {
-  static getPiece(pips, dim) {
+  static getPiece(pips: number, dim: string) {
     switch (pips) {
       case 0:
         return <Piece0 className="piece0" width={dim} height={dim} />

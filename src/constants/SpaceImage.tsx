@@ -8,7 +8,7 @@ import {ReactComponent as Eyes0} from '../images/eyes0.svg'
 import {ReactComponent as Eyes1} from '../images/eyes1.svg'
 
 export default class SpaceImage {
-  static getImage(name, dim) {
+  static getImage(name: string, dim: string) {
     switch (name) {
       case 'rosette':
         return <Rosette className={name} width={dim} height={dim} />

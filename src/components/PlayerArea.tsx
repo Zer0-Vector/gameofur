@@ -3,9 +3,18 @@ import './PlayerArea.css'
 import NameBox from './NameBox'
 import PiecesBox from './PiecesBox'
 import DiceBox from "./DiceBox"
+import PlayerData from "~/model/PlayerData"
+import PieceData from "~/model/PieceData"
+import SpaceData from "~/model/SpaceData"
 
-export default class PlayerArea extends React.Component {
+export type PlayerAreaProps = { 
+  player: PlayerData, 
+  pieces: PieceData[], 
+  startData: SpaceData, 
+  finishData: SpaceData,
+}
 
+export default class PlayerArea extends React.Component<PlayerAreaProps> {
   render() {
     const { player, pieces, startData, finishData } = this.props
     return (

@@ -1,11 +1,15 @@
-import React, { useContext } from 'react'
-import GameContext from '../model/GameContext'
+import React from 'react'
+import SpaceData from '~/model/SpaceData'
 import './Board.css'
 import Space from './Space'
 
-export default function Board({ spaces }) {
+export type BoardProps = {
+  spaces: Map<number, SpaceData>
+}
 
-  const renderedSpaces = []
+export default function Board(props: BoardProps) {
+  const { spaces } = props
+  const renderedSpaces: JSX.Element[] = []
   spaces.forEach((val) => {
     if (val.row < 0) return
     renderedSpaces.push(<Space spaceData={val} key={`space${val.id}`} />)

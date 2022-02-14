@@ -2,7 +2,13 @@ export default class PlayerData {
 
   static PLAYER_COUNT = 2
 
-  constructor(number, colId, name, avatarIdSuffix) {
+  number: number
+  name: string
+  colId: number
+  avatarIdSuffix: number
+
+
+  constructor(number: number, colId: number, name?: string | undefined, avatarIdSuffix?: number | undefined) {
     this.number = number
     this.name = name ? name : "Player " + number
     this.avatarIdSuffix = avatarIdSuffix ? avatarIdSuffix : 0

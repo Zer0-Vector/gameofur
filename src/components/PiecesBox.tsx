@@ -1,11 +1,21 @@
 import React, { useContext } from "react"
 import './PiecesBox.css'
+import SpaceData from "../model/SpaceData"
+import PieceData from "../model/PieceData"
+import PlayerData from "../model/PlayerData"
+import GameController, { GameControllerImpl } from "../model/GameController"
 import Piece from "./Piece"
-import { GameController } from "../model/GameContext"
+
+export type PiecesBoxProps = {
+  spaceData: SpaceData,
+  pieces: PieceData[],
+  player: PlayerData
+}
 
 
-export default function PiecesBox({ spaceData, pieces, player }) {
-  const controller = useContext(GameController)
+export default function PiecesBox(props: PiecesBoxProps) {
+  const { spaceData, pieces } = props
+  const controller = useContext<GameControllerImpl>(GameController)
 
 
   const onClick = () => {

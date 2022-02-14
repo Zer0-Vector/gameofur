@@ -1,7 +1,12 @@
 import React from "react"
+import PlayerData from "~/model/PlayerData"
 import './NameBox.css'
 
-export default class NameBox extends React.Component {
+export type NameBoxProps = {
+  player: PlayerData
+}
+
+export default class NameBox extends React.Component<NameBoxProps> {
 
   render() {
     const { player } = this.props
