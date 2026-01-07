@@ -1,41 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
 #root {
-  max-width: 1280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 100vw;
+
+  min-height: 100dvh;
+
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+#game-container {
+  --target-height: 100dvh;
+  --padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+  width: 100%;
+  height: calc(var(--target-height) - 2 * var(--padding));
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+  padding: var(--padding);
 }
 
 .card {
   padding: 2em;
 }
 
-.read-the-docs {
-  color: #888;
-}
