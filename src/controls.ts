@@ -1,4 +1,4 @@
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import * as THREE from 'three';
 
 export function useControls(camera: THREE.Camera, domElement: HTMLElement, render: () => void) {
