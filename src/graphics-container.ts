@@ -31,13 +31,11 @@ export function useGraphicsContainer(containerId: string) {
     camera.updateProjectionMatrix();
   }
 
-  const handleResize = () => {
+  // initialize size and camera aspect
+  useEffect(() => {
     const dims = fetchContainerDimensions();
     doResize(dims.width, dims.height);
-  };
-
-  // initialize size and camera aspect
-  useEffect(handleResize, []);
+  }, []);
 
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
