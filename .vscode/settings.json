@@ -1,6 +1,9 @@
 {
     "ur.build.root": "dist",
     "ur.server.port": "8888",
-    "ur.build.www": "dist/site",
-    "svg.preview.background": "transparent"
+    // "ur.build.www": "dist/site",
+    "svg.preview.background": "transparent",
+    "cSpell.ignoreWords": [
+      "metalness"
+    ]
 }
