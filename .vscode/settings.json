@@ -1,9 +1,18 @@
 {
     "ur.build.root": "dist",
-    "ur.server.port": "8888",
+    "ur.server.port": "5173",
     // "ur.build.www": "dist/site",
     "svg.preview.background": "transparent",
     "cSpell.ignoreWords": [
       "metalness"
-    ]
+    ],
+    "files.exclude": {
+      "**/.git": true,
+      "**/.svn": false,
+      "**/.hg": false,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      "**/CVS": false
+    },
+    "explorerExclude.backup": {}
 }
