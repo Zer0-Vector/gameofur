@@ -35,9 +35,7 @@ export function useGraphicsContainer(containerId: string) {
   useEffect(() => {
     const dims = fetchContainerDimensions();
     doResize(dims.width, dims.height);
-  }, []);
 
-  useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       if (entries[0].target.id !== containerId) {
         return;
@@ -55,21 +53,19 @@ export function useGraphicsContainer(containerId: string) {
 
     observer.observe(container);
 
-    return () => {
-      observer.unobserve(container);
-    }
-  });
 
-
-  useEffect(() => {
-    const container = fetchContainer(containerId);
     while (container.firstChild) {
       container.firstChild.remove();
     }
     container.appendChild(renderer.domElement);
-  }, []);
 
-  useEffect(renderScene, []);
+    renderScene();
+
+    return () => {
+      observer.unobserve(container);
+    }
+
+  }, [containerId]);
 
   return {
     renderer,
