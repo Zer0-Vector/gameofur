@@ -12,7 +12,7 @@
   "author": "Arthur Little <1690572+littleaj@users.noreply.github.com> (https://github.com/littleaj)",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.22.1",
     "jquery": "^3.5.1",
     "jquery-ui-dist": "^1.12.1"
   },
