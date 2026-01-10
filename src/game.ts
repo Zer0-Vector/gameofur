@@ -7,7 +7,7 @@ export function useGame() {
   const { renderer, camera, rootScene, renderScene } = useGraphicsContainer("game-container");
   rootScene.background = new THREE.Color(0x2a2a2a);
   configureLighting(rootScene);
-  const controls = useControls(camera, renderer.domElement, renderScene);
+  useControls(camera, renderer.domElement, renderScene);
 
   const board = useBoard();
   rootScene.add(board);
