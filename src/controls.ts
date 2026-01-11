@@ -7,8 +7,6 @@ export function useControls(camera: THREE.Camera, domElement: HTMLElement, rende
   orbit.enablePan = true;
   orbit.enableZoom = true;
   orbit.enableRotate = true;
-  orbit.autoRotate = true;
-  orbit.autoRotateSpeed = 0.5;
 
   return {
     orbit
