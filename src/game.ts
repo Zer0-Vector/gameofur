@@ -38,8 +38,8 @@ export function useGame() {
   configureLighting(rootScene);
   useControls(camera, renderer.domElement, renderScene);
 
-  const board = useBoard();
-  rootScene.add(board);
+  const table = useGameTable();
+  rootScene.add(table);
 
   useDebugGui(camera);
 
