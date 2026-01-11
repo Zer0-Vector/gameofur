@@ -1,7 +1,36 @@
-import { useBoard } from "./board";
+import { GUI } from "dat.gui";
+import { useGameTable } from "./board";
 import { useControls } from "./controls";
 import { useGraphicsContainer } from "./graphics-container";
 import * as THREE from "three";
+import { useEffect, useRef } from "react";
+
+function useDebugGui(camera: THREE.Camera) {
+  const debugGui = useRef<GUI | null>(null);
+  useEffect(() => {
+    if (!debugGui.current) {
+      debugGui.current = new GUI();
+      const cameraFolder = debugGui.current.addFolder("Camera");
+      const cameraPositionFolder = cameraFolder.addFolder("Position");
+      cameraPositionFolder.add(camera.position, "x", -100, 100, 0.01).listen();
+      cameraPositionFolder.add(camera.position, "y", -100, 100, 0.01).listen();
+      cameraPositionFolder.add(camera.position, "z", -100, 100, 0.01).listen();
+      cameraPositionFolder.open();
+      const cameraRotationFolder = cameraFolder.addFolder("Rotation");
+      cameraRotationFolder.add(camera.rotation, "x", -Math.PI, Math.PI, 0.01).listen();
+      cameraRotationFolder.add(camera.rotation, "y", -Math.PI, Math.PI, 0.01).listen();
+      cameraRotationFolder.add(camera.rotation, "z", -Math.PI, Math.PI, 0.01).listen();
+      cameraRotationFolder.open();
+      cameraFolder.open();
+    }
+
+    return () => {
+      debugGui.current?.destroy();
+      debugGui.current = null;
+    }
+
+  }, [debugGui, camera]);
+}
 
 export function useGame() {
   const { renderer, camera, rootScene, renderScene } = useGraphicsContainer("game-container");
@@ -11,6 +40,8 @@ export function useGame() {
 
   const board = useBoard();
   rootScene.add(board);
+
+  useDebugGui(camera);
 
   renderScene();
 }
