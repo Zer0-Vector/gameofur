@@ -12,13 +12,13 @@ export function useGraphicsContainer(containerId: string) {
 
   const fov = 75;
   const camera = new THREE.PerspectiveCamera(fov);
-  camera.position.set(-10, 55, 5);
+  camera.position.set(0, 40, 0);
   camera.lookAt(0, 0, 0);
+
 
   const rootScene = new THREE.Scene();
 
   const renderScene = () => {
-    console.log("Rendering scene...", "\n");
     renderer.render(rootScene, camera);
   };
 
