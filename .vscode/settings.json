@@ -4,7 +4,9 @@
     // "ur.build.www": "dist/site",
     "svg.preview.background": "transparent",
     "cSpell.ignoreWords": [
-      "metalness"
+      "metalness",
+      "lerp",
+      "unhighlighted",
     ],
     "files.exclude": {
       "**/.git": true,
