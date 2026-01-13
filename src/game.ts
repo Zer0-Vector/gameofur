@@ -35,8 +35,8 @@ function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameControll
         }
       }, 'rollDice').name('Roll Dice');
       gameFolder.add({
-        resetGame: () => {
-          const result = gameController?.handleAction({ type: 'RESET_GAME' });
+        resetGame: async () => {
+          const result = await gameController?.handleAction({ type: 'RESET_GAME' });
           console.log(result);
         }
       }, 'resetGame').name('Reset Game');
