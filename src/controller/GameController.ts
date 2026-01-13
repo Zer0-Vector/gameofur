@@ -1,17 +1,25 @@
-import type { GameModel } from '../model';
-import { Piece, Space, Die } from '../objects';
+import type { Identifiable } from '@/interfaces';
+import type { GameModel } from '@/model';
+import { Piece, Space, Die } from '@/objects';
+import type { EmptyObject } from '@/types';
+
+type GameActionsMap = {
+  SELECT_PIECE: Identifiable,
+  MOVE_PIECE: Identifiable & { spaceId: string } ,
+  ROLL_DICE: EmptyObject,
+  SELECT_SPACE: Identifiable,
+  DESELECT_ALL: EmptyObject,
+  START_GAME: EmptyObject,
+  RESET_GAME: EmptyObject,
+}
 
 /**
  * Game action types that can be triggered by user interaction.
  */
-export type GameAction =
-  | { type: 'SELECT_PIECE'; pieceId: string }
-  | { type: 'MOVE_PIECE'; pieceId: string; spaceId: string }
-  | { type: 'ROLL_DICE' }
-  | { type: 'SELECT_SPACE'; spaceId: string }
-  | { type: 'DESELECT_ALL' }
-  | { type: 'START_GAME' }
-  | { type: 'RESET_GAME' };
+export type GameAction = {
+  [K in keyof GameActionsMap]: GameActionsMap[K] & { type: K }
+}[keyof GameActionsMap];
+
 
 /**
  * Result of a game action.
@@ -50,16 +58,16 @@ export class GameController {
   async handleAction(action: GameAction): Promise<ActionResult> {
     switch (action.type) {
       case 'SELECT_PIECE':
-        return this.selectPiece(action.pieceId);
+        return this.selectPiece(action.id);
 
       case 'MOVE_PIECE':
-        return this.movePiece(action.pieceId, action.spaceId);
+        return this.movePiece(action.id, action.spaceId);
 
       case 'ROLL_DICE':
         return this.rollDice();
 
       case 'SELECT_SPACE':
-        return this.selectSpace(action.spaceId);
+        return this.selectSpace(action.id);
 
       case 'DESELECT_ALL':
         return this.deselectAll();
