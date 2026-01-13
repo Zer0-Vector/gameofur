@@ -1,12 +1,11 @@
 import { Mesh, MathUtils } from 'three';
-import type { Object3D } from 'three';
-import type { IGraphicsObject, AnimationType, AnimationParams } from '../interfaces';
+import type { Euler, Object3D, Vector3 } from 'three';
 
 /**
  * Base class for all graphics objects.
  * Handles Three.js rendering and animations.
  */
-export abstract class GraphicsObject implements IGraphicsObject {
+export abstract class GraphicsObject {
   protected _object3D: Object3D;
   protected activeAnimations: Map<string, Promise<void>>;
 
@@ -101,4 +100,24 @@ export abstract class GraphicsObject implements IGraphicsObject {
       animate();
     });
   }
+}
+
+
+export type AnimationType =
+  | 'move'
+  | 'select'
+  | 'deselect'
+  | 'highlight'
+  | 'unhighlight'
+  | 'roll'
+  | 'knockout'
+  | 'spawn';
+
+export interface AnimationParams {
+  duration?: number;
+  targetPosition?: Vector3;
+  targetRotation?: Euler;
+  targetScale?: Vector3;
+  easing?: (t: number) => number;
+
 }
