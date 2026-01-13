@@ -1,10 +1,9 @@
-import type { IGameObject, GameObjectType, GameObjectState } from '../interfaces';
 
 /**
  * Base class for all game objects.
  * Provides common functionality for game logic.
  */
-export abstract class GameObject<Type extends GameObjectType> implements IGameObject<Type> {
+export abstract class GameObject<Type extends GameObjectType> {
   public readonly id: string;
   public abstract readonly type: Type;
   public state: GameObjectState;
@@ -39,4 +38,18 @@ export abstract class GameObject<Type extends GameObjectType> implements IGameOb
   setActive(active: boolean): void {
     this.state.active = active;
   }
+}
+
+
+export type GameObjectType = 'piece' | 'space' | 'die' | 'board';
+
+export interface GameObjectState {
+  /** Whether the object is currently active/interactable */
+  active: boolean;
+  
+  /** Whether the object is currently selected */
+  selected: boolean;
+  
+  /** Whether the object is currently animating */
+  animating: boolean;
 }
