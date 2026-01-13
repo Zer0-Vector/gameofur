@@ -1,5 +1,4 @@
 import { GUI } from "dat.gui";
-import { useGameTable } from "./table";
 import { useControls } from "./controls";
 import { useGraphicsContainer } from "./graphics-container";
 import * as THREE from "three";
@@ -7,8 +6,10 @@ import { useEffect, useRef } from "react";
 import { GameController } from "./controller";
 import { GameModel } from "./model";
 import { GameView } from "./view";
+import type { Nullable } from "./types";
+import { TableGraphics } from "./graphics";
 
-function useDebugGui(camera: THREE.Camera, gameController?: GameController) {
+function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameController>) {
   const debugGui = useRef<GUI | null>(null);
   useEffect(() => {
     if (!debugGui.current) {
@@ -57,13 +58,13 @@ export function useGame() {
   const modelRef = useRef<GameModel | null>(null);
   const controllerRef = useRef<GameController | null>(null);
   const viewRef = useRef<GameView | null>(null);
-  const table = useGameTable();
+  const table = new TableGraphics();
 
   useEffect(() => {
     rootScene.background = new THREE.Color(0x2a2a2a);
     configureLighting(rootScene);
 
-    rootScene.add(table);
+    table.addTo(rootScene);
 
     // Initialize MVC components
     if (!modelRef.current && !controllerRef.current && !viewRef.current) {
@@ -115,6 +116,8 @@ export function useGame() {
       cancelAnimationFrame(animationId);
       viewRef.current?.dispose();
       controllerRef.current?.dispose();
+      modelRef.current?.dispose();
+      table.dispose();
       viewRef.current = null;
       controllerRef.current = null;
       modelRef.current = null;
@@ -122,7 +125,7 @@ export function useGame() {
   }, [rootScene, renderScene, table]);
 
   useControls(camera, renderer.domElement, renderScene);
-  useDebugGui(camera, controllerRef.current || undefined);
+  useDebugGui(camera, controllerRef.current);
 }
 
 function configureLighting(scene: THREE.Scene) {
