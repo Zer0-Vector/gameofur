@@ -177,9 +177,7 @@ export class GameController {
   }
 
   private async rollDice(): Promise<ActionResult> {
-    const rollPromises = this.model.dice.map(async (die) => {
-      return die.roll();
-    });
+    const rollPromises = this.model.dice.map((die) => die.roll());
 
     const results = await Promise.all(rollPromises);
     const total = results.reduce((sum: number, val) => sum + val, 0);
