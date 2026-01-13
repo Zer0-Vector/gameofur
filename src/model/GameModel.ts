@@ -4,7 +4,7 @@ import { Piece, Space, Die } from '../objects';
 /**
  * Events emitted by the GameModel.
  */
-export interface GameModelEvents {
+export type GameModelEvents = {
   'piece:created': { piece: Piece };
   'piece:moved': { pieceId: string; fromPosition: string | null; toPosition: string | null };
   'piece:selected': { pieceId: string };
@@ -167,5 +167,9 @@ export class GameModel extends EventEmitter<GameModelEvents> {
    */
   getDie(index: number): Die | undefined {
     return this._dice[index];
+  }
+
+  dispose(): void {
+    // nop
   }
 }
