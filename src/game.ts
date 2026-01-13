@@ -1,11 +1,14 @@
 import { GUI } from "dat.gui";
-import { useGameTable } from "./board";
+import { useGameTable } from "./table";
 import { useControls } from "./controls";
 import { useGraphicsContainer } from "./graphics-container";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
+import { GameController } from "./controller";
+import { GameModel } from "./model";
+import { GameView } from "./view";
 
-function useDebugGui(camera: THREE.Camera) {
+function useDebugGui(camera: THREE.Camera, gameController?: GameController) {
   const debugGui = useRef<GUI | null>(null);
   useEffect(() => {
     if (!debugGui.current) {
@@ -22,6 +25,23 @@ function useDebugGui(camera: THREE.Camera) {
       cameraRotationFolder.add(camera.rotation, "z", -Math.PI, Math.PI, 0.01).listen();
       cameraRotationFolder.open();
       cameraFolder.open();
+
+      if (gameController) {
+        const gameFolder = debugGui.current.addFolder("Game Actions");
+        gameFolder.add({
+          rollDice: async () => {
+            const result = await gameController.handleAction({ type: 'ROLL_DICE' });
+            console.log(result);
+          }
+        }, 'rollDice').name('Roll Dice');
+        gameFolder.add({
+          resetGame: () => {
+            const result = gameController.handleAction({ type: 'RESET_GAME' });
+            console.log(result);
+          }
+        }, 'resetGame').name('Reset Game');
+        gameFolder.open();
+      }
     }
 
     return () => {
@@ -29,21 +49,80 @@ function useDebugGui(camera: THREE.Camera) {
       debugGui.current = null;
     }
 
-  }, [debugGui, camera]);
+  }, [debugGui, camera, gameController]);
 }
 
 export function useGame() {
   const { renderer, camera, rootScene, renderScene } = useGraphicsContainer("game-container");
-  rootScene.background = new THREE.Color(0x2a2a2a);
-  configureLighting(rootScene);
-  useControls(camera, renderer.domElement, renderScene);
-
+  const modelRef = useRef<GameModel | null>(null);
+  const controllerRef = useRef<GameController | null>(null);
+  const viewRef = useRef<GameView | null>(null);
   const table = useGameTable();
-  rootScene.add(table);
 
-  useDebugGui(camera);
+  useEffect(() => {
+    rootScene.background = new THREE.Color(0x2a2a2a);
+    configureLighting(rootScene);
 
-  renderScene();
+    rootScene.add(table);
+
+    // Initialize MVC components
+    if (!modelRef.current && !controllerRef.current && !viewRef.current) {
+      // Create Model
+      const model = new GameModel();
+      modelRef.current = model;
+
+      // Create Controller
+      const controller = new GameController(model);
+      controllerRef.current = controller;
+
+      // Create View (passes action handler to relay user input to controller)
+      const view = new GameView(rootScene, model, async (action) => {
+        const result = await controller.handleAction(action);
+        console.log(result);
+      });
+      viewRef.current = view;
+
+      // Initialize game objects (controller populates the model)
+      controller.initialize();
+    }
+
+    // Animation loop
+    let animationId: number;
+    let lastTime = performance.now();
+
+    const animate = () => {
+      const currentTime = performance.now();
+      const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+      lastTime = currentTime;
+
+      // Update controller (game logic)
+      if (controllerRef.current) {
+        controllerRef.current.update(deltaTime);
+      }
+
+      // Update view (graphics)
+      if (viewRef.current) {
+        viewRef.current.update(deltaTime);
+      }
+
+      renderScene();
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      viewRef.current?.dispose();
+      controllerRef.current?.dispose();
+      viewRef.current = null;
+      controllerRef.current = null;
+      modelRef.current = null;
+    };
+  }, [rootScene, renderScene, table]);
+
+  useControls(camera, renderer.domElement, renderScene);
+  useDebugGui(camera, controllerRef.current || undefined);
 }
 
 function configureLighting(scene: THREE.Scene) {
