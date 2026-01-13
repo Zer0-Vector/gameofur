@@ -1,35 +1,11 @@
 import * as THREE from 'three';
 import type { BoxDimensions } from './geometry-types';
-
+import { dimensions } from "./graphics/constants"
 export function useGameTable(): THREE.Object3D {
   const tableGroup = new THREE.Group();
   const gameBoard = createGameBoard();
   tableGroup.add(gameBoard);
   return tableGroup;
-}
-
-// constants for board dimensions
-const spaceSize = 10;
-const spaceGap = 0.5;
-const spaceDimensions = {
-  width: spaceSize,
-  height: spaceSize,
-  thickness: 1,
-  gap: spaceGap,
-}
-const borderDimensions = {
-  width: 1,
-  height: 1,
-}
-const boardDimensions = {
-  width: spaceDimensions.width * 3 + spaceDimensions.gap * 4 + borderDimensions.width * 2,
-  height: spaceDimensions.height * 8 + spaceDimensions.gap * 9 + borderDimensions.height * 2,
-  thickness: 1,
-  bevelSize: 0.25,
-  border: {
-    width: borderDimensions.width,
-    height: borderDimensions.height,
-  }
 }
 
 function createGameBoard() {
@@ -68,7 +44,7 @@ function createSpaces(): THREE.Object3D[] {
 }
 
 function createBoardBox(material: THREE.Material): THREE.Object3D {
-  const { width, height, thickness } = boardDimensions;
+  const { width, height, thickness } = dimensions.board;
   const boardGeometry = new THREE.BoxGeometry(width, thickness, height);
 
   const board = new THREE.Mesh(boardGeometry, material);
@@ -80,14 +56,15 @@ function createBoardBox(material: THREE.Material): THREE.Object3D {
 }
 
 function createRaisedBorder(material: THREE.Material): THREE.Object3D {
+  const { width, height, thickness, bevelSize, border } = dimensions.board;
   const borderGeometry = createRaisedBorderGeometry(
-    { width: boardDimensions.width, height: boardDimensions.height }, boardDimensions.border.width, boardDimensions.thickness, boardDimensions.bevelSize);
-  const border = new THREE.Mesh(borderGeometry, material);
-  border.position.y = boardDimensions.border.height / 2;
-  border.rotation.x = -Math.PI / 2;
-  border.castShadow = true;
-  border.receiveShadow = true;
-  return border;
+    { width, height }, border.width, thickness, bevelSize);
+  const borderMesh = new THREE.Mesh(borderGeometry, material);
+  borderMesh.position.y = border.height / 2;
+  borderMesh.rotation.x = -Math.PI / 2;
+  borderMesh.castShadow = true;
+  borderMesh.receiveShadow = true;
+  return borderMesh;
 }
 
 function createRaisedBorderGeometry(outerSize: BoxDimensions, borderWidth: number, height: number, bevelSize: number) {
