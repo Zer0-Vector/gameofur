@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
-    "composite": true,
-    
-    "module": "esnext",
-    "target": "es2024",
-    "lib": ["ES2024"],
-    "types": ["vite/client"],
+    "target": "es2022",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": false,
     "skipLibCheck": true,
-
+    
+    /* bundler options */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "jsx": "react-jsx",
 
     /* linting */
     "strict": true,
@@ -22,6 +23,16 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+    },
+
+    "types": [],
   },
-  "include": ["vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests"],
 }
