@@ -1,5 +1,4 @@
-import type { AnimationType, AnimationParams } from "../interfaces";
-import { GraphicsObject } from "./GraphicsObject";
+import { GraphicsObject, type AnimationParams, type AnimationType } from "./GraphicsObject";
 import { Group, Vector3 } from "three";
 import type { Object3D } from "three";
 import { BoardGraphics } from "./BoardGraphics";

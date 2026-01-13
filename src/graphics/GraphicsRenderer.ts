@@ -1,15 +1,15 @@
-import * as THREE from 'three';
-import type { IGraphicsObject } from '../interfaces';
+import { Scene } from 'three';
+import type { GraphicsObject } from './GraphicsObject';
 
 /**
  * Manages all graphics objects and rendering.
  * Provides a unified interface for drawing and animating.
  */
 export class GraphicsRenderer {
-  private readonly scene: THREE.Scene;
-  private readonly graphicsObjects: Map<string, IGraphicsObject>;
+  private readonly scene: Scene;
+  private readonly graphicsObjects: Map<string, GraphicsObject>;
 
-  constructor(scene: THREE.Scene) {
+  constructor(scene: Scene) {
     this.scene = scene;
     this.graphicsObjects = new Map();
   }
@@ -17,7 +17,7 @@ export class GraphicsRenderer {
   /**
    * Register a graphics object and draw it to the scene.
    */
-  addObject(id: string, graphicsObject: IGraphicsObject): void {
+  addObject(id: string, graphicsObject: GraphicsObject): void {
     this.graphicsObjects.set(id, graphicsObject);
     graphicsObject.addTo(this.scene);
   }
@@ -37,7 +37,7 @@ export class GraphicsRenderer {
   /**
    * Get a graphics object by ID.
    */
-  getObject(id: string): IGraphicsObject | undefined {
+  getObject(id: string): GraphicsObject | undefined {
     return this.graphicsObjects.get(id);
   }
 

@@ -1,7 +1,6 @@
 import { MeshStandardMaterial, BoxGeometry, Mesh, Vector3, Color } from 'three';
 import type { ColorRepresentation } from 'three';
-import { GraphicsObject } from './GraphicsObject';
-import type { AnimationType, AnimationParams } from '../interfaces';
+import { GraphicsObject, type AnimationParams, type AnimationType } from './GraphicsObject';
 import { dimensions, positions, colors } from './constants';
 
 /**
