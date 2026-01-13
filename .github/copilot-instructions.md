@@ -40,10 +40,10 @@ npm run preview  # Preview production build
 ## Code Conventions
 
 ### Styling Approach
-- **Flexbox-centric**: Uses flexbox for all layout (see [App.css](../src/App.css), [index.css](../src/index.css))
 - **CSS Custom Properties**: Uses `--target-height`, `--padding` for responsive sizing
 - **Dynamic Units**: Prefers `dvh` (dynamic viewport height) over `vh` for mobile compatibility
 - **Container Pattern**: `#game-container` is the Three.js canvas parent with flex centering
+- Use double quotes wherever valid. Avoid single quotes if possible.
 
 ### Three.js Patterns
 - **Scene Setup**: Camera positioned at `(0, 40, 0)` looking at origin
@@ -53,7 +53,7 @@ npm run preview  # Preview production build
 - **Board Rotation**: Board rotated `Math.PI / 2` around Y-axis for proper orientation
 
 ### Geometry Construction
-- Board dimensions are constants with gaps, borders, and bevel sizes defined in [board.ts](../src/board.ts)
+- Board dimensions are constants with gaps, borders, and bevel sizes defined in [dimensions.ts](../src/graphics/constants/dimensions.ts)
 - Uses `THREE.Shape` with `ExtrudeGeometry` for beveled borders
 - Space size: 10 units, gap: 0.5 units
 
@@ -73,14 +73,13 @@ npm run preview  # Preview production build
 ## Important Notes
 
 - **Debug GUI**: dat.gui controls are automatically added in development for camera position/rotation
-- **No Spaces Implementation**: [board.ts](../src/board.ts) `createSpaces()` returns empty array - board rendering is incomplete
 - **Container ID**: Hard-coded as `"game-container"` in multiple places
 - **Future Plans**: See [goals.txt](../goals.txt) for multiplayer, AI, and variations roadmap
 
 ## When Making Changes
 
 - Add new Three.js features via custom hooks following the `use*` pattern
-- Update board dimensions in [board.ts](../src/board.ts) constants, not magic numbers
+- Update board dimensions in constants files in the [constants](../src/graphics/constants/) directory, not magic numbers
 - Keep TypeScript strict - no `any` types
 - Follow the functional factory pattern for Three.js object creation
 - Test resize behavior - ResizeObserver handles canvas sizing automatically
