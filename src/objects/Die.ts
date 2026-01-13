@@ -1,11 +1,12 @@
-import type { IDie } from '../interfaces';
 import { GameObject } from './GameObject';
 
+
+export type DieValue = 0 | 1;
 /**
  * Represents a four-sided die (binary: 0 or 1).
  */
-export class Die extends GameObject<"die"> implements IDie {
-  public value: 0 | 1;
+export class Die extends GameObject<"die"> {
+  public value: DieValue;
   public isRolling: boolean;
   public readonly type = "die";
 
@@ -19,7 +20,7 @@ export class Die extends GameObject<"die"> implements IDie {
     // Update die physics/animation if needed
   }
 
-  async roll(): Promise<0 | 1> {
+  async roll(): Promise<DieValue> {
     this.isRolling = true;
     this.state.animating = true;
 

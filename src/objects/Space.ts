@@ -1,14 +1,14 @@
-import type { ISpace, IPiece } from '../interfaces';
 import { GameObject } from './GameObject';
+import type { Piece } from './Piece';
 
 /**
  * Represents a space on the game board.
  */
-export class Space extends GameObject<"space"> implements ISpace {
+export class Space extends GameObject<"space"> {
   public readonly type = "space";
   public readonly notation: string;
   public readonly isRosette: boolean;
-  public occupant: IPiece | null;
+  public occupant: Piece | null;
 
   constructor(id: string, notation: string, isRosette: boolean = false) {
     super(id);
@@ -21,18 +21,18 @@ export class Space extends GameObject<"space"> implements ISpace {
     // Update space logic if needed
   }
 
-  placePiece(piece: IPiece): void {
+  placePiece(piece: Piece): void {
     this.occupant = piece;
     piece.moveTo(this.notation);
   }
 
-  removePiece(): IPiece | null {
+  removePiece(): Piece | null {
     const piece = this.occupant;
     this.occupant = null;
     return piece;
   }
 
-  canOccupy(piece: IPiece): boolean {
+  canOccupy(piece: Piece): boolean {
     // Can't occupy if already occupied by same player
     if (this.occupant && this.occupant.player === piece.player) {
       return false;

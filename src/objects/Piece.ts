@@ -1,10 +1,9 @@
-import type { IPiece } from '../interfaces';
 import { GameObject } from './GameObject';
 
 /**
  * Represents a game piece.
  */
-export class Piece extends GameObject<"piece"> implements IPiece {
+export class Piece extends GameObject<"piece"> {
   public readonly type = "piece";
   public readonly player: 'A' | 'B';
   public position: string | null;
