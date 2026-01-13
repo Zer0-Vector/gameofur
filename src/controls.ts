@@ -7,6 +7,12 @@ export function useControls(camera: Camera, domElement: HTMLElement, render: () 
   orbit.enablePan = true;
   orbit.enableZoom = true;
   orbit.enableRotate = true;
+  orbit.rotateSpeed = 1.5;
+  orbit.zoomSpeed = 2;
+  orbit.panSpeed = 0.75;
+  orbit.autoRotate = true;
+  orbit.autoRotateSpeed = 0.5;
+  
 
   return {
     orbit
