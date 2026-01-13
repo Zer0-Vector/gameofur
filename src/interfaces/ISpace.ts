@@ -4,7 +4,7 @@ import type { IPiece } from './IPiece';
 /**
  * Interface for a board space.
  */
-export interface ISpace extends IGameObject {
+export interface ISpace extends IGameObject<"space"> {
   /** Notation for this space (e.g., 'a1', 'm4') */
   notation: string;
 

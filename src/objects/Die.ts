@@ -4,12 +4,13 @@ import { GameObject } from './GameObject';
 /**
  * Represents a four-sided die (binary: 0 or 1).
  */
-export class Die extends GameObject implements IDie {
+export class Die extends GameObject<"die"> implements IDie {
   public value: 0 | 1;
   public isRolling: boolean;
+  public readonly type = "die";
 
   constructor(id: string) {
-    super(id, 'die');
+    super(id);
     this.value = 0;
     this.isRolling = false;
   }

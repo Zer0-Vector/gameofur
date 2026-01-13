@@ -4,14 +4,13 @@ import type { IGameObject, GameObjectType, GameObjectState } from '../interfaces
  * Base class for all game objects.
  * Provides common functionality for game logic.
  */
-export abstract class GameObject implements IGameObject {
+export abstract class GameObject<Type extends GameObjectType> implements IGameObject<Type> {
   public readonly id: string;
-  public readonly type: GameObjectType;
+  public abstract readonly type: Type;
   public state: GameObjectState;
 
-  constructor(id: string, type: GameObjectType) {
+  constructor(id: string) {
     this.id = id;
-    this.type = type;
     this.state = {
       active: false,
       selected: false,

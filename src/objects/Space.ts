@@ -4,13 +4,14 @@ import { GameObject } from './GameObject';
 /**
  * Represents a space on the game board.
  */
-export class Space extends GameObject implements ISpace {
+export class Space extends GameObject<"space"> implements ISpace {
+  public readonly type = "space";
   public readonly notation: string;
   public readonly isRosette: boolean;
   public occupant: IPiece | null;
 
   constructor(id: string, notation: string, isRosette: boolean = false) {
-    super(id, 'space');
+    super(id);
     this.notation = notation;
     this.isRosette = isRosette;
     this.occupant = null;

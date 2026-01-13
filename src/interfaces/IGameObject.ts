@@ -1,13 +1,10 @@
+import type { TypedObject } from "./TypeGameObject";
+
 /**
  * Base interface for all game objects.
  * Separates game logic from graphics.
  */
-export interface IGameObject {
-  /** Unique identifier for this game object */
-  id: string;
-  
-  /** Type of game object (e.g., 'piece', 'space', 'die', 'board') */
-  type: GameObjectType;
+export interface IGameObject<Type extends GameObjectType> extends TypedObject<GameObjectType, Type> {
   
   /** Current state of the game object */
   state: GameObjectState;

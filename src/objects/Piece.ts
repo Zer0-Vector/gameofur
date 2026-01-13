@@ -4,13 +4,14 @@ import { GameObject } from './GameObject';
 /**
  * Represents a game piece.
  */
-export class Piece extends GameObject implements IPiece {
+export class Piece extends GameObject<"piece"> implements IPiece {
+  public readonly type = "piece";
   public readonly player: 'A' | 'B';
   public position: string | null;
   public finished: boolean;
 
   constructor(id: string, player: 'A' | 'B') {
-    super(id, 'piece');
+    super(id);
     this.player = player;
     this.position = null;
     this.finished = false;

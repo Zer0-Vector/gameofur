@@ -3,7 +3,7 @@ import type { IGameObject } from './IGameObject';
 /**
  * Interface for a game piece.
  */
-export interface IPiece extends IGameObject {
+export interface IPiece extends IGameObject<"piece"> {
   /** Player who owns this piece */
   player: 'A' | 'B';
 
