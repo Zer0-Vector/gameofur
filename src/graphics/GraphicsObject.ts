@@ -1,3 +1,4 @@
+import type { Disposable } from '@/interfaces';
 import { Mesh, MathUtils } from 'three';
 import type { Euler, Object3D, Vector3 } from 'three';
 
@@ -5,7 +6,7 @@ import type { Euler, Object3D, Vector3 } from 'three';
  * Base class for all graphics objects.
  * Handles Three.js rendering and animations.
  */
-export abstract class GraphicsObject {
+export abstract class GraphicsObject implements Disposable {
   protected _object3D: Object3D;
   protected activeAnimations: Map<string, Promise<void>>;
 
