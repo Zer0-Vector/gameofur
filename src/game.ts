@@ -27,22 +27,20 @@ function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameControll
       cameraRotationFolder.open();
       cameraFolder.open();
 
-      if (gameController) {
-        const gameFolder = debugGui.current.addFolder("Game Actions");
-        gameFolder.add({
-          rollDice: async () => {
-            const result = await gameController.handleAction({ type: 'ROLL_DICE' });
-            console.log(result);
-          }
-        }, 'rollDice').name('Roll Dice');
-        gameFolder.add({
-          resetGame: () => {
-            const result = gameController.handleAction({ type: 'RESET_GAME' });
-            console.log(result);
-          }
-        }, 'resetGame').name('Reset Game');
-        gameFolder.open();
-      }
+      const gameFolder = debugGui.current.addFolder("Game Actions");
+      gameFolder.add({
+        rollDice: async () => {
+          const result = await gameController?.handleAction({ type: 'ROLL_DICE' });
+          console.log(result);
+        }
+      }, 'rollDice').name('Roll Dice');
+      gameFolder.add({
+        resetGame: () => {
+          const result = gameController?.handleAction({ type: 'RESET_GAME' });
+          console.log(result);
+        }
+      }, 'resetGame').name('Reset Game');
+      gameFolder.open();
     }
 
     return () => {
@@ -50,7 +48,7 @@ function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameControll
       debugGui.current = null;
     }
 
-  }, [debugGui, camera, gameController]);
+  }, [debugGui.current, camera, gameController]);
 }
 
 export function useGame() {
