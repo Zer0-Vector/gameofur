@@ -16,7 +16,7 @@ export class SpaceGraphics extends GraphicsObject<Mesh> {
     super(`space-${coordinate}`, SpaceGraphics.createSpaceMesh(color, position));
 
 
-    const meshMaterial = (this._object3D as Mesh).material;
+    const meshMaterial = (this._object3D).material;
     if (Array.isArray(meshMaterial)) {
       throw new TypeError('Unexpected material array');
     }
