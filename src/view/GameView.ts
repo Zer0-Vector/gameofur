@@ -73,7 +73,7 @@ export class GameView {
     ).length - 1;
     const startZ = pieceIndex * 2;
 
-    const graphics = new PieceGraphics(player, new Vector3(startX, 1, startZ));
+    const graphics = new PieceGraphics(player, pieceIndex, new Vector3(startX, 1, startZ));
     this.pieceGraphics.set(piece.id, graphics);
     this.graphicsRenderer.addObject(piece.id, graphics);
   }
@@ -127,7 +127,7 @@ export class GameView {
 
     // Calculate position based on notation
     const position = this.calculateSpacePosition(notation);
-    const graphics = new SpaceGraphics(isRosette ? new Color(0xffff00) : new Color(0x808080), position);
+    const graphics = new SpaceGraphics(notation, isRosette ? new Color(0xffff00) : new Color(0x808080), position);
 
     this.spaceGraphics.set(space.id, graphics);
     this.graphicsRenderer.addObject(space.id, graphics);
@@ -146,7 +146,7 @@ export class GameView {
     const dieIndex = this.model.dice.length - 1;
     const position = new Vector3(-5 + dieIndex * 2, 1, -10);
 
-    const graphics = new DieGraphics(position);
+    const graphics = new DieGraphics(`die-${dieIndex}`, position);
     this.dieGraphics.set(die.id, graphics);
     this.graphicsRenderer.addObject(die.id, graphics);
   }
