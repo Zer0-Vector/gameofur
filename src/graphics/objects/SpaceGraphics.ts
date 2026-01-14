@@ -6,7 +6,7 @@ import { dimensions, positions, colors } from '@/graphics/constants';
 /**
  * Graphics representation of a board space.
  */
-export class SpaceGraphics extends GraphicsObject {
+export class SpaceGraphics extends GraphicsObject<Mesh> {
   private readonly material: MeshStandardMaterial;
   private readonly baseColor: Color;
 

@@ -1,37 +1,37 @@
-import * as THREE from 'three';
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
 import { dimensions, positions, colors } from '@/graphics/constants';
+import { Color, CylinderGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 
 /**
  * Graphics representation of a game piece.
  */
-export class PieceGraphics extends GraphicsObject {
-  private readonly baseColor: THREE.Color;
-  private readonly material: THREE.MeshStandardMaterial;
+export class PieceGraphics extends GraphicsObject<Mesh> {
+  private readonly baseColor: Color;
+  private readonly material: MeshStandardMaterial;
 
-  constructor(player: 'A' | 'B', index: number, position: THREE.Vector3 = new THREE.Vector3()) {
+  constructor(player: 'A' | 'B', index: number, position: Vector3 = new Vector3()) {
     const mesh = PieceGraphics.createPieceMesh(player);
     mesh.position.copy(position);
     super(`piece-${player}${index}`, mesh);
 
-    this.baseColor = player === 'A' ? new THREE.Color(colors.piece.playerA) : new THREE.Color(colors.piece.playerB);
+    this.baseColor = player === 'A' ? new Color(colors.piece.playerA) : new Color(colors.piece.playerB);
     const meshMaterial = mesh.material;
     if (Array.isArray(meshMaterial)) {
       throw new TypeError('Unexpected material array');
     }
-    this.material = meshMaterial as THREE.MeshStandardMaterial;
+    this.material = meshMaterial as MeshStandardMaterial;
   }
 
-  private static createPieceMesh(player: 'A' | 'B'): THREE.Mesh {
-    const geometry = new THREE.CylinderGeometry(dimensions.piece.radiusTop, dimensions.piece.radiusBottom, dimensions.piece.height, dimensions.piece.radialSegments);
+  private static createPieceMesh(player: 'A' | 'B'): Mesh {
+    const geometry = new CylinderGeometry(dimensions.piece.radiusTop, dimensions.piece.radiusBottom, dimensions.piece.height, dimensions.piece.radialSegments);
     const color = player === 'A' ? colors.piece.playerA : colors.piece.playerB;
-    const material = new THREE.MeshStandardMaterial({
+    const material = new MeshStandardMaterial({
       color,
       roughness: dimensions.piece.material.roughness,
       metalness: dimensions.piece.material.metalness,
     });
 
-    const mesh = new THREE.Mesh(geometry, material);
+    const mesh = new Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
@@ -104,7 +104,7 @@ export class PieceGraphics extends GraphicsObject {
   }
 
   private async animateDeselect(): Promise<void> {
-    this.material.emissive = new THREE.Color(colors.emissive.none);
+    this.material.emissive = new Color(colors.emissive.none);
     this.material.emissiveIntensity = 0;
     return this.animateTransform({
       targetScale: positions.animation.scale.normal,
@@ -113,12 +113,12 @@ export class PieceGraphics extends GraphicsObject {
   }
 
   private async animateHighlight(): Promise<void> {
-    this.material.emissive = new THREE.Color(colors.emissive.highlightPiece);
+    this.material.emissive = new Color(colors.emissive.highlightPiece);
     this.material.emissiveIntensity = positions.animation.emissive.highlight.pieceIntensity;
   }
 
   private async animateUnhighlight(): Promise<void> {
-    this.material.emissive = new THREE.Color(colors.emissive.none);
+    this.material.emissive = new Color(colors.emissive.none);
     this.material.emissiveIntensity = 0;
   }
 

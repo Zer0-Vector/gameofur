@@ -4,7 +4,7 @@ import type { Object3D, Material } from "three";
 import { dimensions } from "@/graphics/constants";
 import type { BoxDimensions } from "@/types/geometry";
 
-export class BoardGraphics extends GraphicsObject {
+export class BoardGraphics extends GraphicsObject<Group> {
   protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
     // nop
     return Promise.resolve();
@@ -14,7 +14,7 @@ export class BoardGraphics extends GraphicsObject {
     super("board", BoardGraphics.createBoardObject(position));
   }
 
-  private static createBoardObject(position: Vector3): Object3D {
+  private static createBoardObject(position: Vector3): Group {
     const boardGroup = new Group();
     boardGroup.position.copy(position);
 

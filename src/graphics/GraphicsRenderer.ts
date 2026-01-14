@@ -1,4 +1,4 @@
-import { Scene } from 'three';
+import { Object3D, Scene } from 'three';
 import type { GraphicsObject } from './GraphicsObject';
 
 /**
@@ -7,7 +7,7 @@ import type { GraphicsObject } from './GraphicsObject';
  */
 export class GraphicsRenderer {
   private readonly scene: Scene;
-  private readonly graphicsObjects: Map<string, GraphicsObject>;
+  private readonly graphicsObjects: Map<string, GraphicsObject<Object3D>>;
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -17,7 +17,7 @@ export class GraphicsRenderer {
   /**
    * Register a graphics object and draw it to the scene.
    */
-  addObject(id: string, graphicsObject: GraphicsObject): void {
+  addObject(id: string, graphicsObject: GraphicsObject<Object3D>): void {
     this.graphicsObjects.set(id, graphicsObject);
     graphicsObject.addTo(this.scene);
   }
@@ -37,7 +37,7 @@ export class GraphicsRenderer {
   /**
    * Get a graphics object by ID.
    */
-  getObject(id: string): GraphicsObject | undefined {
+  getObject(id: string): GraphicsObject<Object3D> | undefined {
     return this.graphicsObjects.get(id);
   }
 

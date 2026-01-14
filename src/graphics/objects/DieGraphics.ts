@@ -1,28 +1,28 @@
-import * as THREE from 'three';
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
 import { dimensions, colors } from '@/graphics/constants';
+import { Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three';
 
 /**
  * Graphics representation of a die.
  */
-export class DieGraphics extends GraphicsObject {
+export class DieGraphics extends GraphicsObject<Mesh> {
 
-  constructor(id: string, position: THREE.Vector3 = new THREE.Vector3()) {
+  constructor(id: string, position: Vector3 = new Vector3()) {
     const mesh = DieGraphics.createDieMesh();
     mesh.position.copy(position);
     super(id, mesh);
   }
 
-  private static createDieMesh(): THREE.Mesh {
+  private static createDieMesh(): Mesh {
     // Tetrahedron for 4-sided die
-    const geometry = new THREE.TetrahedronGeometry(dimensions.die.size);
-    const material = new THREE.MeshStandardMaterial({
+    const geometry = new TetrahedronGeometry(dimensions.die.size);
+    const material = new MeshStandardMaterial({
       color: colors.die.base,
       roughness: dimensions.die.material.roughness,
       metalness: dimensions.die.material.metalness,
     });
 
-    const mesh = new THREE.Mesh(geometry, material);
+    const mesh = new Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 

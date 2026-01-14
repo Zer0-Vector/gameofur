@@ -3,7 +3,7 @@ import { Group, Vector3 } from "three";
 import type { Object3D } from "three";
 import { BoardGraphics } from "./BoardGraphics";
 
-export class TableGraphics extends GraphicsObject {
+export class TableGraphics extends GraphicsObject<Group> {
   private readonly boardGraphics: BoardGraphics;
 
   protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
@@ -19,7 +19,7 @@ export class TableGraphics extends GraphicsObject {
     this.boardGraphics.addTo(this._object3D);
   }
 
-  private static createTableGroup(position: Vector3): Object3D {
+  private static createTableGroup(position: Vector3): Group {
     const tableGroup = new Group();
     tableGroup.position.copy(position);
     return tableGroup;
