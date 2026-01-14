@@ -7,7 +7,7 @@ import { GameController } from "./controller";
 import { GameModel } from "./model";
 import { GameView } from "./view";
 import type { Nullable } from "./types";
-import { TableGraphics } from "./graphics";
+import { TableGraphics } from "@/graphics/objects";
 
 function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameController>) {
   const debugGui = useRef<GUI | null>(null);

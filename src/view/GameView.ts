@@ -1,9 +1,10 @@
-import type { GameModel } from '../model';
-import { PieceGraphics, SpaceGraphics, DieGraphics, GraphicsRenderer } from '../graphics';
-import type { GameAction } from '../controller/GameController';
+import type { GameModel } from '@/model';
+import { GraphicsRenderer } from '@/graphics';
+import { PieceGraphics, SpaceGraphics, DieGraphics } from '@/graphics/objects';
+import type { GameAction } from '@/controller';
 import { Color, Vector3 } from 'three';
 import type { Camera, Raycaster, Scene } from 'three';
-import type { Piece } from '../objects';
+import type { Piece } from '@/objects';
 
 /**
  * GameView - Handles all rendering and user input.
