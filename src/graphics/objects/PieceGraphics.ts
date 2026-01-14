@@ -9,13 +9,12 @@ export class PieceGraphics extends GraphicsObject<Mesh> {
   private readonly baseColor: Color;
   private readonly material: MeshStandardMaterial;
 
-  constructor(player: 'A' | 'B', index: number, position: Vector3 = new Vector3()) {
-    const mesh = PieceGraphics.createPieceMesh(player);
-    mesh.position.copy(position);
-    super(`piece-${player}${index}`, mesh);
+  constructor(player: 'A' | 'B', index: number, position: Vector3) {
+    super(`piece-${player}${index}`, PieceGraphics.createPieceMesh(player));
+    this._object3D.position.copy(position);
 
     this.baseColor = player === 'A' ? new Color(colors.piece.playerA) : new Color(colors.piece.playerB);
-    const meshMaterial = mesh.material;
+    const meshMaterial = this._object3D.material;
     if (Array.isArray(meshMaterial)) {
       throw new TypeError('Unexpected material array');
     }
