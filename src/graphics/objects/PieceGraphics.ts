@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { GraphicsObject, type AnimationParams, type AnimationType } from './GraphicsObject';
-import { dimensions, positions, colors } from './constants';
+import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
+import { dimensions, positions, colors } from '@/graphics/constants';
 
 /**
  * Graphics representation of a game piece.

@@ -1,4 +1,4 @@
-import { GraphicsObject, type AnimationParams, type AnimationType } from "./GraphicsObject";
+import { GraphicsObject, type AnimationParams, type AnimationType } from "@/graphics";
 import { Group, Vector3 } from "three";
 import type { Object3D } from "three";
 import { BoardGraphics } from "./BoardGraphics";
@@ -10,10 +10,10 @@ export class TableGraphics extends GraphicsObject {
     // nop
     return Promise.resolve();
   }
-  
+
   constructor(position: Vector3 = new Vector3()) {
     super("table", TableGraphics.createTableGroup(position));
-    
+
     // Create and add the board
     this.boardGraphics = new BoardGraphics();
     this.boardGraphics.addTo(this._object3D);
