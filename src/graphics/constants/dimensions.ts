@@ -54,8 +54,8 @@ const board = (() => {
 
 // constants for piece dimensions
 const piece = {
-  radiusTop: 0.4,
-  radiusBottom: 0.4,
+  radiusTop: 3,
+  radiusBottom: 3.4,
   height: 0.3,
   radialSegments: 16,
   // Animation parameters
