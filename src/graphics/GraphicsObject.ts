@@ -14,6 +14,8 @@ export abstract class GraphicsObject<T extends Object3D> implements Disposable, 
   constructor(id: string, object3D: T) {
     this.id = id;
     this._object3D = object3D;
+    this._object3D.name = id;
+    this._object3D.userData.graphicsObject = this;
     this.activeAnimations = new Map();
   }
 
