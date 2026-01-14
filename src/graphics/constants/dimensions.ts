@@ -1,33 +1,12 @@
-// constants for board dimensions
-const board = (() => {
-  const spaces = {
-    width: 10,
-    height: 10,
-    thickness: 1,
-    gap: 0.5,
-  }
-  const border = {
-    width: 1,
-    height: 1,
-  }
-  return {
-    width: spaces.width * 3 + spaces.gap * 4 + border.width * 2,
-    height: spaces.height * 8 + spaces.gap * 9 + border.height * 2,
-    thickness: 1,
-    bevelSize: 0.25,
-    border: {
-      width: border.width,
-      height: border.height,
-    },
-    spaces: spaces,
-  }
-})();
 
 // constants for space dimensions
 const space = {
-  width: 0.9,
-  height: 0.1,
-  depth: 0.9,
+  width: 10,
+  height: 1,
+  depth: 10,
+
+  gap: 0.5,
+
   // Animation offsets
   highlightOffset: 0.2,
   // Animation durations
@@ -39,6 +18,39 @@ const space = {
     metalness: 0.2,
   },
 }
+
+const game = {
+  board: {
+    spacesWidth: 3,
+    spacesDepth: 8,
+  }
+}
+
+// constants for board dimensions
+const board = (() => {
+  const border = {
+    width: 1,
+    height: 1,
+  }
+  return {
+    width: space.width * game.board.spacesWidth + space.gap * (game.board.spacesWidth + 1) + border.width * 2,
+    depth: space.depth * game.board.spacesDepth + space.gap * (game.board.spacesDepth + 1) + border.height * 2,
+    height: 1,
+    bevelSize: 0.25,
+    border: {
+      width: border.width,
+      height: border.height,
+    },
+    get inner() {
+      return {
+        width: this.width - border.width * 2 - space.gap * 2,
+        depth: this.depth - border.height * 2 - space.gap * 2, 
+      }
+
+    }
+  }
+})();
+
 
 // constants for piece dimensions
 const piece = {
