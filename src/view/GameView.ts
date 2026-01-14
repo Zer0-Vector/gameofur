@@ -59,12 +59,14 @@ export class GameView {
     const { piece } = data;
     const player = piece.player;
 
-    // Calculate starting position based on player
-    const startX = player === 'A' ? -15 : 15;
+    const pieceWidth = Math.max(dimensions.piece.radiusBottom, dimensions.piece.radiusTop) * 2;
+
+    const distanceFromCenter = (dimensions.board.width / 2) + pieceWidth;
+    const startX = player === 'A' ? -distanceFromCenter : distanceFromCenter;
     const pieceIndex = Array.from(this.model.pieces.values()).filter(
       (p) => p.player === player
     ).length - 1;
-    const startZ = pieceIndex * 2;
+    const startZ = pieceIndex * (pieceWidth + 0.5) - ((pieceWidth + 0.5) * 5);
 
     const graphics = new PieceGraphics(player, pieceIndex, new Vector3(startX, 1, startZ));
     this.table.addPiece(graphics);
