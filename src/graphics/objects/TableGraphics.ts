@@ -1,6 +1,5 @@
 import { GraphicsObject, type AnimationParams, type AnimationType } from "@/graphics";
 import { Group, Vector3 } from "three";
-import type { Object3D } from "three";
 import { BoardGraphics } from "./BoardGraphics";
 
 export class TableGraphics extends GraphicsObject<Group> {
