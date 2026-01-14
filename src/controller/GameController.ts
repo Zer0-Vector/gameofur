@@ -1,7 +1,7 @@
-import type { Identifiable } from '@/interfaces';
-import type { GameModel } from '@/model';
-import { Piece, Space, Die } from '@/objects';
-import type { EmptyObject } from '@/types';
+import type { Identifiable } from "@/interfaces";
+import type { GameModel } from "@/model";
+import { Piece, Space, Die } from "@/objects";
+import type { EmptyObject } from "@/types";
 
 type GameActionsMap = {
   SELECT_PIECE: Identifiable,
@@ -19,7 +19,6 @@ type GameActionsMap = {
 export type GameAction = {
   [K in keyof GameActionsMap]: GameActionsMap[K] & { type: K }
 }[keyof GameActionsMap];
-
 
 /**
  * Result of a game action.
@@ -57,29 +56,29 @@ export class GameController {
    */
   async handleAction(action: GameAction): Promise<ActionResult> {
     switch (action.type) {
-      case 'SELECT_PIECE':
+      case "SELECT_PIECE":
         return this.selectPiece(action.id);
 
-      case 'MOVE_PIECE':
+      case "MOVE_PIECE":
         return this.movePiece(action.id, action.spaceId);
 
-      case 'ROLL_DICE':
+      case "ROLL_DICE":
         return this.rollDice();
 
-      case 'SELECT_SPACE':
+      case "SELECT_SPACE":
         return this.selectSpace(action.id);
 
-      case 'DESELECT_ALL':
+      case "DESELECT_ALL":
         return this.deselectAll();
 
-      case 'START_GAME':
+      case "START_GAME":
         return this.startGame();
 
-      case 'RESET_GAME':
+      case "RESET_GAME":
         return this.resetGame();
 
       default:
-        return { success: false, message: 'Unknown action' };
+        return { success: false, message: "Unknown action" };
     }
   }
 
@@ -99,12 +98,12 @@ export class GameController {
     const piece = this.model.getPiece(pieceId);
 
     if (!piece) {
-      return { success: false, message: 'Piece not found' };
+      return { success: false, message: "Piece not found" };
     }
 
     // Check if it's the correct player's piece
     if (piece.player !== this.model.currentPlayer) {
-      return { success: false, message: 'Not your piece' };
+      return { success: false, message: "Not your piece" };
     }
 
     // Deselect previous piece if any
@@ -124,15 +123,15 @@ export class GameController {
   }
 
   private async movePiece(pieceId: string, spaceId: string): Promise<ActionResult> {
-    const piece = this.model.getPiece(pieceId);
-    const space = this.model.getSpace(spaceId);
+    const piece = this.model.pieces.get(pieceId);
+    const space = this.model.spaces.get(spaceId);
 
     if (!piece || !space) {
-      return { success: false, message: 'Piece or space not found' };
+      return { success: false, message: "Piece or space not found" };
     }
 
     if (!space.canOccupy(piece)) {
-      return { success: false, message: 'Cannot occupy this space' };
+      return { success: false, message: "Cannot occupy this space" };
     }
 
     const oldPosition = piece.position;
@@ -164,16 +163,16 @@ export class GameController {
     if (space.isRosette) {
       return {
         success: true,
-        message: 'Moved to rosette! Roll again!',
+        message: "Moved to rosette! Roll again!",
         data: { extraTurn: true },
       };
     }
 
     // Switch player
-    const nextPlayer = this.model.currentPlayer === 'A' ? 'B' : 'A';
+    const nextPlayer = this.model.currentPlayer === "A" ? "B" : "A";
     this.model.setCurrentPlayer(nextPlayer);
 
-    return { success: true, message: 'Piece moved' };
+    return { success: true, message: "Piece moved" };
   }
 
   private async rollDice(): Promise<ActionResult> {
@@ -199,11 +198,11 @@ export class GameController {
     const space = this.model.getSpace(spaceId);
 
     if (!space) {
-      return { success: false, message: 'Space not found' };
+      return { success: false, message: "Space not found" };
     }
 
     if (!this.model.selectedPieceId) {
-      return { success: false, message: 'No piece selected' };
+      return { success: false, message: "No piece selected" };
     }
 
     // Move the selected piece to this space
@@ -227,12 +226,12 @@ export class GameController {
       }
     });
 
-    return { success: true, message: 'Deselected all' };
+    return { success: true, message: "Deselected all" };
   }
 
   private startGame(): ActionResult {
     this.model.startGame();
-    return { success: true, message: 'Game started' };
+    return { success: true, message: "Game started" };
   }
 
   private resetGame(): ActionResult {
@@ -253,7 +252,7 @@ export class GameController {
 
     this.model.resetGame();
 
-    return { success: true, message: 'Game reset' };
+    return { success: true, message: "Game reset" };
   }
 
   private highlightValidMoves(_roll: number): void {
@@ -278,28 +277,28 @@ export class GameController {
     // Player B path: b4 b3 b2 b1 m1 m2 m3 m4 m5 m6 m7 m8 b8 b7 F
     // Rosettes at: a1, b1, m4, a7, b7
 
-    const rosettes = new Set(['a1', 'b1', 'm4', 'a7', 'b7']);
+    const rosettes = new Set(["a1", "b1", "m4", "a7", "b7"]);
     const allSpaces = [
-      'a1',
-      'a2',
-      'a3',
-      'a4',
-      'a7',
-      'a8',
-      'b1',
-      'b2',
-      'b3',
-      'b4',
-      'b7',
-      'b8',
-      'm1',
-      'm2',
-      'm3',
-      'm4',
-      'm5',
-      'm6',
-      'm7',
-      'm8',
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a7",
+      "a8",
+      "b1",
+      "b2",
+      "b3",
+      "b4",
+      "b7",
+      "b8",
+      "m1",
+      "m2",
+      "m3",
+      "m4",
+      "m5",
+      "m6",
+      "m7",
+      "m8",
     ];
 
     allSpaces.forEach((notation) => {
@@ -313,11 +312,11 @@ export class GameController {
     // Create 7 pieces for each player
     for (let i = 0; i < 7; i++) {
       // Player A pieces
-      const pieceA = new Piece(`piece_A${i}`, 'A');
+      const pieceA = new Piece(`piece_A${i}`, "A");
       this.model.addPiece(pieceA);
 
       // Player B pieces
-      const pieceB = new Piece(`piece_B${i}`, 'B');
+      const pieceB = new Piece(`piece_B${i}`, "B");
       this.model.addPiece(pieceB);
     }
   }
