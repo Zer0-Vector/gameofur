@@ -1,10 +1,10 @@
-import type { GameModel } from '@/model';
-import { GraphicsRenderer } from '@/graphics';
+import type { GameModel, GameModelEvents } from '@/model';
 import { PieceGraphics, SpaceGraphics, DieGraphics } from '@/graphics/objects';
+import type { TableGraphics } from '@/graphics/objects';
 import type { GameAction } from '@/controller';
 import { Color, Vector3 } from 'three';
-import type { Camera, Raycaster, Scene } from 'three';
-import type { Piece } from '@/objects';
+import type { Camera, Raycaster } from 'three';
+import { dimensions } from '@/graphics/constants';
 
 /**
  * GameView - Handles all rendering and user input.
@@ -12,26 +12,18 @@ import type { Piece } from '@/objects';
  * Relays user interactions to the controller.
  */
 export class GameView {
-  private readonly graphicsRenderer: GraphicsRenderer;
+  private readonly table: TableGraphics;
   private readonly model: GameModel;
   private readonly onAction: (action: GameAction) => void;
 
-  // Track graphics for cleanup
-  private readonly pieceGraphics: Map<string, PieceGraphics>;
-  private readonly spaceGraphics: Map<string, SpaceGraphics>;
-  private readonly dieGraphics: Map<string, DieGraphics>;
-
   constructor(
-    scene: Scene,
+    table: TableGraphics,
     model: GameModel,
     onAction: (action: GameAction) => void
   ) {
+    this.table = table;
     this.model = model;
     this.onAction = onAction;
-    this.graphicsRenderer = new GraphicsRenderer(scene);
-    this.pieceGraphics = new Map();
-    this.spaceGraphics = new Map();
-    this.dieGraphics = new Map();
 
     this.subscribeToModel();
   }
@@ -63,7 +55,7 @@ export class GameView {
 
   // Event handlers - update graphics based on model changes
 
-  private onPieceCreated(data: { piece: Piece }): void {
+  private onPieceCreated(data: GameModelEvents["piece:created"]): void {
     const { piece } = data;
     const player = piece.player;
 
@@ -75,8 +67,7 @@ export class GameView {
     const startZ = pieceIndex * 2;
 
     const graphics = new PieceGraphics(player, pieceIndex, new Vector3(startX, 1, startZ));
-    this.pieceGraphics.set(piece.id, graphics);
-    this.graphicsRenderer.addObject(piece.id, graphics);
+    this.table.addPiece(graphics);
   }
 
   private async onPieceMoved(data: {
@@ -99,63 +90,60 @@ export class GameView {
     if (!targetSpace) return;
 
     // Get the space graphics to find position
-    const spaceGraphics = this.graphicsRenderer.getObject(targetSpace.id);
+    const spaceGraphics = this.table.board.getSpace(targetSpace.id);
     if (!spaceGraphics) return;
 
     const targetPos = spaceGraphics.object3D.position.clone();
     targetPos.y = 1; // Height above space
 
-    await this.graphicsRenderer.animate(pieceId, 'move', { targetPosition: targetPos });
+    await this.table.animateObject(pieceId, 'move', { targetPosition: targetPos });
   }
 
-  private onPieceSelected(data: { pieceId: string }): void {
-    this.graphicsRenderer.animate(data.pieceId, 'select');
+  private onPieceSelected(data: GameModelEvents["piece:selected"]): void {
+    this.table.animateObject(data.pieceId, 'select');
   }
 
-  private onPieceDeselected(data: { pieceId: string }): void {
-    this.graphicsRenderer.animate(data.pieceId, 'deselect');
+  private onPieceDeselected(data: GameModelEvents["piece:deselected"]): void {
+    this.table.animateObject(data.pieceId, 'deselect');
   }
 
-  private async onPieceKnockedOut(data: { pieceId: string }): Promise<void> {
-    await this.graphicsRenderer.animate(data.pieceId, 'knockout');
+  private async onPieceKnockedOut(data: GameModelEvents["piece:knocked-out"]): Promise<void> {
+    await this.table.animateObject(data.pieceId, 'knockout');
     // TODO: Move piece back to start position
   }
 
-  private onSpaceCreated(data: { space: any }): void {
+  private onSpaceCreated(data: GameModelEvents["space:created"]): void {
     const { space } = data;
-    const notation = space.notation as string;
-    const isRosette = space.isRosette as boolean;
+    const notation = space.notation;
+    const isRosette = space.isRosette;
 
     // Calculate position based on notation
     const position = this.calculateSpacePosition(notation);
     const graphics = new SpaceGraphics(notation, isRosette ? new Color(0xffff00) : new Color(0x808080), position);
 
-    this.spaceGraphics.set(space.id, graphics);
-    this.graphicsRenderer.addObject(space.id, graphics);
+    this.table.board.addSpace(graphics);
   }
 
-  private onSpaceHighlighted(data: { spaceId: string }): void {
-    this.graphicsRenderer.animate(data.spaceId, 'highlight');
+  private onSpaceHighlighted(data: GameModelEvents["space:highlighted"]): void {
+    this.table.board.animateSpace(data.spaceId, 'highlight');
   }
 
   private onSpaceUnhighlighted(data: { spaceId: string }): void {
-    this.graphicsRenderer.animate(data.spaceId, 'unhighlight');
+    this.table.board.animateSpace(data.spaceId, 'unhighlight');
   }
 
-  private onDieCreated(data: { die: any }): void {
-    const { die } = data;
+  private onDieCreated(data: GameModelEvents["dice:created"]): void {
     const dieIndex = this.model.dice.length - 1;
     const position = new Vector3(-5 + dieIndex * 2, 1, -10);
 
     const graphics = new DieGraphics(`die-${dieIndex}`, position);
-    this.dieGraphics.set(die.id, graphics);
-    this.graphicsRenderer.addObject(die.id, graphics);
+    this.table.addDie(graphics);
   }
 
-  private async onDiceRolled(_data: { diceValues: number[]; total: number }): Promise<void> {
+  private async onDiceRolled(_data: GameModelEvents["dice:rolled"]): Promise<void> {
     // Animate all dice
     const animations = this.model.dice.map((die) =>
-      this.graphicsRenderer.animate(die.id, 'roll')
+      this.table.animateObject(die.id, 'roll')
     );
     await Promise.all(animations);
   }
@@ -166,19 +154,31 @@ export class GameView {
 
   /**
    * Calculate 3D position for a space based on its notation.
+   * Returns position in board-relative coordinates (board is rotated Math.PI/2 around Y).
    */
   private calculateSpacePosition(notation: string): Vector3 {
     // Parse notation (e.g., 'a1', 'm4', 'b7')
-    const lane = notation[0]; // 'a', 'b', or 'm'
+    const lane = notation.startsWith("a") ? -1 : notation[0].startsWith("b") ? 1 : 0; // NOSONAR
+    
     const row = Number.parseInt(notation.substring(1), 10);
+    
+    const trueWidth = dimensions.space.width + dimensions.space.gap;
+    const trueDepth = dimensions.space.depth + dimensions.space.gap;
 
-    let x = 0;
-    if (lane === 'a') x = -10;
-    else if (lane === 'b') x = 10;
+    const initialWorldX = -dimensions.board.inner.width / 2 - 2 * dimensions.space.width - dimensions.space.gap;
+    const initialWorldZ = dimensions.space.depth + dimensions.space.gap;
 
-    const z = (row - 1) * 5;
+    // Calculate position in world space first
+    let worldX = initialWorldX + (row - 1) * trueWidth;
+    let worldZ = initialWorldZ - (lane + 1) * trueDepth;
+    
 
-    return new Vector3(x, 0.5, z);
+    // Board is rotated Math.PI/2 around Y, so convert to board-relative coords
+    // World X becomes board Z, world Z becomes board -X
+    const boardX = -worldZ;
+    const boardZ = worldX;
+
+    return new Vector3(boardX, dimensions.space.height* 2 / 3, boardZ);
   }
 
   /**
@@ -201,17 +201,14 @@ export class GameView {
    * Update graphics (called each frame).
    */
   update(deltaTime: number): void {
-    this.graphicsRenderer.updateAll(deltaTime);
+    this.table.updateAll(deltaTime);
   }
 
   /**
    * Cleanup resources.
    */
   dispose(): void {
-    this.graphicsRenderer.dispose();
+    // Table will be disposed by game.ts
     this.model.clear();
-    this.pieceGraphics.clear();
-    this.spaceGraphics.clear();
-    this.dieGraphics.clear();
   }
 }
