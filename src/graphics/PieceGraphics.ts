@@ -9,10 +9,10 @@ export class PieceGraphics extends GraphicsObject {
   private readonly baseColor: THREE.Color;
   private readonly material: THREE.MeshStandardMaterial;
 
-  constructor(player: 'A' | 'B', position: THREE.Vector3 = new THREE.Vector3()) {
+  constructor(player: 'A' | 'B', index: number, position: THREE.Vector3 = new THREE.Vector3()) {
     const mesh = PieceGraphics.createPieceMesh(player);
     mesh.position.copy(position);
-    super(mesh);
+    super(`piece-${player}${index}`, mesh);
 
     this.baseColor = player === 'A' ? new THREE.Color(colors.piece.playerA) : new THREE.Color(colors.piece.playerB);
     const meshMaterial = mesh.material;

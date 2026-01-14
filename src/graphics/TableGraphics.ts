@@ -12,7 +12,7 @@ export class TableGraphics extends GraphicsObject {
   }
   
   constructor(position: Vector3 = new Vector3()) {
-    super(TableGraphics.createTableGroup(position));
+    super("table", TableGraphics.createTableGroup(position));
     
     // Create and add the board
     this.boardGraphics = new BoardGraphics();

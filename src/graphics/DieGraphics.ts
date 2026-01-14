@@ -7,10 +7,10 @@ import { dimensions, colors } from './constants';
  */
 export class DieGraphics extends GraphicsObject {
 
-  constructor(position: THREE.Vector3 = new THREE.Vector3()) {
+  constructor(id: string, position: THREE.Vector3 = new THREE.Vector3()) {
     const mesh = DieGraphics.createDieMesh();
     mesh.position.copy(position);
-    super(mesh);
+    super(id, mesh);
   }
 
   private static createDieMesh(): THREE.Mesh {

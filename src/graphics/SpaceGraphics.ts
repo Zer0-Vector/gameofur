@@ -12,8 +12,8 @@ export class SpaceGraphics extends GraphicsObject {
 
   private static readonly selectionColor = new Color(colors.space.selection);
 
-  constructor(color: ColorRepresentation, position: Vector3) {
-    super(SpaceGraphics.createSpaceMesh(color, position));
+  constructor(coordinate: string, color: ColorRepresentation, position: Vector3) {
+    super(`space-${coordinate}`, SpaceGraphics.createSpaceMesh(color, position));
 
 
     const meshMaterial = (this._object3D as Mesh).material;

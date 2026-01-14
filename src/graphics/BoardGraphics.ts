@@ -11,7 +11,7 @@ export class BoardGraphics extends GraphicsObject {
   }
 
   constructor(position: Vector3 = new Vector3()) {
-    super(BoardGraphics.createBoardObject(position));
+    super("board", BoardGraphics.createBoardObject(position));
   }
   
   private static createBoardObject(position: Vector3): Object3D {
