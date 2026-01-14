@@ -8,7 +8,7 @@ export class GameScene extends GraphicsObject<Scene> {
     this.object3D.background = new Color(0x2a2a2a);
   }
 
-  protected performAnimation(animation: AnimationType, params: AnimationParams): Promise<void> {
+  protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
     // nop
     return Promise.resolve();
   }
