@@ -1,15 +1,15 @@
 import { GUI } from "dat.gui";
 import { useControls } from "./controls";
 import { useGraphicsContainer } from "./graphics-container";
-import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import { GameController } from "./controller";
 import { GameModel } from "./model";
 import { GameView } from "./view";
 import type { Nullable } from "./types";
 import { TableGraphics } from "@/graphics/objects";
+import { AmbientLight, DirectionalLight, type Camera } from "three";
 
-function useDebugGui(camera: THREE.Camera, gameController: Nullable<GameController>) {
+function useDebugGui(camera: Camera, gameController: Nullable<GameController>) {
   const debugGui = useRef<GUI | null>(null);
   useEffect(() => {
     if (!debugGui.current) {
@@ -132,11 +132,11 @@ export function useGame() {
 }
 
 function configureLighting(scene: THREE.Scene) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+  const ambientLight = new AmbientLight(0xffffff, 0.75);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
-  directionalLight.position.set(10, 20, 10);
+  const directionalLight = new DirectionalLight(0xffffff, 1.8);
+  directionalLight.position.set(-15, 50, 0);
   directionalLight.castShadow = true;
   scene.add(directionalLight);
 }
