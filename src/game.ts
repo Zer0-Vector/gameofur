@@ -56,13 +56,17 @@ export function useGame() {
   const modelRef = useRef<GameModel | null>(null);
   const controllerRef = useRef<GameController | null>(null);
   const viewRef = useRef<GameView | null>(null);
-  const table = new TableGraphics();
+  const tableRef = useRef<TableGraphics | null>(null);
 
   useEffect(() => {
 
     configureLighting(rootScene.object3D);
 
-    table.addTo(rootScene.object3D);
+    // Create table once and store reference
+    if (!tableRef.current) {
+      tableRef.current = new TableGraphics();
+      tableRef.current.addTo(rootScene.object3D);
+    }
 
     // Initialize MVC components
     if (!modelRef.current && !controllerRef.current && !viewRef.current) {
@@ -74,8 +78,8 @@ export function useGame() {
       const controller = new GameController(model);
       controllerRef.current = controller;
 
-      // Create View (passes action handler to relay user input to controller)
-      const view = new GameView(rootScene.object3D, model, async (action) => {
+      // Create View (passes table and action handler to relay user input to controller)
+      const view = new GameView(tableRef.current, model, async (action) => {
         const result = await controller.handleAction(action);
         console.log(result);
       });
@@ -115,12 +119,13 @@ export function useGame() {
       viewRef.current?.dispose();
       controllerRef.current?.dispose();
       modelRef.current?.dispose();
-      table.dispose();
+      tableRef.current?.dispose();
       viewRef.current = null;
       controllerRef.current = null;
       modelRef.current = null;
+      tableRef.current = null;
     };
-  }, [rootScene, renderScene, table]);
+  }, [rootScene, renderScene]);
 
   useControls(camera, renderer.domElement, renderScene);
   useDebugGui(camera, controllerRef.current);
