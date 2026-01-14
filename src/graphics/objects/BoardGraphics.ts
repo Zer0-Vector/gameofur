@@ -3,6 +3,7 @@ import { Group, MeshStandardMaterial, BoxGeometry, Mesh, Shape, Path, ExtrudeGeo
 import type { Object3D, Material } from "three";
 import { dimensions } from "@/graphics/constants";
 import type { BoxDimensions } from "@/types/geometry";
+import type { SpaceGraphics } from "./SpaceGraphics";
 
 export class BoardGraphics extends GraphicsObject<Group> {
   protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
@@ -12,6 +13,31 @@ export class BoardGraphics extends GraphicsObject<Group> {
 
   constructor(position: Vector3 = new Vector3()) {
     super("board", BoardGraphics.createBoardObject(position));
+  }
+
+  /**
+   * Add a space as a child of this board.
+   */
+  addSpace(space: SpaceGraphics): void {
+    space.addTo(this._object3D);
+  }
+
+  /**
+   * Get a space by ID using the Three.js scene graph.
+   */
+  getSpace(id: string): SpaceGraphics | undefined {
+    const obj = this._object3D.getObjectByName(id);
+    return obj?.userData.graphicsObject as SpaceGraphics | undefined;
+  }
+
+  /**
+   * Animate a space by ID.
+   */
+  async animateSpace(id: string, animation: AnimationType, params?: AnimationParams): Promise<void> {
+    const space = this.getSpace(id);
+    if (space) {
+      await space.animate(animation, params);
+    }
   }
 
   private static createBoardObject(position: Vector3): Group {
@@ -30,14 +56,11 @@ export class BoardGraphics extends GraphicsObject<Group> {
     const box = BoardGraphics.createBoardBox(boardMaterial);
     boardGroup.add(box);
 
-    // Rotate the board to proper orientation
-    boardGroup.rotation.set(0, Math.PI / 2, 0);
-
     return boardGroup;
   }
 
   private static createBoardBox(material: Material): Object3D {
-    const { width, height, thickness } = dimensions.board;
+    const { width, depth: height, height: thickness } = dimensions.board;
     const boardGeometry = new BoxGeometry(width, thickness, height);
 
     const board = new Mesh(boardGeometry, material);
@@ -49,7 +72,7 @@ export class BoardGraphics extends GraphicsObject<Group> {
   }
 
   private static createRaisedBorder(material: Material): Object3D {
-    const { width, height, thickness, bevelSize, border } = dimensions.board;
+    const { width, depth: height, height: thickness, bevelSize, border } = dimensions.board;
     const borderGeometry = BoardGraphics.createRaisedBorderGeometry(
       { width, height }, border.width, thickness, bevelSize);
     const borderMesh = new Mesh(borderGeometry, material);
