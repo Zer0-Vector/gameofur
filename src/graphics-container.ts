@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { PCFSoftShadowMap, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { BoxDimensions } from './types/geometry';
+import { GameScene } from './graphics/scenes';
 
 export function useGraphicsContainer(containerId: string) {
   const renderer = createRenderer();
@@ -8,10 +9,10 @@ export function useGraphicsContainer(containerId: string) {
   const camera = createCamera();
 
 
-  const rootScene = new Scene();
+  const rootScene = new GameScene();
 
   const renderScene = () => {
-    renderer.render(rootScene, camera);
+    renderer.render(rootScene.object3D, camera);
   };
 
 

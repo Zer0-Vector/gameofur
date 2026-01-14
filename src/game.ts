@@ -59,10 +59,10 @@ export function useGame() {
   const table = new TableGraphics();
 
   useEffect(() => {
-    rootScene.background = new THREE.Color(0x2a2a2a);
-    configureLighting(rootScene);
 
-    table.addTo(rootScene);
+    configureLighting(rootScene.object3D);
+
+    table.addTo(rootScene.object3D);
 
     // Initialize MVC components
     if (!modelRef.current && !controllerRef.current && !viewRef.current) {
@@ -75,7 +75,7 @@ export function useGame() {
       controllerRef.current = controller;
 
       // Create View (passes action handler to relay user input to controller)
-      const view = new GameView(rootScene, model, async (action) => {
+      const view = new GameView(rootScene.object3D, model, async (action) => {
         const result = await controller.handleAction(action);
         console.log(result);
       });
