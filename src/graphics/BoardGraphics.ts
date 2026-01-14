@@ -2,7 +2,7 @@ import { GraphicsObject, type AnimationParams, type AnimationType } from "./Grap
 import { Group, MeshStandardMaterial, BoxGeometry, Mesh, Shape, Path, ExtrudeGeometry, Vector3 } from "three";
 import type { Object3D, Material } from "three";
 import { dimensions } from "./constants";
-import type { BoxDimensions } from "../geometry-types";
+import type { BoxDimensions } from "../types/geometry";
 
 export class BoardGraphics extends GraphicsObject {
   protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
