@@ -1,22 +1,22 @@
 import { useEffect } from 'react';
-import * as THREE from 'three';
-import type { BoxDimensions } from './geometry-types';
+import { PCFSoftShadowMap, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { BoxDimensions } from './types/geometry';
 
 export function useGraphicsContainer(containerId: string) {
-  const renderer = new THREE.WebGLRenderer({
+  const renderer = new WebGLRenderer({
     antialias: true,
   });
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = PCFSoftShadowMap;
 
 
   const fov = 75;
-  const camera = new THREE.PerspectiveCamera(fov);
+  const camera = new PerspectiveCamera(fov);
   camera.position.set(0, 40, 0);
   camera.lookAt(0, 0, 0);
 
 
-  const rootScene = new THREE.Scene();
+  const rootScene = new Scene();
 
   const renderScene = () => {
     renderer.render(rootScene, camera);
