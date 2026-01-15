@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { PCFSoftShadowMap, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import { PCFSoftShadowMap, PerspectiveCamera,  WebGLRenderer } from 'three';
 import type { BoxDimensions } from './types/geometry';
 import { GameScene } from './graphics/scenes';
 
