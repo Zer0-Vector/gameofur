@@ -1,0 +1,57 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <style>
+    </style>
+    <defs>
+        <clipPath id="bottom-chop">
+            <path d="
+                M 10 70
+                l 5 -4.5
+                q 13 -9 27.5 0
+                l 5 4.5
+                l 0 -30
+                l -42.5 0" />
+        </clipPath>
+    
+        <g stroke="black" fill="none" stroke-width="1" id="eyes0">
+            <line x1="10" x2="10" y1="0" y2="100"  />
+            <line x1="90" x2="90" y1="0" y2="100"  />
+            <line x1="47.5" x2="47.5" y1="0" y2="100" />
+            <line x1="52.5" x2="52.5" y1="0" y2="100" />
+            <line x1="0" x2="100" y1="45" y2="45" />
+            <g id="topeyes">
+                <g id="top2">
+                    <g id="topinner">
+                        <path d="
+                            M 10 22.5
+                            l 5 -4.5
+                            q 13 -9 27.5 0
+                            l 5 4.5" id="curve"/>
+                        <use href="#curve" transform="translate(42.5 0)" />
+                    </g>
+                    <use href="#topinner" transform="translate(0 -5)" />
+                </g>
+                <use href="#top2" transform="scale(1 -1) translate(0 -45)" />
+                <circle r="5" cx="28" cy="22.5" fill="#5EBDF2" id="pupil" />
+                <use href="#pupil" transform="translate(42.5 0)" />
+            </g>
+            <use href="#topeyes" transform="translate(0 52.5)" />
+            <g id="top-boxes">
+                <rect width="7" height="8.75" x="10" y="45" id="box" />
+                <use href="#box" transform="translate(10.5 0)" />
+                <use href="#box" transform="translate(20.5 0)" />
+                <use href="#box" transform="translate(30.5 0)" />
+            </g>
+            <g id="bottom-boxes" clip-path="url(#bottom-chop)" >
+                <rect width="7" height="15" x="10" y="57" id="box2" />
+                <use href="#box2" transform="translate(10.5 0)" />
+                <use href="#box2" transform="translate(20.5 0)" />
+                <use href="#box2" transform="translate(30.5 0)" />
+            </g>
+            <g transform="translate(42.5)">
+                <use href="#top-boxes" />
+                <use href="#bottom-boxes" />
+            </g>
+        </g>
+    </defs>
+    <use href="#eyes0" transform="scale(1 -1) translate(0 -100)" />
+</svg>
