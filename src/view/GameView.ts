@@ -134,9 +134,14 @@ export class GameView {
     this.table.board.animateSpace(data.spaceId, 'unhighlight');
   }
 
-  private onDieCreated(data: GameModelEvents["dice:created"]): void {
+  private onDieCreated(_data: GameModelEvents["dice:created"]): void {
     const dieIndex = this.model.dice.length - 1;
-    const position = new Vector3(-5 + dieIndex * 2, 1, -10);
+    const gap = 2;
+    const position = new Vector3(
+      dieIndex * (dimensions.die.size + gap)-dimensions.space.width,
+      dimensions.board.height + dimensions.space.height + dimensions.die.size / 2,
+       + dimensions.board.depth / 2 + gap * 2,
+    );
 
     const graphics = new DieGraphics(`die-${dieIndex}`, position);
     this.table.addDie(graphics);
