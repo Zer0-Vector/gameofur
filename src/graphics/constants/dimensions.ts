@@ -57,7 +57,8 @@ const piece = {
   radiusTop: 3,
   radiusBottom: 3.4,
   height: 0.3,
-  radialSegments: 16,
+  radialSegments: 32,
+  
   // Animation parameters
   selectScale: 1.2,
   deselectScale: 1,
