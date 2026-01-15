@@ -20,7 +20,16 @@ export function useGraphicsContainer(containerId: string) {
   useResizeObserver(renderer, containerId,
     ((width: number, height: number) => {
       const dims = computeDimensions({ width, height }, scaleFactor);
+      
       console.log("Resizing to: ", dims);
+
+      const canvas = renderer.domElement
+      const { width: w, height: h } = canvas;
+      const needsResize = dims.width !== w || dims.height !== h;
+
+      if (!needsResize) {
+        return;
+      }
 
       renderer.setSize(dims.width, dims.height);
 
