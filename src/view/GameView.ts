@@ -5,6 +5,7 @@ import type { GameAction } from '@/controller';
 import { Color, Vector3 } from 'three';
 import type { Camera, Raycaster } from 'three';
 import { dimensions } from '@/graphics/constants';
+import { getSpaceTexture } from '@/graphics/constants/textures';
 
 /**
  * GameView - Handles all rendering and user input.
@@ -121,7 +122,15 @@ export class GameView {
 
     // Calculate position based on notation
     const position = this.calculateSpacePosition(notation);
-    const graphics = new SpaceGraphics(notation, isRosette ? new Color(0xffff00) : new Color(0x808080), position);
+    
+    // Get texture path for this space
+    const texturePath = getSpaceTexture(notation);
+    
+    // Color is used as fallback when no texture, or for base when texture present
+    const graphics = new SpaceGraphics(notation,
+      isRosette ? new Color(0xffff00) : new Color(0x808080),
+      position,
+      texturePath);
 
     this.table.board.addSpace(graphics);
   }
@@ -185,7 +194,7 @@ export class GameView {
     const boardX = -worldZ;
     const boardZ = worldX;
 
-    return new Vector3(boardX, dimensions.space.height* 2 / 3, boardZ);
+    return new Vector3(boardX, dimensions.space.height + 0.1, boardZ);
   }
 
   /**
