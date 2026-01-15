@@ -7,7 +7,7 @@ import { GameModel } from "./model";
 import { GameView } from "./view";
 import type { Nullable } from "./types";
 import { TableGraphics } from "@/graphics/objects";
-import { AmbientLight, DirectionalLight, type Camera } from "three";
+import { AmbientLight, DirectionalLight, Scene, type Camera } from "three";
 
 function useDebugGui(camera: Camera, gameController: Nullable<GameController>) {
   const debugGui = useRef<GUI | null>(null);
@@ -131,7 +131,7 @@ export function useGame() {
   useDebugGui(camera, controllerRef.current);
 }
 
-function configureLighting(scene: THREE.Scene) {
+function configureLighting(scene: Scene) {
   const ambientLight = new AmbientLight(0xffffff, 0.75);
   scene.add(ambientLight);
 
