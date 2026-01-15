@@ -56,6 +56,8 @@ export class BoardGraphics extends GraphicsObject<Group> {
     const box = BoardGraphics.createBoardBox(boardMaterial);
     boardGroup.add(box);
 
+    boardGroup.translateY(dimensions.board.height / 2);
+
     return boardGroup;
   }
 
