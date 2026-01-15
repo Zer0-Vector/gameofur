@@ -5,7 +5,7 @@ import type { EmptyObject } from "@/types";
 
 type GameActionsMap = {
   SELECT_PIECE: Identifiable,
-  MOVE_PIECE: Identifiable & { spaceId: string } ,
+  MOVE_PIECE: Identifiable & { spaceId: string },
   ROLL_DICE: EmptyObject,
   SELECT_SPACE: Identifiable,
   DESELECT_ALL: EmptyObject,
