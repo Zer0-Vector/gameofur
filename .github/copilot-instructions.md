@@ -55,13 +55,14 @@ npm run preview  # Preview production build
 - Rosettes at: a1, b1, m4, a7, b7
 - Two player paths converge in middle lane (m1-m8)
 - Notation system documented in [NOTATION.md](../NOTATION.md)
-- Space decorations in [assets/board-decor/*](../src/assets/board-decor/)
-  - a4, a2, m7: [eyes0.svg](../src/assets/board-decor/eyes0.svg)
-  - b4, b2: [eyes1.svg](../src/assets/board-decor/eyes1.svg)
-  - a3, b3, m2, m5, m8: [bigfivedots.svg](../src/assets/board-decor/bigfivedots.svg)
-  - m1: [twelvedots.svg](../src/assets/board-decor/twelvedots.svg)
-  - m3, m6: [fourfivedots.svg](../src/assets/board-decor/fourfivedots.svg)
-  - a8, b8: [smallfivedots.svg](../src/assets/board-decor/smallfivedots.svg)
+- Space decorations in [assets/board-decor/*](../public/assets/board-decor/)
+  - a4, a2, m7: [eyes0.svg](../public/assets/board-decor/eyes0.svg)
+  - b4, b2: [eyes1.svg](../public/assets/board-decor/eyes1.svg)
+  - a3, b3, m2, m5, m8: [bigfivedots.svg](../public/assets/board-decor/bigfivedots.svg)
+  - m1: [twelvedots.svg](../public/assets/board-decor/twelvedots.svg)
+  - m3, m6: [fourfivedots.svg](../public/assets/board-decor/fourfivedots.svg)
+  - a8, b8: [smallfivedots.svg](../public/assets/board-decor/smallfivedots.svg)
+  - a1, b1, m4, a7, b7: [rosette.svg](../public/assets/board-decor/rosette.svg)
 
 
 ### State Machine
