@@ -25,7 +25,7 @@ function useDebugGui(camera: Camera, gameController: Nullable<GameController>) {
       cameraRotationFolder.add(camera.rotation, "y", -Math.PI, Math.PI, 0.01).listen();
       cameraRotationFolder.add(camera.rotation, "z", -Math.PI, Math.PI, 0.01).listen();
       cameraRotationFolder.open();
-      cameraFolder.open();
+      cameraFolder.close();
 
       const gameFolder = debugGui.current.addFolder("Game Actions");
       gameFolder.add({
