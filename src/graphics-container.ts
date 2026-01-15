@@ -79,7 +79,7 @@ function useResizeObserver(renderer: WebGLRenderer, containerId: string, onResiz
 function createCamera() {
   const fov = 75;
   const camera = new PerspectiveCamera(fov);
-  camera.position.set(0, 40, 0);
+  camera.position.set(0.5, 45, 23);
   camera.lookAt(0, 0, 0);
   return camera;
 }
