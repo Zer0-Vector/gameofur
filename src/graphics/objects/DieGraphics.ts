@@ -17,7 +17,7 @@ export class DieGraphics extends GraphicsObject<Mesh> {
     // Tetrahedron for 4-sided die
     const geometry = new TetrahedronGeometry(dimensions.die.size);
     const material = new MeshStandardMaterial({
-      color: colors.die.base,
+      color: colors.die.body,
       roughness: dimensions.die.material.roughness,
       metalness: dimensions.die.material.metalness,
     });

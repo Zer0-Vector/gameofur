@@ -8,7 +8,9 @@ const piece = {
 
 // Die colors
 const die = {
-  base: 0xffffff,
+  body: 0x3a4a5a,
+  pip: 0xf0f0f0,
+
 }
 
 // Space colors
