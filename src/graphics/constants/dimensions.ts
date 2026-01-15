@@ -58,7 +58,7 @@ const piece = {
   radiusBottom: 3.4,
   height: 0.3,
   radialSegments: 32,
-  
+
   // Animation parameters
   selectScale: 1.2,
   deselectScale: 1,
@@ -79,7 +79,8 @@ const piece = {
 
 // constants for die dimensions
 const die = {
-  size: 0.5, // Tetrahedron radius
+  size: 4, // Tetrahedron radius
+
   // Animation parameters
   rollDuration: 500,
   rollRotations: 3,
@@ -93,7 +94,7 @@ const die = {
   },
   // Material properties
   material: {
-    roughness: 0.3,
+    roughness: 8.3,
     metalness: 0.7,
   },
 }
