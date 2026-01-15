@@ -45,17 +45,8 @@ npm run preview  # Preview production build
 - **Container Pattern**: `#game-container` is the Three.js canvas parent with flex centering
 - Use double quotes wherever valid. Avoid single quotes if possible.
 
-### Three.js Patterns
-- **Scene Setup**: Camera positioned at `(0, 40, 0)` looking at origin
-- **Lighting**: Ambient (0.75 intensity) + Directional (1.8 intensity) with shadow casting enabled
-- **Materials**: `MeshStandardMaterial` with specified `roughness` and `metalness` for PBR
-- **Shadows**: Soft shadows enabled via `THREE.PCFSoftShadowMap`
-- **Board Rotation**: Board rotated `Math.PI / 2` around Y-axis for proper orientation
-
 ### Geometry Construction
 - Board dimensions are constants with gaps, borders, and bevel sizes defined in [dimensions.ts](../src/graphics/constants/dimensions.ts)
-- Uses `THREE.Shape` with `ExtrudeGeometry` for beveled borders
-- Space size: 10 units, gap: 0.5 units
 
 ## Game Logic (Not Fully Implemented)
 
@@ -64,6 +55,14 @@ npm run preview  # Preview production build
 - Rosettes at: a1, b1, m4, a7, b7
 - Two player paths converge in middle lane (m1-m8)
 - Notation system documented in [NOTATION.md](../NOTATION.md)
+- Space decorations in [assets/board-decor/*](../src/assets/board-decor/)
+  - a4, a2, m6: [eyes0.svg](../src/assets/board-decor/eyes0.svg)
+  - b4, b2: [eyes1.svg](../src/assets/board-decor/eyes1.svg)
+  - a3, b3, m2, m5, m7: [bigfivedots.svg](../src/assets/board-decor/bigfivedots.svg)
+  - m1: [twelvedots.svg](../src/assets/board-decor/twelvedots.svg)
+  - m3, m6: [fourfivedots.svg](../src/assets/board-decor/fourfivedots.svg)
+  - a8, b8: [smallfivedots.svg](../src/assets/board-decor/smallfivedots.svg)
+
 
 ### State Machine
 - Game states defined in [states.plantuml](../states.plantuml)
