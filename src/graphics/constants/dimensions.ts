@@ -79,7 +79,7 @@ const piece = {
 
 // constants for die dimensions
 const die = {
-  size: 4, // Tetrahedron radius
+  size: 3, // Tetrahedron radius
 
   // Animation parameters
   rollDuration: 500,
