@@ -8,12 +8,12 @@ import { Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three'
 export class DieGraphics extends GraphicsObject<Mesh> {
 
   constructor(id: string, position: Vector3 = new Vector3()) {
-    const mesh = DieGraphics.createDieMesh();
+    const mesh = DieGraphics.createDieMesh(id);
     mesh.position.copy(position);
     super(id, mesh);
   }
 
-  private static createDieMesh(): Mesh {
+  private static createDieMesh(id: string): Mesh {
     // Tetrahedron for 4-sided die
     const geometry = new TetrahedronGeometry(dimensions.die.size);
     const material = new MeshStandardMaterial({
@@ -25,7 +25,7 @@ export class DieGraphics extends GraphicsObject<Mesh> {
     const mesh = new Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-
+    mesh.name = id;
     return mesh;
   }
 
