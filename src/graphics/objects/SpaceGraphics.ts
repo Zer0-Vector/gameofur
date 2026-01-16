@@ -1,4 +1,4 @@
-import { MeshStandardMaterial, BoxGeometry, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, DoubleSide, NormalBlending, FrontSide, NoBlending, AdditiveBlending, MultiplyBlending, PlaneGeometry, Group, SrcAlphaSaturateFactor } from 'three';
+import { MeshStandardMaterial, BoxGeometry, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, DoubleSide, PlaneGeometry, Group } from 'three';
 import type { ColorRepresentation, Texture } from 'three';
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
 import { dimensions, colors } from '@/graphics/constants';
