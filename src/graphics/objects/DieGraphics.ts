@@ -1,6 +1,6 @@
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
 import { dimensions, colors } from '@/graphics/constants';
-import { BufferAttribute, Color, Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three';
+import { Color, Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three';
 
 /**
  * Graphics representation of a die.
