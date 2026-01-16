@@ -1,12 +1,12 @@
-import { MeshStandardMaterial, BoxGeometry, Mesh, Vector3, Color, TextureLoader, LinearSRGBColorSpace } from 'three';
+import { MeshStandardMaterial, BoxGeometry, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, DoubleSide, NormalBlending, FrontSide, NoBlending, AdditiveBlending, MultiplyBlending, PlaneGeometry, Group, SrcAlphaSaturateFactor } from 'three';
 import type { ColorRepresentation, Texture } from 'three';
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
-import { dimensions, positions, colors } from '@/graphics/constants';
+import { dimensions, colors } from '@/graphics/constants';
 
 /**
  * Graphics representation of a board space.
  */
-export class SpaceGraphics extends GraphicsObject<Mesh> {
+export class SpaceGraphics extends GraphicsObject {
 
   private static readonly selectionColor = new Color(colors.space.selection);
   private static readonly textureLoader = new TextureLoader();
@@ -15,47 +15,54 @@ export class SpaceGraphics extends GraphicsObject<Mesh> {
     super(`space-${coordinate}`, SpaceGraphics.createSpaceMesh(color, position, texturePath));
   }
 
-  private static createSpaceMesh(color: ColorRepresentation, position: Vector3, texturePath: string): Mesh {
-    const geometry = new BoxGeometry(dimensions.space.width, dimensions.space.height, dimensions.space.depth);
-    let bodyMaterial = new MeshStandardMaterial({
+  private static createSpaceMesh(color: ColorRepresentation, position: Vector3, texturePath: string) {
+    const { width, height, depth } = dimensions.space;
+    const { roughness, metalness } = dimensions.space.material;
+    
+    // create base box
+    const box = new BoxGeometry(width, height, depth);
+    
+    const bodyMaterial = new MeshStandardMaterial({
       color,
-      side: 2,
-    })
+      roughness,
+      metalness,
+    });
+    
+    const boxMesh = new Mesh(box, bodyMaterial);
+    boxMesh.castShadow = true;
+    boxMesh.receiveShadow = true;
+    boxMesh.position.copy(position);
 
-    let faceMaterial = bodyMaterial;
-
-    faceMaterial = new MeshStandardMaterial({
-      color: new Color(0xffffff),
-      roughness: dimensions.space.material.roughness,
-      metalness: dimensions.space.material.metalness,
+    const faceMaterial = new MeshStandardMaterial({
+      color: 0xffffff,
+      roughness,
+      metalness,
+      side: DoubleSide,
       transparent: true,
     });
-
-    const texture = SpaceGraphics.textureLoader.load(texturePath, (loadedTexture: Texture) => {
-      loadedTexture.colorSpace = LinearSRGBColorSpace;
+    
+    SpaceGraphics.textureLoader.load(texturePath, (loadedTexture: Texture) => {
+      loadedTexture.colorSpace = SRGBColorSpace;
       faceMaterial.map = loadedTexture;
       faceMaterial.needsUpdate = true;
     });
-    faceMaterial.map = texture;
+    const plane = new PlaneGeometry(width, depth);
+    
+    const faceMesh = new Mesh(plane, faceMaterial);
+    faceMesh.receiveShadow = true;
+    faceMesh.castShadow = false;
+    faceMesh.position.copy(position);
+    faceMesh.position.y += height / 2 + 0.02;
+    faceMesh.rotation.x = -Math.PI / 2;
 
-    const materials = [
-      bodyMaterial,
-      faceMaterial,
-    ];
+    const group = new Group();
+    group.add(boxMesh);
+    group.add(faceMesh);
 
-    geometry.groups.forEach((face, index) => {
-      face.materialIndex = index === 2 ? 1 : 0; // Apply faceMaterial to top face only
-    })
-
-    const mesh = new Mesh(geometry, materials);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.position.copy(position);
-
-    return mesh;
+    return group;
   }
 
-  protected async performAnimation(animation: AnimationType, _params: AnimationParams): Promise<void> {
+  protected async performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
     // TODO
   }
 }
