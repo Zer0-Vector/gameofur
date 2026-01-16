@@ -20,6 +20,6 @@
         </g>
     </defs>
     <use href="#dots" />
-    <use href="#jaggedBorder" transform="scale(0.9) translate(5.5 5.5)" />
-    <rect width="91" height="91" fill="none" stroke="black" x="4.5" y="4.5" />
+    <use href="#jaggedBorder" transform="scale(0.9) translate(5.5 2.5)" />
+    <!-- <rect width="91" height="91" fill="none" stroke="black" stroke-width="0.5" x="4.5" y="1.5" /> -->
 </svg>
