@@ -6,7 +6,7 @@ import type { Euler, Object3D, Vector3 } from 'three';
  * Base class for all graphics objects.
  * Handles Three.js rendering and animations.
  */
-export abstract class GraphicsObject<T extends Object3D> implements Disposable, Identifiable {
+export abstract class GraphicsObject<T extends Object3D = Object3D> implements Disposable, Identifiable {
   protected _object3D: T;
   protected activeAnimations: Map<string, Promise<void>>;
   readonly id: string;
