@@ -1,6 +1,6 @@
 import { GraphicsObject, type AnimationParams, type AnimationType } from '@/graphics';
 import { dimensions, colors } from '@/graphics/constants';
-import { Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three';
+import { BufferAttribute, Color, Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 'three';
 
 /**
  * Graphics representation of a die.
@@ -16,17 +16,51 @@ export class DieGraphics extends GraphicsObject<Mesh> {
   private static createDieMesh(id: string): Mesh {
     // Tetrahedron for 4-sided die
     const geometry = new TetrahedronGeometry(dimensions.die.size);
+    
     const material = new MeshStandardMaterial({
-      color: colors.die.body,
       roughness: dimensions.die.material.roughness,
       metalness: dimensions.die.material.metalness,
+      flatShading: true,
+      color: colors.die.body,
     });
 
-    const mesh = new Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.name = id;
-    return mesh;
+    const pipMaterial = material.clone();
+    pipMaterial.color = new Color(colors.die.pip);
+
+    const positions = geometry.attributes.position;
+
+    const pipScale = 0.15;
+    const pipPositionScale = 1 - pipScale + 0.01;
+
+    const pip1 = new Mesh(geometry.clone(), pipMaterial);
+    pip1.position.set(
+      positions.getX(0),
+      positions.getY(0),
+      positions.getZ(0)
+    );
+    pip1.position.multiplyScalar(pipPositionScale);
+    pip1.scale.setScalar(0.15);
+
+    const pip2 = new Mesh(geometry.clone(), pipMaterial);
+    pip2.position.set(
+      positions.getX(2),
+      positions.getY(2),
+      positions.getZ(2)
+    );
+    pip2.position.multiplyScalar(pipPositionScale);
+    pip2.scale.setScalar(0.15);
+
+    
+
+    const dieMesh = new Mesh(geometry, material);
+    dieMesh.castShadow = true;
+    dieMesh.receiveShadow = false;
+    dieMesh.name = id;
+
+    dieMesh.add(pip1);
+    dieMesh.add(pip2);
+
+    return dieMesh;
   }
 
   protected async performAnimation(animation: AnimationType, _params: AnimationParams): Promise<void> {
@@ -36,6 +70,7 @@ export class DieGraphics extends GraphicsObject<Mesh> {
   }
 
   private async animateRoll(): Promise<void> {
+    // TODO: review and test
     const duration = dimensions.die.rollDuration;
     const rotations = dimensions.die.rollRotations; // Number of full rotations
 
