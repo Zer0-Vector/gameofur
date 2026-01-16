@@ -178,11 +178,13 @@ export class GameView {
     
     const row = Number.parseInt(notation.substring(1), 10);
     
-    const trueWidth = dimensions.space.width + dimensions.space.gap;
-    const trueDepth = dimensions.space.depth + dimensions.space.gap;
+    const { width, depth, gap } = dimensions.space;
 
-    const initialWorldX = -dimensions.board.inner.width / 2 - 2 * dimensions.space.width - dimensions.space.gap;
-    const initialWorldZ = dimensions.space.depth + dimensions.space.gap;
+    const trueWidth = width + gap;
+    const trueDepth = depth + gap;
+
+    const initialWorldX = -dimensions.board.inner.width / 2 - 2 * width - gap;
+    const initialWorldZ = depth + gap;
 
     // Calculate position in world space first
     let worldX = initialWorldX + (row - 1) * trueWidth;
