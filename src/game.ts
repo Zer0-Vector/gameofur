@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import { GameController } from "./controller";
 import { GameModel } from "./model";
 import { GameView } from "./view";
-import type { Nullable } from "./types";
 import { TableGraphics } from "@/graphics/objects";
 import { AmbientLight, DirectionalLight, Scene, type Camera } from "three";
 
