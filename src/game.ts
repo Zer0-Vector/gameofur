@@ -9,7 +9,7 @@ import type { Nullable } from "./types";
 import { TableGraphics } from "@/graphics/objects";
 import { AmbientLight, DirectionalLight, Scene, type Camera } from "three";
 
-function useDebugGui(camera: Camera, gameController: Nullable<GameController>) {
+function useDebugGui(camera: Camera, gameController: GameController) {
   const debugGui = useRef<GUI | null>(null);
   useEffect(() => {
     if (!debugGui.current) {
@@ -30,13 +30,13 @@ function useDebugGui(camera: Camera, gameController: Nullable<GameController>) {
       const gameFolder = debugGui.current.addFolder("Game Actions");
       gameFolder.add({
         rollDice: async () => {
-          const result = await gameController?.handleAction({ type: 'ROLL_DICE' });
+          const result = await gameController.handleAction({ type: 'ROLL_DICE' });
           console.log(result);
         }
       }, 'rollDice').name('Roll Dice');
       gameFolder.add({
         resetGame: async () => {
-          const result = await gameController?.handleAction({ type: 'RESET_GAME' });
+          const result = await gameController.handleAction({ type: 'RESET_GAME' });
           console.log(result);
         }
       }, 'resetGame').name('Reset Game');
@@ -68,26 +68,19 @@ export function useGame() {
       tableRef.current.addTo(rootScene.object3D);
     }
 
-    // Initialize MVC components
-    if (!modelRef.current && !controllerRef.current && !viewRef.current) {
-      // Create Model
-      const model = new GameModel();
-      modelRef.current = model;
+    // Create Model
+    modelRef.current ??= new GameModel();
 
-      // Create Controller
-      const controller = new GameController(model);
-      controllerRef.current = controller;
+    // Create Controller
+    controllerRef.current ??= new GameController(modelRef.current);
 
-      // Create View (passes table and action handler to relay user input to controller)
-      const view = new GameView(tableRef.current, model, async (action) => {
-        const result = await controller.handleAction(action);
-        console.log(result);
-      });
-      viewRef.current = view;
+    // Create View (passes table and action handler to relay user input to controller)
+    viewRef.current ??= new GameView(tableRef.current, modelRef.current, async (action) => {
+      const result = await controllerRef.current!.handleAction(action);
+      console.log(result);
+    });
 
-      // Initialize game objects (controller populates the model)
-      controller.initialize();
-    }
+    controllerRef.current.initialize();
 
     // Animation loop
     let animationId: number;
@@ -128,7 +121,7 @@ export function useGame() {
   }, [rootScene, renderScene]);
 
   useControls(camera, renderer.domElement, renderScene);
-  useDebugGui(camera, controllerRef.current);
+  useDebugGui(camera, controllerRef.current!);
 }
 
 function configureLighting(scene: Scene) {
