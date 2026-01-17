@@ -3,3 +3,4 @@
  */
 export * from './EventEmitter';
 export * from './GameModel';
+export * from "./Events";
