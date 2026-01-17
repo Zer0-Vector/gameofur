@@ -27,6 +27,8 @@
   height: calc(var(--target-height) - 2 * var(--padding));
 
   padding: var(--padding);
+
+  border: 2px solid white;
 }
 
 .card {
