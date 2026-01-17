@@ -3,4 +3,4 @@
  */
 export * from "./Identifiable";
 export * from "./Disposable";
-export * from "./TypeGameObject";
+export * from "./TypedGameObject";
