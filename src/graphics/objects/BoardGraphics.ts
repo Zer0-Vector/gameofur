@@ -5,7 +5,7 @@ import { dimensions } from "@/graphics/constants";
 import type { BoxDimensions } from "@/types/geometry";
 import type { SpaceGraphics } from "./SpaceGraphics";
 
-export class BoardGraphics extends GraphicsObject<Group> {
+export class BoardGraphics extends GraphicsObject {
   protected performAnimation(_animation: AnimationType, _params: AnimationParams): Promise<void> {
     // nop
     return Promise.resolve();
@@ -40,25 +40,23 @@ export class BoardGraphics extends GraphicsObject<Group> {
     }
   }
 
-  private static createBoardObject(position: Vector3): Group {
-    const boardGroup = new Group();
-    boardGroup.position.copy(position);
+  private static createBoardObject(position: Vector3) {
 
     const boardMaterial = new MeshStandardMaterial({
       color: 0x8B4513,
       roughness: 0.7,
       metalness: 0.1
     });
+    const box = BoardGraphics.createBoardBox(boardMaterial);
 
     const border = BoardGraphics.createRaisedBorder(boardMaterial);
-    boardGroup.add(border);
+    box.add(border);
 
-    const box = BoardGraphics.createBoardBox(boardMaterial);
-    boardGroup.add(box);
 
-    boardGroup.translateY(dimensions.board.height / 2);
+    box.position.copy(position);
+    box.translateY(dimensions.board.height / 2);
 
-    return boardGroup;
+    return box;
   }
 
   private static createBoardBox(material: Material): Object3D {
