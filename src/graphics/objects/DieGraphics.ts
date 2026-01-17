@@ -5,7 +5,7 @@ import { Color, Mesh, MeshStandardMaterial, TetrahedronGeometry, Vector3 } from 
 /**
  * Graphics representation of a die.
  */
-export class DieGraphics extends GraphicsObject<Mesh> {
+export class DieGraphics extends GraphicsObject {
 
   constructor(id: string, position: Vector3 = new Vector3()) {
     const mesh = DieGraphics.createDieMesh(id);
@@ -13,10 +13,10 @@ export class DieGraphics extends GraphicsObject<Mesh> {
     super(id, mesh);
   }
 
-  private static createDieMesh(id: string): Mesh {
+  private static createDieMesh(id: string) {
     // Tetrahedron for 4-sided die
     const geometry = new TetrahedronGeometry(dimensions.die.size);
-    
+
     const material = new MeshStandardMaterial({
       roughness: dimensions.die.material.roughness,
       metalness: dimensions.die.material.metalness,
@@ -50,7 +50,7 @@ export class DieGraphics extends GraphicsObject<Mesh> {
     pip2.position.multiplyScalar(pipPositionScale);
     pip2.scale.setScalar(0.15);
 
-    
+
 
     const dieMesh = new Mesh(geometry, material);
     dieMesh.castShadow = true;
