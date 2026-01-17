@@ -2,7 +2,7 @@
 // constants for space dimensions
 const space = {
   width: 10,
-  height: 1,
+  height: 0.6,
   depth: 10,
 
   gap: 0.5,
@@ -44,7 +44,7 @@ const board = (() => {
     get inner() {
       return {
         width: this.width - border.width * 2 - space.gap * 2,
-        depth: this.depth - border.height * 2 - space.gap * 2, 
+        depth: this.depth - border.height * 2 - space.gap * 2,
       }
 
     }
