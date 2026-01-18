@@ -1,0 +1,11 @@
+<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg" class="piece">
+    <style>
+        .pip {
+            fill: white;
+        }
+    </style>
+    <circle r="25" cx="30" cy="30" />
+    <g class="pip">
+        <circle r="4" cx="30" cy="30" /><!-- center -->
+    </g>
+</svg>
