@@ -33,11 +33,4 @@ export class SpaceRepository extends Repository<Space> {
   getActive(): Space[] {
     return this.filter((space) => space.state.active);
   }
-
-  /**
-   * Reset all spaces.
-   */
-  resetAll(): void {
-    this.forEach((space) => space.reset());
-  }
 }

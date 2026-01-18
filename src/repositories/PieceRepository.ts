@@ -20,10 +20,4 @@ export class PieceRepository extends Repository<Piece> {
     return this.filter((piece) => piece.position === position);
   }
 
-  /**
-   * Reset all pieces.
-   */
-  resetAll(): void {
-    this.forEach((piece) => piece.reset());
-  }
 }
