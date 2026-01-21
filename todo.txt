@@ -1,0 +1,3 @@
+add piece trays for each player @game @view
+add piece movement behavior @game @view @model
+
