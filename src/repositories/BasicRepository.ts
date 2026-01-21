@@ -10,6 +10,9 @@ export class BasicRepository<ItemType extends Identifiable> {
    * Add an item to the repository.
    */
   add<T extends ItemType = ItemType>(item: T): void {
+    if (this.items.has(item.id)) {
+      throw new Error(`Item with ID ${item.id} already exists in the repository.`);
+    }
     this.items.set(item.id, item);
   }
 
