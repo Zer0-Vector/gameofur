@@ -29,13 +29,13 @@ function useDebugGui(camera: Camera, gameController: GameController) {
       const gameFolder = debugGui.current.addFolder("Game Actions");
       gameFolder.add({
         rollDice: async () => {
-          const result = await gameController.handleAction({ type: 'ROLL_DICE' });
+          const result = await gameController.handleAction({ type: 'dice.roll' });
           console.log(result);
         }
       }, 'rollDice').name('Roll Dice');
       gameFolder.add({
         resetGame: async () => {
-          const result = await gameController.handleAction({ type: 'RESET_GAME' });
+          const result = await gameController.handleAction({ type: 'game.reset' });
           console.log(result);
         }
       }, 'resetGame').name('Reset Game');
