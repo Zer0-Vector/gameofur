@@ -1,8 +1,8 @@
-import { Repository } from "./Repository";
+import { BasicRepository } from "./BasicRepository";
 import type { GraphicsObject } from "@/graphics/GraphicsObject";
 /**
  * Repository for managing graphics objects.
  */
-export class GraphicsObjectRepository extends Repository<GraphicsObject> {
+export class GraphicsObjectRepository extends BasicRepository<GraphicsObject> {
 
 }
