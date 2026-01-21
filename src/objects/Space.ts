@@ -1,4 +1,4 @@
-import type { SpaceId, SpaceNotation } from '@/types/game';
+import type { SpaceNotation } from '@/types/game';
 import { GameObject } from './GameObject';
 import type { Piece } from './Piece';
 
@@ -35,7 +35,7 @@ export class Space extends GameObject<"space"> {
 
   canOccupy(piece: Piece): boolean {
     // Can't occupy if already occupied by same player
-    if (this.occupant && this.occupant.player === piece.player) {
+    if (this.occupant?.player === piece.player) {
       return false;
     }
 
