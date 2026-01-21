@@ -2,15 +2,16 @@ import type { Identifiable } from "@/interfaces";
 import type { GameModel } from "@/model";
 import { Piece, Space, Die } from "@/objects";
 import type { EmptyObject } from "@/types";
+import type { PieceId, SpaceId, SpaceNotation } from "@/types/game";
 
 type GameActionsMap = {
-  SELECT_PIECE: Identifiable,
-  MOVE_PIECE: Identifiable & { spaceId: string },
-  ROLL_DICE: EmptyObject,
-  SELECT_SPACE: Identifiable,
-  DESELECT_ALL: EmptyObject,
-  START_GAME: EmptyObject,
-  RESET_GAME: EmptyObject,
+  "piece.select": Identifiable<PieceId>,
+  "piece.move": Identifiable<PieceId> & { to: SpaceId },
+  "dice.roll": EmptyObject,
+  "space.select": Identifiable<SpaceId>,
+  "deselectAll": EmptyObject,
+  "game.start": EmptyObject,
+  "game.reset": EmptyObject,
 }
 
 /**
@@ -56,25 +57,25 @@ export class GameController {
    */
   async handleAction(action: GameAction): Promise<ActionResult> {
     switch (action.type) {
-      case "SELECT_PIECE":
+      case "piece.select":
         return this.selectPiece(action.id);
 
-      case "MOVE_PIECE":
-        return this.movePiece(action.id, action.spaceId);
+      case "piece.move":
+        return this.movePiece(action.id, action.to);
 
-      case "ROLL_DICE":
+      case "dice.roll":
         return this.rollDice();
 
-      case "SELECT_SPACE":
+      case "space.select":
         return this.selectSpace(action.id);
 
-      case "DESELECT_ALL":
+      case "deselectAll":
         return this.deselectAll();
 
-      case "START_GAME":
+      case "game.start":
         return this.startGame();
 
-      case "RESET_GAME":
+      case "game.reset":
         return this.resetGame();
 
       default:
@@ -277,33 +278,33 @@ export class GameController {
     // Player B path: b4 b3 b2 b1 m1 m2 m3 m4 m5 m6 m7 m8 b8 b7 F
     // Rosettes at: a1, b1, m4, a7, b7
 
-    const rosettes = new Set(["a1", "b1", "m4", "a7", "b7"]);
-    const allSpaces = [
-      "a1",
-      "a2",
-      "a3",
-      "a4",
-      "a7",
-      "a8",
-      "b1",
-      "b2",
-      "b3",
-      "b4",
-      "b7",
-      "b8",
-      "m1",
-      "m2",
-      "m3",
-      "m4",
-      "m5",
-      "m6",
-      "m7",
-      "m8",
+    const rosettes = new Set<SpaceNotation>([ "A1", "B1", "M4", "A7", "B7"]);
+    const allSpaces: SpaceNotation[] = [
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A7",
+      "A8",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B7",
+      "B8",
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "M7",
+      "M8",
     ];
 
     allSpaces.forEach((notation) => {
       const isRosette = rosettes.has(notation);
-      const space = new Space(`space_${notation}`, notation, isRosette);
+      const space = new Space(notation, isRosette);
       this.model.addSpace(space);
     });
   }
@@ -312,11 +313,11 @@ export class GameController {
     // Create 7 pieces for each player
     for (let i = 0; i < 7; i++) {
       // Player A pieces
-      const pieceA = new Piece(`piece_A${i}`, "A");
+      const pieceA = new Piece(i, "A");
       this.model.addPiece(pieceA);
 
       // Player B pieces
-      const pieceB = new Piece(`piece_B${i}`, "B");
+      const pieceB = new Piece(i, "B");
       this.model.addPiece(pieceB);
     }
   }
