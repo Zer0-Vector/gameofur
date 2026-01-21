@@ -1,3 +1,3 @@
-export type Identifiable<IdType = string> = {
+export type Identifiable<IdType extends string = string> = {
   id: IdType;
 }
