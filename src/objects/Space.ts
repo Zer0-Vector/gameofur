@@ -1,3 +1,4 @@
+import type { SpaceId, SpaceNotation } from '@/types/game';
 import { GameObject } from './GameObject';
 import type { Piece } from './Piece';
 
@@ -10,8 +11,8 @@ export class Space extends GameObject<"space"> {
   public readonly isRosette: boolean;
   public occupant: Piece | null;
 
-  constructor(id: string, notation: string, isRosette: boolean = false) {
-    super(id);
+  constructor(notation: SpaceNotation, isRosette: boolean = false) {
+    super(`SPACE-${notation}`);
     this.notation = notation;
     this.isRosette = isRosette;
     this.occupant = null;
