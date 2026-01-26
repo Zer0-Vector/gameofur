@@ -122,10 +122,10 @@ export class GameView {
 
     // Calculate position based on notation
     const position = this.calculateSpacePosition(notation);
-    
+
     // Get texture path for this space
     const texturePath = getSpaceTexture(notation);
-    
+
     // Color is used as fallback when no texture, or for base when texture present
     const graphics = new SpaceGraphics(notation,
       isRosette ? new Color(0xffff00) : new Color(0x808080),
@@ -147,9 +147,9 @@ export class GameView {
     const dieIndex = this.model.dice.length - 1;
     const gap = 2;
     const position = new Vector3(
-      dieIndex * (dimensions.die.size + gap)-dimensions.space.width,
+      dieIndex * (dimensions.die.size + gap) - dimensions.space.width,
       dimensions.board.height + dimensions.space.height + dimensions.die.size / 2,
-       + dimensions.board.depth / 2 + gap * 2,
+      + dimensions.board.depth / 2 + gap * 2,
     );
 
     const graphics = new DieGraphics(`die-${dieIndex}`, position);
@@ -173,11 +173,15 @@ export class GameView {
    * Returns position in board-relative coordinates (board is rotated Math.PI/2 around Y).
    */
   private calculateSpacePosition(notation: string): Vector3 {
-    // Parse notation (e.g., 'a1', 'm4', 'b7')
-    const lane = notation.startsWith("a") ? -1 : notation[0].startsWith("b") ? 1 : 0; // NOSONAR
-    
+    // Parse notation (e.g., 'A1', 'M4', 'B7')
+    const lane = function() {
+      if (notation.startsWith("A")) return -1;
+      if (notation.startsWith("B")) return 1;
+      return 0; // notation.startsWith("M")
+    }();
+
     const row = Number.parseInt(notation.substring(1), 10);
-    
+
     const { width, depth, gap } = dimensions.space;
 
     const trueWidth = width + gap;
@@ -189,7 +193,7 @@ export class GameView {
     // Calculate position in world space first
     let worldX = initialWorldX + (row - 1) * trueWidth;
     let worldZ = initialWorldZ - (lane + 1) * trueDepth;
-    
+
 
     // Board is rotated Math.PI/2 around Y, so convert to board-relative coords
     // World X becomes board Z, world Z becomes board -X
