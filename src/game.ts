@@ -7,6 +7,7 @@ import { GameModel } from "./model";
 import { GameView } from "./view";
 import { TableGraphics } from "@/graphics/objects";
 import { AmbientLight, DirectionalLight, Scene, type Camera } from "three";
+import { useLazyRef } from "./utils";
 
 function useDebugGui(camera: Camera, gameController: GameController) {
   const debugGui = useRef<GUI | null>(null);
@@ -52,10 +53,13 @@ function useDebugGui(camera: Camera, gameController: GameController) {
 
 export function useGame() {
   const { renderer, camera, rootScene, renderScene } = useGraphicsContainer("game-container");
-  const modelRef = useRef<GameModel | null>(null);
-  const controllerRef = useRef<GameController | null>(null);
-  const viewRef = useRef<GameView | null>(null);
-  const tableRef = useRef<TableGraphics | null>(null);
+  const modelRef = useLazyRef<GameModel>(() => new GameModel());
+  const controllerRef = useLazyRef<GameController>(() => new GameController(modelRef.current));
+  const tableRef = useLazyRef<TableGraphics>(() => new TableGraphics());
+  const viewRef = useLazyRef<GameView>(() => new GameView(tableRef.current, modelRef.current, async (action) => {
+    const result = await controllerRef.current.handleAction(action);
+    console.log(result);
+  }));
 
   useEffect(() => {
 
@@ -108,19 +112,15 @@ export function useGame() {
 
     return () => {
       cancelAnimationFrame(animationId);
-      viewRef.current?.dispose();
-      controllerRef.current?.dispose();
-      modelRef.current?.dispose();
-      tableRef.current?.dispose();
-      viewRef.current = null;
-      controllerRef.current = null;
-      modelRef.current = null;
-      tableRef.current = null;
+      viewRef.current.dispose();
+      controllerRef.current.dispose();
+      modelRef.current.dispose();
+      tableRef.current.dispose();
     };
   }, [rootScene, renderScene]);
 
   useControls(camera, renderer.domElement, renderScene);
-  useDebugGui(camera, controllerRef.current!);
+  useDebugGui(camera, controllerRef.current);
 }
 
 function configureLighting(scene: Scene) {
@@ -132,3 +132,4 @@ function configureLighting(scene: Scene) {
   directionalLight.castShadow = true;
   scene.add(directionalLight);
 }
+
