@@ -4,38 +4,38 @@
  * Mapping of space notation to SVG decoration file paths.
  */
 export const spaceTextureMap: Record<string, string> = {
-  // eyes0.svg: a4, a2, m7
-  "a4": "assets/board-decor/eyes0.svg",
-  "a2": "assets/board-decor/eyes0.svg",
-  "m7": "assets/board-decor/eyes0.svg",
+  // eyes0.svg: A4, A2, M7
+  "A4": "assets/board-decor/eyes0.svg",
+  "A2": "assets/board-decor/eyes0.svg",
+  "M7": "assets/board-decor/eyes0.svg",
 
-  // eyes1.svg: b4, b2
-  "b4": "assets/board-decor/eyes1.svg",
-  "b2": "assets/board-decor/eyes1.svg",
-  // bigfivedots.svg: a3, b3, m2, m5, m8
-  "a3": "assets/board-decor/bigfivedots.svg",
-  "b3": "assets/board-decor/bigfivedots.svg",
-  "m2": "assets/board-decor/bigfivedots.svg",
-  "m5": "assets/board-decor/bigfivedots.svg",
-  "m8": "assets/board-decor/bigfivedots.svg",
+  // eyes1.svg: B4, B2
+  "B4": "assets/board-decor/eyes1.svg",
+  "B2": "assets/board-decor/eyes1.svg",
+  // bigfivedots.svg: A3, B3, M2, M5, M8
+  "A3": "assets/board-decor/bigfivedots.svg",
+  "B3": "assets/board-decor/bigfivedots.svg",
+  "M2": "assets/board-decor/bigfivedots.svg",
+  "M5": "assets/board-decor/bigfivedots.svg",
+  "M8": "assets/board-decor/bigfivedots.svg",
 
-  // twelvedots.svg: m1
-  "m1": "assets/board-decor/twelvedots.svg",
+  // twelvedots.svg: M1
+  "M1": "assets/board-decor/twelvedots.svg",
 
-  // fourfivedots.svg: m3, m6
-  "m3": "assets/board-decor/fourfivedots.svg",
-  "m6": "assets/board-decor/fourfivedots.svg",
+  // fourfivedots.svg: M3, M6
+  "M3": "assets/board-decor/fourfivedots.svg",
+  "M6": "assets/board-decor/fourfivedots.svg",
 
-  // smallfivedots.svg: a8, b8
-  "a8": "assets/board-decor/smallfivedots.svg",
-  "b8": "assets/board-decor/smallfivedots.svg",
+  // smallfivedots.svg: A8, B8
+  "A8": "assets/board-decor/smallfivedots.svg",
+  "B8": "assets/board-decor/smallfivedots.svg",
 
-  // rosette.svg: a1, b1, m4, a7, b7
-  "a1": "assets/board-decor/rosette.svg",
-  "b1": "assets/board-decor/rosette.svg",
-  "m4": "assets/board-decor/rosette.svg",
-  "a7": "assets/board-decor/rosette.svg",
-  "b7": "assets/board-decor/rosette.svg",
+  // rosette.svg: A1, B1, M4, A7, B7
+  "A1": "assets/board-decor/rosette.svg",
+  "B1": "assets/board-decor/rosette.svg",
+  "M4": "assets/board-decor/rosette.svg",
+  "A7": "assets/board-decor/rosette.svg",
+  "B7": "assets/board-decor/rosette.svg",
 };
 
 /**
