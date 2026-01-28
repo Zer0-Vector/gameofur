@@ -30,6 +30,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@core/*": ["src/_core/*"],
+      "@app/*": ["src/_app/*"],
     },
 
     "types": [],
