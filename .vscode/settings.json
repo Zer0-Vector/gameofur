@@ -17,5 +17,15 @@
       "**/Thumbs.db": true,
       "**/CVS": false
     },
-    "explorerExclude.backup": {}
+    "explorerExclude.backup": {},
+    "material-icon-theme.folders.customClones": [
+      {
+        "name": "folder-presenter",
+        "base": "ui",
+        "color": "red-400",
+        "lightColor": "red-800",
+        "folderNames": ["presenter"],
+        "rootFolderNames": ["presenter"]
+      }
+    ]
 }
