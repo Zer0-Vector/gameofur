@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "cannon-es": "^0.20.0",
@@ -22,7 +24,10 @@
     "@types/react-dom": "^18.0.9",
     "@types/three": "^0.182.0",
     "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/ui": "^4.0.18",
+    "happy-dom": "^20.4.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   }
 }
