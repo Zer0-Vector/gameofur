@@ -1,11 +1,12 @@
 import type { Identifiable } from "@/interfaces";
-import type { PieceId, SpaceId } from "@/types/game";
+import type { DieId, PieceId, SpaceId } from "@/types/game";
 
 export type GameObjectIdTypes = {
   piece: PieceId,
   space: SpaceId,
-  die: string,
-  board: string,
+  die: DieId,
+  dice: "dice",
+  board: "board",
 }
 
 /**
