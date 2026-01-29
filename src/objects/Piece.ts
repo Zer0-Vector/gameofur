@@ -12,11 +12,11 @@ export class Piece extends GameObject<"piece"> {
   constructor(index: number, owner: PlayerId) {
     super(`PIECE-${owner}${index}`);
     this.owner = owner;
-    this.position = `SPACE-${owner}-START`;
+    this.position = `${owner}-START`;
   }
 
   get finished(): boolean {
-    return this.position === `SPACE-${this.owner}-FINISH`;
+    return this.position === `${this.owner}-FINISH`;
   }
 
   update(_deltaTime: number): void {
@@ -28,11 +28,11 @@ export class Piece extends GameObject<"piece"> {
   }
 
   returnToStart(): void {
-    this.position = `SPACE-${this.owner}-START`;
+    this.position = `${this.owner}-START`;
   }
 
   override reset(): void {
     super.reset();
-    this.position = `SPACE-${this.owner}-START`;
+    this.returnToStart();
   }
 }
