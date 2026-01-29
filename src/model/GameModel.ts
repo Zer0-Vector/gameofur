@@ -4,11 +4,16 @@ import type { GameModelEvents } from './Events';
 import type { Maybe } from '@/types';
 import type { DiceValues, PieceId, PlayerId, SpaceId } from '@/types/game';
 
+export type GameStatus = "not-started" | "in-progress" | "ended";
+
+
 /**
  * GameModel - Pure observable data for the game.
  * Contains no logic, only state and change notifications.
  */
 export class GameModel extends EventEmitter<GameModelEvents> {
+  public gameStatus: GameStatus;
+
   // Game objects - read-only references
   private readonly _pieces: Map<PieceId, Piece>;
   private readonly _spaces: Map<SpaceId, Space>;
@@ -23,9 +28,12 @@ export class GameModel extends EventEmitter<GameModelEvents> {
     this._pieces = new Map();
     this._spaces = new Map();
     this._dice = [];
-    this._currentPlayer = 'A';
+    this._currentPlayer = "A";
     this._selectedPieceId = undefined;
+    this.gameStatus = "not-started";
   }
+
+
 
   // Read-only accessors
   get pieces(): ReadonlyMap<PieceId, Piece> {
@@ -38,6 +46,10 @@ export class GameModel extends EventEmitter<GameModelEvents> {
 
   get dice(): readonly Die[] {
     return this._dice;
+  }
+
+  get diceTotal(): number {
+    return this._dice.reduce((sum, die) => sum + die.value, 0);
   }
 
   get currentPlayer(): PlayerId {
@@ -71,6 +83,11 @@ export class GameModel extends EventEmitter<GameModelEvents> {
 
   getPieceAt(spaceId: SpaceId): Maybe<Piece> {
     return this._spaces.get(spaceId)?.occupant
+  }
+
+  getPiecesFor(player: PlayerId): Piece[] {
+    return Array.from(this._pieces.values())
+      .filter(piece => piece.owner === player);
   }
 
   selectPiece(pieceId: PieceId): void {
@@ -124,17 +141,19 @@ export class GameModel extends EventEmitter<GameModelEvents> {
 
   startGame(): void {
     this.initializeGameState();
+    this.gameStatus = "in-progress";
     this.emit('game:started', {});
   }
 
   resetGame(): void {
     this.initializeGameState();
+    this.gameStatus = "not-started";
     this.emit('game:reset', {});
   }
 
   private initializeGameState(): void {
     this.clearSelectedPiece();
-    this._currentPlayer = 'A';
+    this._currentPlayer = "A";
   }
 
   /**
