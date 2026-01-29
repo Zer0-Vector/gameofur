@@ -1,22 +1,20 @@
-import type { SpaceNotation } from '@/types/game';
+import type { SpaceId } from '@/types/game';
 import { GameObject } from './GameObject';
 import type { Piece } from './Piece';
-import type { Nullable } from '@/types';
+import type { Maybe } from '@/types';
 
 /**
  * Represents a space on the game board.
  */
 export class Space extends GameObject<"space"> {
   public readonly type = "space";
-  public readonly notation: SpaceNotation;
   public readonly isRosette: boolean;
-  public occupant: Nullable<Piece>;
+  public occupant: Maybe<Piece>;
 
-  constructor(notation: SpaceNotation, isRosette: boolean = false) {
-    super(`SPACE-${notation}`);
-    this.notation = notation;
+  constructor(notation: SpaceId, isRosette: boolean = false) {
+    super(notation);
     this.isRosette = isRosette;
-    this.occupant = null;
+    this.occupant = undefined;
   }
 
   update(_deltaTime: number): void {
@@ -28,9 +26,9 @@ export class Space extends GameObject<"space"> {
     piece.moveTo(this.id);
   }
 
-  removePiece(): Nullable<Piece> {
+  removePiece(): Maybe<Piece> {
     const piece = this.occupant;
-    this.occupant = null;
+    this.occupant = undefined;
     return piece;
   }
 
@@ -50,6 +48,6 @@ export class Space extends GameObject<"space"> {
 
   override reset(): void {
     super.reset();
-    this.occupant = null;
+    this.occupant = undefined;
   }
 }
