@@ -1,4 +1,4 @@
-import type { Player } from "@/types/game";
+import type { PlayerId } from "@/types/game";
 import { GameObject } from './GameObject';
 
 /**
@@ -6,11 +6,11 @@ import { GameObject } from './GameObject';
  */
 export class Piece extends GameObject<"piece"> {
   public readonly type = "piece";
-  public readonly player: Player;
+  public readonly player: PlayerId;
   public position: string | null;
   public finished: boolean;
 
-  constructor(index: number, player: Player) {
+  constructor(index: number, player: PlayerId) {
     super(`PIECE-${player}${index}`);
     this.player = player;
     this.position = null;
