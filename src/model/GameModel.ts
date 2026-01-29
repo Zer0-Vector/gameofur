@@ -1,6 +1,8 @@
 import { EventEmitter } from './EventEmitter';
 import { Piece, Space, Die } from '../objects';
 import type { GameModelEvents } from './Events';
+import type { Maybe } from '@/types';
+import type { DiceValues, PieceId, PlayerId, SpaceId } from '@/types/game';
 
 /**
  * GameModel - Pure observable data for the game.
@@ -8,13 +10,13 @@ import type { GameModelEvents } from './Events';
  */
 export class GameModel extends EventEmitter<GameModelEvents> {
   // Game objects - read-only references
-  private readonly _pieces: Map<string, Piece>;
-  private readonly _spaces: Map<string, Space>;
+  private readonly _pieces: Map<PieceId, Piece>;
+  private readonly _spaces: Map<SpaceId, Space>;
   private readonly _dice: Die[];
 
   // Game state
-  private _currentPlayer: 'A' | 'B';
-  private _selectedPieceId: string | null;
+  private _currentPlayer: PlayerId;
+  private _selectedPieceId: Maybe<PieceId>;
 
   constructor() {
     super();
@@ -22,15 +24,15 @@ export class GameModel extends EventEmitter<GameModelEvents> {
     this._spaces = new Map();
     this._dice = [];
     this._currentPlayer = 'A';
-    this._selectedPieceId = null;
+    this._selectedPieceId = undefined;
   }
 
   // Read-only accessors
-  get pieces(): ReadonlyMap<string, Piece> {
+  get pieces(): ReadonlyMap<PieceId, Piece> {
     return this._pieces;
   }
 
-  get spaces(): ReadonlyMap<string, Space> {
+  get spaces(): ReadonlyMap<SpaceId, Space> {
     return this._spaces;
   }
 
@@ -38,11 +40,11 @@ export class GameModel extends EventEmitter<GameModelEvents> {
     return this._dice;
   }
 
-  get currentPlayer(): 'A' | 'B' {
+  get currentPlayer(): PlayerId {
     return this._currentPlayer;
   }
 
-  get selectedPieceId(): string | null {
+  get selectedPieceId(): Maybe<PieceId> {
     return this._selectedPieceId;
   }
 
@@ -63,78 +65,89 @@ export class GameModel extends EventEmitter<GameModelEvents> {
     this.emit('dice:created', { die });
   }
 
-  movePiece(pieceId: string, fromPosition: string | null, toPosition: string | null): void {
-    this.emit('piece:moved', { pieceId, fromPosition, toPosition });
+  movePiece(id: PieceId, from: SpaceId, to: SpaceId): void {
+    this.emit('piece:moved', { id, from, to });
   }
 
-  selectPiece(pieceId: string): void {
+  getPieceAt(spaceId: SpaceId): Maybe<Piece> {
+    return this._spaces.get(spaceId)?.occupant
+  }
+
+  selectPiece(pieceId: PieceId): void {
     this._selectedPieceId = pieceId;
-    this.emit('piece:selected', { pieceId });
+    this.emit('piece:selected', { id: pieceId });
   }
 
-  deselectPiece(pieceId: string): void {
-    if (this._selectedPieceId === pieceId) {
-      this._selectedPieceId = null;
+  deselectPiece(id: PieceId): void {
+    if (this._selectedPieceId === id) {
+      this._selectedPieceId = undefined;
     }
-    this.emit('piece:deselected', { pieceId });
+    this.emit('piece:deselected', { id });
   }
 
-  knockOutPiece(pieceId: string): void {
-    this.emit('piece:knocked-out', { pieceId });
+  knockOutPiece(id: PieceId): void {
+    this.emit('piece:knocked-out', { id });
   }
 
-  finishPiece(pieceId: string): void {
-    this.emit('piece:finished', { pieceId });
+  finishPiece(id: PieceId): void {
+    this.emit('piece:finished', { id });
   }
 
-  occupySpace(spaceId: string, pieceId: string): void {
-    this.emit('space:occupied', { spaceId, pieceId });
+  occupySpace(id: SpaceId, piece: PieceId): void {
+    this.emit('space:occupied', { id, piece });
   }
 
-  vacateSpace(spaceId: string): void {
-    this.emit('space:vacated', { spaceId });
+  vacateSpace(id: SpaceId): void {
+    this.emit('space:vacated', { id });
   }
 
-  highlightSpace(spaceId: string): void {
-    this.emit('space:highlighted', { spaceId });
+  highlightSpace(id: SpaceId): void {
+    this.emit('space:highlighted', { id });
   }
 
-  unhighlightSpace(spaceId: string): void {
-    this.emit('space:unhighlighted', { spaceId });
+  unhighlightSpace(id: SpaceId): void {
+    this.emit('space:unhighlighted', { id });
   }
 
-  rollDice(diceValues: number[], total: number): void {
+  rollDice(diceValues: DiceValues, total: number): void {
     this.emit('dice:rolled', { diceValues, total });
   }
 
-  setCurrentPlayer(player: 'A' | 'B'): void {
+  setCurrentPlayer(player: PlayerId): void {
+    if (this._currentPlayer === player) {
+      return;
+    }
+
     this._currentPlayer = player;
     this.emit('player:changed', { player });
   }
 
   startGame(): void {
-    this._currentPlayer = 'A';
-    this._selectedPieceId = null;
+    this.initializeGameState();
     this.emit('game:started', {});
   }
 
   resetGame(): void {
-    this._selectedPieceId = null;
-    this._currentPlayer = 'A';
+    this.initializeGameState();
     this.emit('game:reset', {});
+  }
+
+  private initializeGameState(): void {
+    this.clearSelectedPiece();
+    this._currentPlayer = 'A';
   }
 
   /**
    * Get a piece by ID.
    */
-  getPiece(id: string): Piece | undefined {
+  getPiece(id: PieceId): Piece | undefined {
     return this._pieces.get(id);
   }
 
   /**
    * Get a space by ID.
    */
-  getSpace(id: string): Space | undefined {
+  getSpace(id: SpaceId): Space | undefined {
     return this._spaces.get(id);
   }
 
@@ -147,5 +160,9 @@ export class GameModel extends EventEmitter<GameModelEvents> {
 
   dispose(): void {
     // nop
+  }
+
+  private clearSelectedPiece(): void {
+    this._selectedPieceId = undefined;
   }
 }
