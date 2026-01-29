@@ -1,16 +1,16 @@
+import type { DieId, PipValue } from '@/types/game';
 import { GameObject } from './GameObject';
 
 
-export type DieValue = 0 | 1;
 /**
  * Represents a four-sided die (binary: 0 or 1).
  */
 export class Die extends GameObject<"die"> {
-  public value: DieValue;
+  public value: PipValue;
   public isRolling: boolean;
   public readonly type = "die";
 
-  constructor(id: string) {
+  constructor(id: DieId) {
     super(id);
     this.value = 0;
     this.isRolling = false;
@@ -20,7 +20,7 @@ export class Die extends GameObject<"die"> {
     // Update die physics/animation if needed
   }
 
-  async roll(): Promise<DieValue> {
+  async roll(): Promise<PipValue> {
     this.isRolling = true;
     this.state.animating = true;
 
