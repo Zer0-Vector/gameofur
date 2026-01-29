@@ -58,14 +58,14 @@ export class GameView {
 
   private onPieceCreated(data: GameModelEvents["piece:created"]): void {
     const { piece } = data;
-    const player = piece.player;
+    const player = piece.owner;
 
     const pieceWidth = Math.max(dimensions.piece.radiusBottom, dimensions.piece.radiusTop) * 2;
 
     const distanceFromCenter = (dimensions.board.width / 2) + pieceWidth;
     const startX = player === 'A' ? -distanceFromCenter : distanceFromCenter;
     const pieceIndex = Array.from(this.model.pieces.values()).filter(
-      (p) => p.player === player
+      (p) => p.owner === player
     ).length - 1;
     const startZ = pieceIndex * (pieceWidth + 0.5) - ((pieceWidth + 0.5) * 5);
 

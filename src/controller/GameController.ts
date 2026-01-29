@@ -103,7 +103,7 @@ export class GameController {
     }
 
     // Check if it's the correct player's piece
-    if (piece.player !== this.model.currentPlayer) {
+    if (piece.owner !== this.model.currentPlayer) {
       return { success: false, message: "Not your piece" };
     }
 

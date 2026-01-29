@@ -1,4 +1,4 @@
-import type { PlayerId } from "@/types/game";
+import type { PlayerId, SpaceId } from "@/types/game";
 import { GameObject } from './GameObject';
 
 /**
@@ -6,38 +6,33 @@ import { GameObject } from './GameObject';
  */
 export class Piece extends GameObject<"piece"> {
   public readonly type = "piece";
-  public readonly player: PlayerId;
-  public position: string | null;
-  public finished: boolean;
+  public readonly owner: PlayerId;
+  public position: SpaceId;
 
-  constructor(index: number, player: PlayerId) {
-    super(`PIECE-${player}${index}`);
-    this.player = player;
-    this.position = null;
-    this.finished = false;
+  constructor(index: number, owner: PlayerId) {
+    super(`PIECE-${owner}${index}`);
+    this.owner = owner;
+    this.position = `SPACE-${owner}-START`;
+  }
+
+  get finished(): boolean {
+    return this.position === `SPACE-${this.owner}-FINISH`;
   }
 
   update(_deltaTime: number): void {
     // Update piece logic if needed
   }
 
-  moveTo(position: string): void {
+  moveTo(position: SpaceId): void {
     this.position = position;
   }
 
   returnToStart(): void {
-    this.position = null;
-    this.finished = false;
-  }
-
-  finish(): void {
-    this.finished = true;
-    this.position = 'F';
+    this.position = `SPACE-${this.owner}-START`;
   }
 
   override reset(): void {
     super.reset();
-    this.position = null;
-    this.finished = false;
+    this.position = `SPACE-${this.owner}-START`;
   }
 }
