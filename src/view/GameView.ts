@@ -6,6 +6,7 @@ import { Color, Vector3 } from 'three';
 import type { Camera, Raycaster } from 'three';
 import { dimensions } from '@/graphics/constants';
 import { getSpaceTexture } from '@/graphics/constants/textures';
+import type { PieceId, SpaceId } from '@/types/game';
 
 /**
  * GameView - Handles all rendering and user input.
@@ -74,21 +75,18 @@ export class GameView {
   }
 
   private async onPieceMoved(data: {
-    pieceId: string;
-    fromPosition: string | null;
-    toPosition: string | null;
+    id: PieceId;
+    from: SpaceId;
+    to: SpaceId;
   }): Promise<void> {
-    const { pieceId, toPosition } = data;
 
-    if (toPosition === null) {
+    if (data.to === null) {
       // Moved back to start - implement later
       return;
     }
 
     // Find the space to move to
-    const targetSpace = Array.from(this.model.spaces.values()).find(
-      (s) => s.notation === toPosition
-    );
+    const targetSpace = Array.from(this.model.spaces.values()).find((s) => s.id === data.to);
 
     if (!targetSpace) return;
 
@@ -99,35 +97,35 @@ export class GameView {
     const targetPos = spaceGraphics.object3D.position.clone();
     targetPos.y = 1; // Height above space
 
-    await this.table.animateObject(pieceId, 'move', { targetPosition: targetPos });
+    await this.table.animateObject(data.id, 'move', { targetPosition: targetPos });
   }
 
   private onPieceSelected(data: GameModelEvents["piece:selected"]): void {
-    this.table.animateObject(data.pieceId, 'select');
+    this.table.animateObject(data.id, 'select');
   }
 
   private onPieceDeselected(data: GameModelEvents["piece:deselected"]): void {
-    this.table.animateObject(data.pieceId, 'deselect');
+    this.table.animateObject(data.id, 'deselect');
   }
 
   private async onPieceKnockedOut(data: GameModelEvents["piece:knocked-out"]): Promise<void> {
-    await this.table.animateObject(data.pieceId, 'knockout');
+    await this.table.animateObject(data.id, 'knockout');
     // TODO: Move piece back to start position
   }
 
   private onSpaceCreated(data: GameModelEvents["space:created"]): void {
     const { space } = data;
-    const notation = space.notation;
+    const spaceId = space.id;
     const isRosette = space.isRosette;
 
     // Calculate position based on notation
-    const position = this.calculateSpacePosition(notation);
+    const position = this.calculateSpacePosition(spaceId);
 
     // Get texture path for this space
-    const texturePath = getSpaceTexture(notation);
+    const texturePath = getSpaceTexture(spaceId);
 
     // Color is used as fallback when no texture, or for base when texture present
-    const graphics = new SpaceGraphics(notation,
+    const graphics = new SpaceGraphics(spaceId,
       isRosette ? new Color(0xffff00) : new Color(0x808080),
       position,
       texturePath);
@@ -136,11 +134,11 @@ export class GameView {
   }
 
   private onSpaceHighlighted(data: GameModelEvents["space:highlighted"]): void {
-    this.table.board.animateSpace(data.spaceId, 'highlight');
+    this.table.board.animateSpace(data.id, 'highlight');
   }
 
-  private onSpaceUnhighlighted(data: { spaceId: string }): void {
-    this.table.board.animateSpace(data.spaceId, 'unhighlight');
+  private onSpaceUnhighlighted(data: GameModelEvents["space:unhighlighted"]): void {
+    this.table.board.animateSpace(data.id, 'unhighlight');
   }
 
   private onDieCreated(_data: GameModelEvents["dice:created"]): void {
@@ -174,7 +172,7 @@ export class GameView {
    */
   private calculateSpacePosition(notation: string): Vector3 {
     // Parse notation (e.g., 'A1', 'M4', 'B7')
-    const lane = function() {
+    const lane = function () {
       if (notation.startsWith("A")) return -1;
       if (notation.startsWith("B")) return 1;
       return 0; // notation.startsWith("M")
