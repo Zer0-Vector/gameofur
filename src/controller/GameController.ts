@@ -2,7 +2,7 @@ import type { Identifiable } from "@/interfaces";
 import type { GameModel } from "@/model";
 import { Piece, Space, Die } from "@/objects";
 import type { EmptyObject } from "@/types";
-import type { PieceId, SpaceId, SpaceNotation } from "@/types/game";
+import type { DiceValues, PieceId, SpaceId } from "@/types/game";
 
 type GameActionsMap = {
   "piece.select": Identifiable<PieceId>,
@@ -95,7 +95,7 @@ export class GameController {
 
   // Private methods - implement game logic
 
-  private selectPiece(pieceId: string): ActionResult {
+  private selectPiece(pieceId: PieceId): ActionResult {
     const piece = this.model.getPiece(pieceId);
 
     if (!piece) {
@@ -123,7 +123,7 @@ export class GameController {
     return { success: true, message: `Selected piece ${pieceId}` };
   }
 
-  private async movePiece(pieceId: string, spaceId: string): Promise<ActionResult> {
+  private async movePiece(pieceId: PieceId, spaceId: SpaceId): Promise<ActionResult> {
     const piece = this.model.pieces.get(pieceId);
     const space = this.model.spaces.get(spaceId);
 
@@ -140,7 +140,7 @@ export class GameController {
     // Remove piece from old space
     if (piece.position) {
       const oldSpace = Array.from(this.model.spaces.values()).find(
-        (s) => s.notation === piece.position
+        (s) => s.id === piece.position
       );
       if (oldSpace) {
         oldSpace.removePiece();
@@ -158,7 +158,7 @@ export class GameController {
     // Move piece to new space
     space.placePiece(piece);
     this.model.occupySpace(spaceId, pieceId);
-    this.model.movePiece(pieceId, oldPosition, space.notation);
+    this.model.movePiece(pieceId, oldPosition, space.id);
 
     // Check for rosette (extra turn)
     if (space.isRosette) {
@@ -183,7 +183,7 @@ export class GameController {
     const total = results.reduce((sum: number, val) => sum + val, 0);
 
     // Notify model of dice roll
-    this.model.rollDice(results, total);
+    this.model.rollDice(results as DiceValues, total);
 
     // Highlight valid moves based on roll
     this.highlightValidMoves(total);
@@ -195,7 +195,7 @@ export class GameController {
     };
   }
 
-  private async selectSpace(spaceId: string): Promise<ActionResult> {
+  private async selectSpace(spaceId: SpaceId): Promise<ActionResult> {
     const space = this.model.getSpace(spaceId);
 
     if (!space) {
@@ -278,8 +278,8 @@ export class GameController {
     // Player B path: b4 b3 b2 b1 m1 m2 m3 m4 m5 m6 m7 m8 b8 b7 F
     // Rosettes at: a1, b1, m4, a7, b7
 
-    const rosettes = new Set<SpaceNotation>([ "A1", "B1", "M4", "A7", "B7"]);
-    const allSpaces: SpaceNotation[] = [
+    const rosettes = new Set<SpaceId>([ "A1", "B1", "M4", "A7", "B7"]);
+    const allSpaces: SpaceId[] = [
       "A1",
       "A2",
       "A3",
@@ -325,7 +325,7 @@ export class GameController {
   private createDice(): void {
     // Create 4 dice
     for (let i = 0; i < 4; i++) {
-      const die = new Die(`die_${i}`);
+      const die = new Die(`DIE-${i}`);
       this.model.addDie(die);
     }
   }
